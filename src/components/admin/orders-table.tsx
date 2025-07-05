@@ -1,6 +1,7 @@
 "use client";
 
-import { MoreHorizontal, File, MessageSquare } from "lucide-react";
+import Link from "next/link";
+import { MoreHorizontal, File, MessageSquare, Printer } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -136,6 +137,12 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuItem>View Details</DropdownMenuItem>
                       <DropdownMenuItem>Mark as Shipped</DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href={`/print/receipt/${order.id}`} target="_blank" rel="noopener noreferrer">
+                          <Printer className="mr-2 h-4 w-4" />
+                          <span>Print Receipt</span>
+                        </Link>
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={() => handleSendNotification(order)}
