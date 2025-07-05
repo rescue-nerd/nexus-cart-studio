@@ -31,7 +31,7 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
+    if (!auth) {
       toast({
           variant: "destructive",
           title: "Firebase Not Configured",

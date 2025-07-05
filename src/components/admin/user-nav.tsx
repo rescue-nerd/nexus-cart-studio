@@ -30,16 +30,23 @@ export function UserNav() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setIsLoading(false);
-    });
-    return () => unsubscribe();
+    if (auth) {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          setUser(user);
+          setIsLoading(false);
+        });
+        return () => unsubscribe();
+    } else {
+        // If Firebase is not configured, stop loading.
+        setIsLoading(false);
+    }
   }, []);
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      if (auth) {
+        await signOut(auth);
+      }
       router.push('/login');
     } catch (error) {
       console.error("Logout failed", error);

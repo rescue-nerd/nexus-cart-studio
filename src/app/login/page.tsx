@@ -29,7 +29,7 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
+    if (!auth) {
       toast({
           variant: "destructive",
           title: "Firebase Not Configured",
