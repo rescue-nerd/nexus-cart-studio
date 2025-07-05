@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { headers } from "next/headers";
 import { PlusCircle, MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,9 +26,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { products } from "@/lib/placeholder-data";
+import { products as allProducts } from "@/lib/placeholder-data";
 
 export default function ProductsPage() {
+  const headersList = headers();
+  const storeId = headersList.get('x-store-id');
+  const products = allProducts.filter(p => p.storeId === storeId);
+
   return (
     <Card>
       <CardHeader>

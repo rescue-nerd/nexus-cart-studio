@@ -4,14 +4,14 @@ import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { NexusCartLogo } from "@/components/icons";
 import { Search, ShoppingCart, User, Menu } from "lucide-react";
 
-export function Header() {
+export function Header({ storeName }: { storeName: string }) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <div className="mr-4 hidden md:flex">
           <Link href="/store" className="mr-6 flex items-center space-x-2">
             <NexusCartLogo className="h-6 w-6 text-primary" />
-            <span className="font-bold">Nexus Cart</span>
+            <span className="font-bold">{storeName}</span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
             <Link
@@ -49,7 +49,7 @@ export function Header() {
           <SheetContent side="left">
             <Link href="/store" className="mr-6 flex items-center space-x-2">
               <NexusCartLogo className="h-6 w-6 text-primary" />
-              <span className="font-bold">Nexus Cart</span>
+              <span className="font-bold">{storeName}</span>
             </Link>
             <div className="divide-y divide-border">
               <nav className="grid gap-2 py-6">

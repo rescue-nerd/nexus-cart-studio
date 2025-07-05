@@ -1,13 +1,20 @@
+import { headers } from "next/headers";
+import Link from "next/link";
+import { PanelLeft, Shield } from "lucide-react";
+
 import { NexusCartLogo } from "@/components/icons";
 import { SidebarNav } from "@/components/admin/sidebar-nav";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { UserNav } from "@/components/admin/user-nav";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { PanelLeft, Shield } from "lucide-react";
-import Link from "next/link";
+import { stores } from "@/lib/placeholder-data";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const headersList = headers();
+  const storeId = headersList.get('x-store-id');
+  const store = stores.find((s) => s.id === storeId);
+
   return (
     <TooltipProvider>
       <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -18,10 +25,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               className="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base"
             >
               <NexusCartLogo className="h-4 w-4 transition-all group-hover:scale-110" />
-              <span className="sr-only">Nexus Cart</span>
+              <span className="sr-only">{store?.name || 'Nexus Cart'}</span>
             </Link>
           </nav>
-          <SidebarNav />
+          <SidebarNav store={store} />
            <nav className="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
             <Link
                 href="/admin"
@@ -48,7 +55,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
                   >
                     <NexusCartLogo className="h-5 w-5 transition-all group-hover:scale-110" />
-                    <span className="sr-only">Nexus Cart</span>
+                    <span className="sr-only">{store?.name || 'Nexus Cart'}</span>
                   </Link>
                   <Link
                     href="/dashboard"
@@ -75,7 +82,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     Settings
                   </Link>
                   <Link
-                    href="/store"
+                    href={store ? `http://${store.domain}` : "/store"}
+                    target="_blank"
                     className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
                   >
                     View Store

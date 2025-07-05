@@ -9,7 +9,7 @@ function SocialIcon({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function Footer() {
+export function Footer({ storeName }: { storeName: string }) {
   return (
     <footer className="border-t">
       <div className="container py-12">
@@ -17,7 +17,7 @@ export function Footer() {
           <div className="space-y-4 col-span-2 md:col-span-1">
             <Link href="#" className="flex items-center space-x-2">
               <NexusCartLogo className="h-6 w-6 text-primary" />
-              <span className="font-bold text-lg">Nexus Cart</span>
+              <span className="font-bold text-lg">{storeName}</span>
             </Link>
             <p className="text-sm text-muted-foreground">
               Authentic, handcrafted treasures from the heart of the Himalayas.
@@ -54,7 +54,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 border-t pt-6 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Nexus Cart. All Rights Reserved.
+          © {new Date().getFullYear()} {storeName}. All Rights Reserved.
         </div>
       </div>
     </footer>

@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { DollarSign, Package, ShoppingCart } from "lucide-react";
 import {
   Card,
@@ -7,12 +8,32 @@ import {
 } from "@/components/ui/card";
 import { OverviewChart } from "@/components/admin/overview-chart";
 import { RecentSales } from "@/components/admin/recent-sales";
-import { analytics } from "@/lib/placeholder-data";
+import { analytics, stores } from "@/lib/placeholder-data";
 import StatCard from "@/components/admin/stat-card";
+import { notFound } from "next/navigation";
 
 export default function DashboardPage() {
+  const headersList = headers();
+  const storeId = headersList.get('x-store-id');
+  const store = stores.find(s => s.id === storeId);
+
+  if (!store) {
+    // In a real app, you might want a better UX for a store admin
+    // trying to access a dashboard without a valid store context.
+    notFound();
+  }
+
+  // NOTE: The analytics data is currently global for all stores.
+  // In a real application, you would filter this data based on the `storeId`.
+  
   return (
     <div className="flex flex-col gap-4">
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold">Dashboard for {store.name}</h1>
+        <p className="text-muted-foreground">
+          Here's an overview of your store's performance.
+        </p>
+      </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <StatCard 
           title="Total Sales"
@@ -47,7 +68,7 @@ export default function DashboardPage() {
             <CardTitle>Recent Sales</CardTitle>
           </CardHeader>
           <CardContent>
-            <RecentSales />
+            <RecentSales storeId={store.id} />
           </CardContent>
         </Card>
       </div>

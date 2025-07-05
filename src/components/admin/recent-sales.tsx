@@ -3,17 +3,26 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
-import { orders } from "@/lib/placeholder-data";
+import { orders as allOrders } from "@/lib/placeholder-data";
 
-export function RecentSales() {
-  const recentOrders = orders.slice(0, 5);
+export function RecentSales({ storeId }: { storeId: string }) {
+  const storeOrders = allOrders.filter(o => o.storeId === storeId);
+  const recentOrders = storeOrders.slice(0, 5);
+
+  if (recentOrders.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+        No recent sales for this store.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
       {recentOrders.map((order) => (
         <div className="flex items-center" key={order.id}>
           <Avatar className="h-9 w-9">
-            <AvatarImage src={`/avatars/${order.id.slice(-1)}.png`} alt="Avatar" />
+            <AvatarImage src={`https://i.pravatar.cc/40?u=${order.customerEmail}`} alt="Avatar" />
             <AvatarFallback>{order.customerName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
           </Avatar>
           <div className="ml-4 space-y-1">

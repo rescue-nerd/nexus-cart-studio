@@ -1,13 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { categories, products } from "@/lib/placeholder-data";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { categories, products as allProducts, stores } from "@/lib/placeholder-data";
 import { AIChat } from "@/components/storefront/ai-chat";
 import { Header } from "@/components/storefront/header";
 import { Footer } from "@/components/storefront/footer";
+import { notFound } from "next/navigation";
 
-function ProductCard({ product }: { product: typeof products[0] }) {
+function ProductCard({ product }: { product: typeof allProducts[0] }) {
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-lg">
       <CardHeader className="p-0">
@@ -33,14 +35,25 @@ function ProductCard({ product }: { product: typeof products[0] }) {
 }
 
 export default function StorePage() {
+  const headersList = headers();
+  const storeId = headersList.get('x-store-id');
+  const store = stores.find(s => s.id === storeId);
+  
+  if (!store) {
+    // This will render the not-found.tsx file if it exists, or a default Next.js 404 page.
+    notFound();
+  }
+
+  const products = allProducts.filter(p => p.storeId === storeId);
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header />
+      <Header storeName={store.name} />
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32 bg-primary/10">
           <div className="container px-4 md:px-6 text-center">
             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none font-headline text-primary-foreground mix-blend-multiply">
-              Discover the Soul of Nepal
+              Discover the Soul of Nepal at {store.name}
             </h1>
             <p className="mx-auto max-w-[700px] text-primary-foreground/80 md:text-xl mt-4 mix-blend-multiply">
               Authentic, handcrafted treasures from the heart of the Himalayas.
@@ -83,7 +96,7 @@ export default function StorePage() {
           </div>
         </section>
       </main>
-      <Footer />
+      <Footer storeName={store.name} />
       <AIChat />
     </div>
   );
