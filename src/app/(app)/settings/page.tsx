@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -16,16 +18,27 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
+import { useTheme } from "@/hooks/use-theme"
+import { cn } from "@/lib/utils"
 
 export default function SettingsPage() {
+  const { theme, setTheme } = useTheme()
+
+  const themes = [
+    { name: 'default', label: 'Default', colors: ['#619bc9', '#f6f8fa'] },
+    { name: 'forest', label: 'Forest', colors: ['#1a9a52', '#f9fafb'] },
+    { name: 'ruby', label: 'Ruby', colors: ['#d62558', '#fafafa'] },
+  ]
+
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-2">
       <h1 className="text-3xl font-semibold">Settings</h1>
       <Tabs defaultValue="profile">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="profile">Store Profile</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="seo">SEO</TabsTrigger>
+          <TabsTrigger value="appearance">Appearance</TabsTrigger>
         </TabsList>
         <TabsContent value="profile">
           <Card>
@@ -111,6 +124,43 @@ export default function SettingsPage() {
             <CardFooter>
               <Button>Save changes</Button>
             </CardFooter>
+          </Card>
+        </TabsContent>
+        <TabsContent value="appearance">
+          <Card>
+            <CardHeader>
+              <CardTitle>Appearance</CardTitle>
+              <CardDescription>
+                Customize the look and feel of your store and dashboard.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {themes.map((themeOption) => (
+                  <div key={themeOption.name}>
+                    <Button
+                      variant={theme === themeOption.name ? 'default' : 'outline'}
+                      className={cn(
+                        "h-24 w-full justify-start p-4 flex-col items-start gap-2",
+                          theme === themeOption.name && "ring-2 ring-ring"
+                      )}
+                      onClick={() => setTheme(themeOption.name as any)}
+                    >
+                        <div className="flex gap-2">
+                          {themeOption.colors.map((color) => (
+                            <div
+                              key={color}
+                              className="h-6 w-6 rounded-full border"
+                              style={{ backgroundColor: color }}
+                            />
+                          ))}
+                        </div>
+                        <span className="font-semibold">{themeOption.label}</span>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
