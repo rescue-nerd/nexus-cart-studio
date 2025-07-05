@@ -25,6 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { orders } from "@/lib/placeholder-data";
+import { format } from 'date-fns';
 
 export default function OrdersPage() {
   const getStatusVariant = (status: string) => {
@@ -89,7 +90,7 @@ export default function OrdersPage() {
                   </Badge>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
-                  {new Date(order.date).toLocaleDateString()}
+                  {format(new Date(order.date), "PPP")}
                 </TableCell>
                 <TableCell className="text-right">Rs {order.total.toFixed(2)}</TableCell>
                 <TableCell className="text-right">
