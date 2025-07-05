@@ -100,8 +100,8 @@ export default function SuperAdminDashboard() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem asChild><Link href={`http://${store.domain}:9002`} target="_blank">View Storefront</Link></DropdownMenuItem>
-                      <DropdownMenuItem asChild><Link href={`http://${store.domain}:9002/dashboard`} target="_blank">View Dashboard</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link href={`http://${store.domain}`} target="_blank">View Storefront</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link href={`http://${store.domain}/dashboard`} target="_blank">View Dashboard</Link></DropdownMenuItem>
                       <DropdownMenuItem>Deactivate Store</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

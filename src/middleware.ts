@@ -1,50 +1,31 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { stores } from '@/lib/placeholder-data';
 
-// This is a list of hostnames that are part of the main platform, not tenant stores.
-// In a real app, this would be your main domain. For local dev, it's localhost.
-const PLATFORM_HOSTNAMES = ['localhost:9002', 'nexuscart.com', 'www.nexuscart.com', 'app.nexuscart.com'];
-
 export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
   const hostname = request.headers.get('host')!;
 
-  const isPlatformHostname = PLATFORM_HOSTNAMES.some(h => hostname.startsWith(h));
-  
-  // Find the store data based on the hostname.
+  // Check if the hostname is a store domain from our data
   const store = stores.find(s => s.domain === hostname);
-  
+
   if (store) {
-    // This is a tenant store.
+    // It's a store domain. Add the store ID to headers and rewrite the URL.
     console.log(`Rewriting for store: ${store.name} on domain ${hostname}`);
-    
-    // Add x-store-id header to the request
     request.headers.set('x-store-id', store.id);
 
-    // If the path is `/`, rewrite to the `/store` page.
+    // If accessing the root of a store's domain, show the storefront page.
     if (url.pathname === '/') {
       url.pathname = `/store`;
     }
     
-    // Rewrite the request to the new URL but preserve the original headers
+    // Rewrite the request to the new URL, preserving original headers and URL.
     return NextResponse.rewrite(url, { request });
-
-  } else if (isPlatformHostname) {
-    // This is the main platform.
-    
-    // If the path is `/`, rewrite to the `/admin` page (superadmin dashboard)
-    if (url.pathname === '/') {
-        url.pathname = `/admin`;
-        return NextResponse.rewrite(url);
-    }
-    
-    // Allow access to other platform routes like /admin, /login, /signup
-    return NextResponse.next();
   }
 
-  // If no store is found and it's not a platform domain, show a 404.
-  // In a real app, you might want a dedicated "store not found" page.
-  return new Response('Store not found.', { status: 404 });
+  // If it's not a store domain, treat it as the main platform and let Next.js handle routing.
+  // This is more robust for preview environments.
+  // Requests for `/`, `/admin`, `/login` etc. will be handled by their respective pages.
+  return NextResponse.next();
 }
 
 export const config = {
