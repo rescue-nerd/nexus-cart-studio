@@ -1,3 +1,57 @@
+export type Store = {
+  id: string;
+  name: string;
+  ownerName: string;
+  ownerEmail: string;
+  status: 'Active' | 'Inactive' | 'Suspended';
+  productCount: number;
+  orderCount: number;
+  domain: string;
+};
+
+export const stores: Store[] = [
+  {
+    id: 'store_001',
+    name: 'My Nepali Bazaar',
+    ownerName: 'Rohan Shrestha',
+    ownerEmail: 'rohan.s@example.com',
+    status: 'Active',
+    productCount: 8,
+    orderCount: 5,
+    domain: 'bazaar.nexuscart.com',
+  },
+  {
+    id: 'store_002',
+    name: 'Himalayan Crafts',
+    ownerName: 'Anjali Lama',
+    ownerEmail: 'anjali.l@example.com',
+    status: 'Active',
+    productCount: 15,
+    orderCount: 22,
+    domain: 'himalayan.nexuscart.com',
+  },
+  {
+    id: 'store_003',
+    name: 'Kathmandu Spices',
+    ownerName: 'Bikram Thapa',
+    ownerEmail: 'bikram.t@example.com',
+    status: 'Inactive',
+    productCount: 25,
+    orderCount: 10,
+    domain: 'spices.nexuscart.com',
+  },
+    {
+    id: 'store_004',
+    name: 'Gurung Garments',
+    ownerName: 'Sunita Gurung',
+    ownerEmail: 'sunita.g@example.com',
+    status: 'Suspended',
+    productCount: 50,
+    orderCount: 120,
+    domain: 'gurung.nexuscart.com',
+  },
+];
+
 export type Product = {
   id: string;
   name: string;
