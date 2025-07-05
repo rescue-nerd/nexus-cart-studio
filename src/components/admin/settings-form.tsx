@@ -20,7 +20,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import { useTheme } from "@/hooks/use-theme"
+import { useTheme } from "@/hooks/use-theme.tsx"
 import { cn } from "@/lib/utils"
 import { type Store, type Plan } from "@/lib/placeholder-data"
 import { CheckCircle, Loader2 } from "lucide-react"
