@@ -1,5 +1,7 @@
 "use client"
 
+import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -21,7 +23,10 @@ import {
 import { useTheme } from "@/hooks/use-theme"
 import { cn } from "@/lib/utils"
 import { type Store, type Plan } from "@/lib/placeholder-data"
-import { CheckCircle } from "lucide-react"
+import { CheckCircle, Loader2 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast";
+import { updateStorePlan } from "@/app/(app)/settings/actions";
+
 
 interface SettingsFormProps {
     store: Store;
@@ -31,13 +36,38 @@ interface SettingsFormProps {
 
 export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps) {
   const { theme, setTheme } = useTheme()
+  const { toast } = useToast();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
 
   const themes = [
     { name: 'default', label: 'Default', colors: ['#619bc9', '#f6f8fa'] },
     { name: 'forest', label: 'Forest', colors: ['#1a9a52', '#f9fafb'] },
     { name: 'ruby', label: 'Ruby', colors: ['#d62558', '#fafafa'] },
     { name: 'amethyst', label: 'Amethyst', colors: ['#8a42e2', '#f9f5ff'] },
-  ]
+  ];
+
+  const handlePlanChange = (newPlanId: string) => {
+    setPendingPlanId(newPlanId);
+    startTransition(async () => {
+      const result = await updateStorePlan(store.id, newPlanId);
+      if (result.success) {
+        toast({
+          title: "Plan Updated!",
+          description: `Your store is now on the ${result.newPlanName} plan.`,
+        });
+        router.refresh();
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Update Failed",
+          description: result.message || "An unknown error occurred.",
+        });
+      }
+      setPendingPlanId(null);
+    });
+  };
 
   return (
     <Tabs defaultValue="profile">
@@ -114,8 +144,10 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
                                 <CardFooter>
                                     <Button 
                                         className="w-full"
-                                        disabled={plan.id === currentPlan?.id}
+                                        disabled={isPending || plan.id === currentPlan?.id}
+                                        onClick={() => handlePlanChange(plan.id)}
                                     >
+                                        {isPending && pendingPlanId === plan.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                         {plan.id === currentPlan?.id ? 'Current Plan' : 'Switch to ' + plan.name}
                                     </Button>
                                 </CardFooter>
