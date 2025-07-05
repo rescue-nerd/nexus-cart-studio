@@ -1,3 +1,32 @@
+
+export type Plan = {
+  id: string;
+  name: string;
+  price: number; // Monthly price in Rs
+  features: string[];
+};
+
+export const plans: Plan[] = [
+  {
+    id: 'plan_basic',
+    name: 'Basic',
+    price: 999,
+    features: ['Up to 50 products', 'Basic Analytics', 'Community Support'],
+  },
+  {
+    id: 'plan_pro',
+    name: 'Pro',
+    price: 2499,
+    features: ['Up to 500 products', 'Advanced Analytics', 'WhatsApp Notifications', 'Email Support'],
+  },
+  {
+    id: 'plan_enterprise',
+    name: 'Enterprise',
+    price: 7999,
+    features: ['Unlimited products', 'Full Analytics Suite', 'Custom Integrations', 'Dedicated Support'],
+  },
+];
+
 export type Store = {
   id: string;
   name: string;
@@ -7,6 +36,7 @@ export type Store = {
   productCount: number;
   orderCount: number;
   domain: string;
+  planId: string;
 };
 
 export const stores: Store[] = [
@@ -19,6 +49,7 @@ export const stores: Store[] = [
     productCount: 4,
     orderCount: 3,
     domain: 'bazaar.nexuscart.com',
+    planId: 'plan_pro',
   },
   {
     id: 'store_002',
@@ -29,6 +60,7 @@ export const stores: Store[] = [
     productCount: 4,
     orderCount: 2,
     domain: 'himalayan.nexuscart.com',
+    planId: 'plan_basic',
   },
   {
     id: 'store_003',
@@ -39,6 +71,7 @@ export const stores: Store[] = [
     productCount: 25,
     orderCount: 10,
     domain: 'spices.nexuscart.com',
+    planId: 'plan_basic',
   },
     {
     id: 'store_004',
@@ -49,6 +82,7 @@ export const stores: Store[] = [
     productCount: 50,
     orderCount: 120,
     domain: 'gurung.nexuscart.com',
+    planId: 'plan_enterprise',
   },
 ];
 
