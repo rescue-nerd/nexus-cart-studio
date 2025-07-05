@@ -13,6 +13,7 @@ export type Order = {
   id: string;
   customerName: string;
   customerEmail: string;
+  customerPhone?: string;
   date: string;
   status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
   total: number;
@@ -109,12 +110,17 @@ export const products: Product[] = [
 ];
 
 export const orders: Order[] = [
-  { id: 'ORD-001', customerName: 'Rohan Shrestha', customerEmail: 'rohan.s@example.com', date: '2023-10-26', status: 'Delivered', total: 85.00 },
-  { id: 'ORD-002', customerName: 'Anjali Lama', customerEmail: 'anjali.l@example.com', date: '2023-10-25', status: 'Delivered', total: 150.00 },
-  { id: 'ORD-003', customerName: 'Bikram Thapa', customerEmail: 'bikram.t@example.com', date: '2023-10-25', status: 'Shipped', total: 25.00 },
-  { id: 'ORD-004', customerName: 'Sunita Gurung', customerEmail: 'sunita.g@example.com', date: '2023-10-24', status: 'Processing', total: 60.00 },
-  { id: 'ORD-005', customerName: 'Karma Sherpa', customerEmail: 'karma.s@example.com', date: '2023-10-23', status: 'Pending', total: 95.00 },
+  { id: 'ORD-001', customerName: 'Rohan Shrestha', customerEmail: 'rohan.s@example.com', customerPhone: '+9779800000001', date: '2023-10-26', status: 'Delivered', total: 85.00 },
+  { id: 'ORD-002', customerName: 'Anjali Lama', customerEmail: 'anjali.l@example.com', customerPhone: '+9779800000002', date: '2023-10-25', status: 'Delivered', total: 150.00 },
+  { id: 'ORD-003', customerName: 'Bikram Thapa', customerEmail: 'bikram.t@example.com', customerPhone: '+9779800000003', date: '2023-10-25', status: 'Shipped', total: 25.00 },
+  { id: 'ORD-004', customerName: 'Sunita Gurung', customerEmail: 'sunita.g@example.com', customerPhone: '+9779800000004', date: '2023-10-24', status: 'Processing', total: 60.00 },
+  { id: 'ORD-005', customerName: 'Karma Sherpa', customerEmail: 'karma.s@example.com', customerPhone: '+9779800000005', date: '2023-10-23', status: 'Pending', total: 95.00 },
 ];
+
+export const storeConfig = {
+  sellerWhatsAppNumber: '+9779860000000', // Replace with the actual seller's WhatsApp number
+  name: 'My Nepali Bazaar',
+};
 
 export const analytics = {
   totalSales: 4850.75,

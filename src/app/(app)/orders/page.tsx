@@ -1,4 +1,6 @@
-import { MoreHorizontal, File } from "lucide-react";
+"use client";
+
+import { MoreHorizontal, File, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   Table,
@@ -24,10 +27,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { orders } from "@/lib/placeholder-data";
+import { orders, type Order } from "@/lib/placeholder-data";
 import { format } from 'date-fns';
+import { useTransition } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { sendOrderUpdateNotifications } from "@/lib/order-service";
 
 export default function OrdersPage() {
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
+
   const getStatusVariant = (status: string) => {
     switch (status) {
       case 'Delivered':
@@ -42,6 +51,28 @@ export default function OrdersPage() {
       default:
         return 'default';
     }
+  };
+
+  const handleSendNotification = (order: Order) => {
+    startTransition(async () => {
+      toast({
+        title: "Sending Notification...",
+        description: `Sending WhatsApp update for order ${order.id}.`,
+      });
+      const result = await sendOrderUpdateNotifications(order);
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   return (
@@ -96,7 +127,7 @@ export default function OrdersPage() {
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
+                      <Button aria-haspopup="true" size="icon" variant="ghost" disabled={isPending}>
                         <MoreHorizontal className="h-4 w-4" />
                         <span className="sr-only">Toggle menu</span>
                       </Button>
@@ -105,7 +136,18 @@ export default function OrdersPage() {
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuItem>View Details</DropdownMenuItem>
                       <DropdownMenuItem>Mark as Shipped</DropdownMenuItem>
-                      <DropdownMenuItem>Cancel Order</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => handleSendNotification(order)}
+                        disabled={isPending}
+                      >
+                        <MessageSquare className="mr-2 h-4 w-4" />
+                        <span>Send WhatsApp Update</span>
+                      </DropdownMenuItem>
+                       <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                        Cancel Order
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
