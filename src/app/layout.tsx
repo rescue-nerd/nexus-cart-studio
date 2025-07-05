@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/hooks/use-theme';
 export const metadata: Metadata = {
   title: 'Nepali Bazaar Builder - Nexus Cart',
   description: 'Your platform to build and manage your Nepali e-commerce store.',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
@@ -19,8 +20,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+        <meta name="theme-color" content="#ffffff" />
       </head>
-      <body className="font-body antialiased">
+      <body className="font-body antialiased" suppressHydrationWarning={true}>
         <ThemeProvider>
           {children}
           <Toaster />
