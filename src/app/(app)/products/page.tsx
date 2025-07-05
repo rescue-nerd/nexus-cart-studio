@@ -27,6 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { products as allProducts } from "@/lib/placeholder-data";
+import Link from "next/link";
 
 export default function ProductsPage() {
   const headersList = headers();
@@ -43,11 +44,13 @@ export default function ProductsPage() {
               Manage your products and view their sales performance.
             </CardDescription>
           </div>
-          <Button size="sm" className="gap-1">
-            <PlusCircle className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Add Product
-            </span>
+          <Button size="sm" className="gap-1" asChild>
+            <Link href="/products/new">
+              <PlusCircle className="h-3.5 w-3.5" />
+              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                Add Product
+              </span>
+            </Link>
           </Button>
         </div>
       </CardHeader>
