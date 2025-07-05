@@ -1,26 +1,41 @@
+'use client';
+
 import Image from "next/image";
-import { headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, ShoppingCart } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { products as allProducts } from "@/lib/placeholder-data";
+import { products as allProducts, type Product } from "@/lib/placeholder-data";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useCart } from "@/hooks/use-cart";
 
-export default function ProductDetailPage({ params }: { params: { productId: string } }) {
+export default function ProductDetailPage() {
+  const params = useParams();
   const { productId } = params;
-  const product = allProducts.find((p) => p.id === productId);
+  const { addToCart } = useCart();
 
+  const [product, setProduct] = useState<Product | undefined>(undefined);
+
+  useEffect(() => {
+    const foundProduct = allProducts.find((p) => p.id === productId);
+    if (foundProduct) {
+        setProduct(foundProduct);
+    } else {
+        notFound();
+    }
+  }, [productId]);
+
+
+  const handleAddToCart = () => {
+    if (product) {
+      addToCart(product, 1);
+    }
+  };
+  
   if (!product) {
-    notFound();
-  }
-
-  // Multi-tenancy check happens in the layout, but it's good practice to check here too.
-  const headersList = headers();
-  const storeId = headersList.get('x-store-id');
-  if (product.storeId !== storeId) {
-    notFound();
+    return <div>Loading...</div>;
   }
 
   return (
@@ -63,7 +78,7 @@ export default function ProductDetailPage({ params }: { params: { productId: str
           </div>
 
           <div className="mt-4">
-            <Button size="lg" className="w-full md:w-auto" disabled={product.stock === 0}>
+            <Button size="lg" className="w-full md:w-auto" disabled={product.stock === 0} onClick={handleAddToCart}>
               <ShoppingCart className="mr-2 h-5 w-5" />
               Add to Cart
             </Button>

@@ -4,6 +4,7 @@ import { stores } from "@/lib/placeholder-data";
 import { AIChat } from "@/components/storefront/ai-chat";
 import { Header } from "@/components/storefront/header";
 import { Footer } from "@/components/storefront/footer";
+import { CartProvider } from "@/hooks/use-cart";
 
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
   const headersList = headers();
@@ -16,13 +17,15 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
   }
   
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <Header storeName={store.name} />
-      <main className="flex-1">
-        {children}
-      </main>
-      <Footer storeName={store.name} />
-      <AIChat />
-    </div>
+    <CartProvider>
+      <div className="flex flex-col min-h-screen bg-background">
+        <Header storeName={store.name} />
+        <main className="flex-1">
+          {children}
+        </main>
+        <Footer storeName={store.name} />
+        <AIChat />
+      </div>
+    </CartProvider>
   );
 }

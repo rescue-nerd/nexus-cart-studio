@@ -1,8 +1,11 @@
+'use client';
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { NexusCartLogo } from "@/components/icons";
-import { Search, ShoppingCart, User, Menu } from "lucide-react";
+import { Search, User, Menu } from "lucide-react";
+import { CartSheet } from "./cart-sheet";
 
 export function Header({ storeName }: { storeName: string }) {
   return (
@@ -15,13 +18,13 @@ export function Header({ storeName }: { storeName: string }) {
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
             <Link
-              href="#categories"
+              href="/store#categories"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
               Categories
             </Link>
             <Link
-              href="#products"
+              href="/store#products"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
               Products
@@ -53,8 +56,8 @@ export function Header({ storeName }: { storeName: string }) {
             </Link>
             <div className="divide-y divide-border">
               <nav className="grid gap-2 py-6">
-                <Link href="#categories" className="flex w-full items-center py-2 text-lg font-semibold">Categories</Link>
-                <Link href="#products" className="flex w-full items-center py-2 text-lg font-semibold">Products</Link>
+                <Link href="/store#categories" className="flex w-full items-center py-2 text-lg font-semibold">Categories</Link>
+                <Link href="/store#products" className="flex w-full items-center py-2 text-lg font-semibold">Products</Link>
                 <Link href="#" className="flex w-full items-center py-2 text-lg font-semibold">About</Link>
               </nav>
             </div>
@@ -70,9 +73,7 @@ export function Header({ storeName }: { storeName: string }) {
               <User className="h-5 w-5" />
             </Link>
           </Button>
-          <Button variant="ghost" size="icon">
-            <ShoppingCart className="h-5 w-5" />
-          </Button>
+          <CartSheet />
         </div>
       </div>
     </header>
