@@ -23,9 +23,9 @@ import {
 import { useTheme } from "@/hooks/use-theme.tsx"
 import { cn } from "@/lib/utils"
 import { type Store, type Plan } from "@/lib/placeholder-data"
-import { CheckCircle, Loader2 } from "lucide-react"
+import { CheckCircle, Loader2, Sparkles } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
-import { updateStorePlan } from "@/app/(app)/settings/actions";
+import { updateStorePlan, updateSeoSettings, suggestKeywordsAction } from "@/app/(app)/settings/actions";
 
 
 interface SettingsFormProps {
@@ -39,7 +39,14 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
   const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isSeoPending, startSeoTransition] = useTransition();
+  const [isAiPending, startAiTransition] = useTransition();
   const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
+
+  // SEO State
+  const [metaTitle, setMetaTitle] = useState(store.metaTitle || '');
+  const [metaDescription, setMetaDescription] = useState(store.metaDescription || '');
+  const [metaKeywords, setMetaKeywords] = useState(store.metaKeywords || '');
 
   const themes = [
     { name: 'default', label: 'Default', colors: ['#619bc9', '#f6f8fa'] },
@@ -69,6 +76,51 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
     });
   };
 
+  const handleSeoSave = () => {
+    startSeoTransition(async () => {
+      const result = await updateSeoSettings(store.id, {
+        title: metaTitle,
+        description: metaDescription,
+        keywords: metaKeywords,
+      });
+
+      if (result.success) {
+        toast({
+          title: "SEO Settings Saved",
+          description: "Your storefront has been updated.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Save Failed",
+          description: result.message || "Could not save SEO settings.",
+        });
+      }
+    });
+  };
+
+  const handleSuggestKeywords = () => {
+    startAiTransition(async () => {
+      // We can use the store description or meta description as a source
+      const sourceText = store.description || metaDescription;
+      const result = await suggestKeywordsAction(sourceText);
+
+      if (result.success && result.keywords) {
+        setMetaKeywords(result.keywords.join(', '));
+        toast({
+          title: "Keywords Suggested",
+          description: "AI has generated new keywords based on your store description.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Suggestion Failed",
+          description: result.message || "Could not get AI suggestions.",
+        });
+      }
+    });
+  }
+
   return (
     <Tabs defaultValue="profile">
         <TabsList className="grid w-full grid-cols-5">
@@ -93,7 +145,7 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
               </div>
               <div className="space-y-1">
                 <Label htmlFor="description">Store Description</Label>
-                <Textarea id="description" defaultValue="The best handcrafted goods from the Himalayas." />
+                <Textarea id="description" defaultValue={store.description} />
               </div>
             </CardContent>
             <CardFooter>
@@ -204,19 +256,28 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
             <CardContent className="space-y-4">
               <div className="space-y-1">
                 <Label htmlFor="meta-title">Meta Title</Label>
-                <Input id="meta-title" defaultValue="My Nepali Bazaar - Authentic Himalayan Goods" />
+                <Input id="meta-title" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} />
               </div>
               <div className="space-y-1">
                 <Label htmlFor="meta-description">Meta Description</Label>
-                <Textarea id="meta-description" defaultValue="Shop for authentic, handcrafted arts, apparel, and spices from Nepal. Support local artisans." />
+                <Textarea id="meta-description" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} />
               </div>
               <div className="space-y-1">
                 <Label htmlFor="meta-keywords">Meta Keywords</Label>
-                <Input id="meta-keywords" defaultValue="nepali goods, himalayan art, pashmina, singing bowls, thangka" />
+                <div className="flex items-center gap-2">
+                  <Input id="meta-keywords" value={metaKeywords} onChange={(e) => setMetaKeywords(e.target.value)} className="flex-grow"/>
+                  <Button variant="outline" size="sm" onClick={handleSuggestKeywords} disabled={isAiPending}>
+                    {isAiPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                     Suggest with AI
+                  </Button>
+                </div>
               </div>
             </CardContent>
             <CardFooter>
-              <Button>Save changes</Button>
+              <Button onClick={handleSeoSave} disabled={isSeoPending}>
+                {isSeoPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Save changes
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>

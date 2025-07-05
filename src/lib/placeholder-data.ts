@@ -37,6 +37,10 @@ export type Store = {
   orderCount: number;
   domain: string;
   planId: string;
+  description?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string;
 };
 
 export const stores: Store[] = [
@@ -50,6 +54,10 @@ export const stores: Store[] = [
     orderCount: 3,
     domain: 'bazaar.nexuscart.com',
     planId: 'plan_pro',
+    description: 'The best handcrafted goods from the Himalayas.',
+    metaTitle: 'My Nepali Bazaar - Authentic Himalayan Goods',
+    metaDescription: 'Shop for authentic, handcrafted arts, apparel, and spices from Nepal. Support local artisans.',
+    metaKeywords: 'nepali goods, himalayan art, pashmina, singing bowls, thangka',
   },
   {
     id: 'store_002',
@@ -61,6 +69,10 @@ export const stores: Store[] = [
     orderCount: 2,
     domain: 'himalayan.nexuscart.com',
     planId: 'plan_basic',
+    description: 'Curated collection of fine Himalayan crafts and textiles.',
+    metaTitle: 'Himalayan Crafts - Artisan Goods from Nepal',
+    metaDescription: 'Discover unique, handmade crafts from the heart of the Himalayas. Perfect for gifts and home decor.',
+    metaKeywords: 'himalayan crafts, nepal art, handmade jewelry, tibetan bowls',
   },
   {
     id: 'store_003',
@@ -72,6 +84,10 @@ export const stores: Store[] = [
     orderCount: 10,
     domain: 'spices.nexuscart.com',
     planId: 'plan_basic',
+    description: 'Authentic spices and teas from the mountains of Nepal.',
+    metaTitle: 'Kathmandu Spices - Exotic Flavors of Nepal',
+    metaDescription: 'Buy premium, single-origin spices like Timur and Ilam tea directly from Nepal.',
+    metaKeywords: 'nepali spices, timur, silam, ilaam tea, himalayan salt',
   },
     {
     id: 'store_004',
@@ -83,6 +99,10 @@ export const stores: Store[] = [
     orderCount: 120,
     domain: 'gurung.nexuscart.com',
     planId: 'plan_enterprise',
+    description: 'Traditional and modern Nepali apparel for all occasions.',
+    metaTitle: 'Gurung Garments - Wear the Tradition of Nepal',
+    metaDescription: 'High-quality Dhaka, cotton, and traditional Gurung clothing for men, women, and children.',
+    metaKeywords: 'dhaka topi, gunyu cholo, nepali dress, gurung clothing',
   },
 ];
 
