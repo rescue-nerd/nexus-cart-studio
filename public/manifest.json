@@ -1,7 +1,12 @@
+
 {
   "name": "Nepali Bazaar Builder - Nexus Cart",
-  "short_name": "Nexus Cart",
+  "short_name": "NexusCart",
   "description": "Your platform to build and manage your Nepali e-commerce store.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#619bc9",
   "icons": [
     {
       "src": "/icons/android-chrome-192x192.png",
@@ -13,10 +18,5 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff",
-  "start_url": "/store",
-  "display": "standalone",
-  "orientation": "portrait"
+  ]
 }
