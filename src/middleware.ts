@@ -1,20 +1,30 @@
+
 import { NextResponse, type NextRequest } from 'next/server';
 import { stores } from '@/lib/placeholder-data';
 
 export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
-  
-  // Use `url.hostname` which doesn't include the port, making matching reliable.
   const hostname = url.hostname;
 
-  // Find a store that matches the hostname exactly.
-  const store = stores.find(s => s.domain === hostname);
+  // Find a store that matches the hostname.
+  let store = stores.find(s => s.domain === hostname);
 
+  const isStoreAppRoute = [
+    '/dashboard',
+    '/products',
+    '/orders',
+    '/settings',
+  ].some(path => url.pathname.startsWith(path));
+
+  // If no store is found by domain, BUT the user is trying to access a store-specific
+  // page (like /dashboard), default to the first store for preview/dev purposes.
+  if (!store && isStoreAppRoute) {
+    console.log(`No store found for hostname "${hostname}". Defaulting to first store for path "${url.pathname}".`);
+    store = stores[0]; 
+  }
+
+  // If we have a store (either by domain or by fallback)
   if (store) {
-    // It's a store domain. Add the store ID to headers and rewrite the URL.
-    console.log(`Rewriting for store: ${store.name} on domain ${hostname}`);
-    
-    // Create new headers and set the store ID. This is the correct way to modify headers.
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set('x-store-id', store.id);
 
@@ -23,7 +33,6 @@ export function middleware(request: NextRequest) {
       url.pathname = `/store`;
     }
     
-    // Rewrite the request to the new URL, passing along the new headers.
     return NextResponse.rewrite(url, {
       request: {
         headers: requestHeaders,
@@ -31,7 +40,7 @@ export function middleware(request: NextRequest) {
     });
   }
 
-  // If it's not a store domain (e.g., localhost), treat it as the main platform.
+  // If it's not a store domain and not a store-specific path, continue as normal.
   // This allows access to /admin, /login, etc. on the main domain.
   return NextResponse.next();
 }
