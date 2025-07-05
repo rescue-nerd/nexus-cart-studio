@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 
-type Theme = "default" | "ruby" | "forest";
+type Theme = "default" | "ruby" | "forest" | "amethyst";
 
 type ThemeProviderState = {
   theme: Theme;
@@ -29,7 +29,7 @@ export function ThemeProvider({
   useEffect(() => {
     const root = window.document.documentElement;
     
-    root.classList.remove("theme-forest", "theme-ruby");
+    root.classList.remove("theme-forest", "theme-ruby", "theme-amethyst");
     
     if (theme !== "default") {
       root.classList.add(`theme-${theme}`);

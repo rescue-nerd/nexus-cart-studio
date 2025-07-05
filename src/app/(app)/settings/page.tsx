@@ -28,6 +28,7 @@ export default function SettingsPage() {
     { name: 'default', label: 'Default', colors: ['#619bc9', '#f6f8fa'] },
     { name: 'forest', label: 'Forest', colors: ['#1a9a52', '#f9fafb'] },
     { name: 'ruby', label: 'Ruby', colors: ['#d62558', '#fafafa'] },
+    { name: 'amethyst', label: 'Amethyst', colors: ['#8a42e2', '#f9f5ff'] },
   ]
 
   return (
@@ -135,7 +136,7 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {themes.map((themeOption) => (
                   <div key={themeOption.name}>
                     <Button
