@@ -3,28 +3,36 @@ import { stores } from '@/lib/placeholder-data';
 
 export function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
-  const hostname = request.headers.get('host')!;
+  
+  // Use `url.hostname` which doesn't include the port, making matching reliable.
+  const hostname = url.hostname;
 
-  // Check if the hostname is a store domain from our data
+  // Find a store that matches the hostname exactly.
   const store = stores.find(s => s.domain === hostname);
 
   if (store) {
     // It's a store domain. Add the store ID to headers and rewrite the URL.
     console.log(`Rewriting for store: ${store.name} on domain ${hostname}`);
-    request.headers.set('x-store-id', store.id);
+    
+    // Create new headers and set the store ID. This is the correct way to modify headers.
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-store-id', store.id);
 
     // If accessing the root of a store's domain, show the storefront page.
     if (url.pathname === '/') {
       url.pathname = `/store`;
     }
     
-    // Rewrite the request to the new URL, preserving original headers and URL.
-    return NextResponse.rewrite(url, { request });
+    // Rewrite the request to the new URL, passing along the new headers.
+    return NextResponse.rewrite(url, {
+      request: {
+        headers: requestHeaders,
+      },
+    });
   }
 
-  // If it's not a store domain, treat it as the main platform and let Next.js handle routing.
-  // This is more robust for preview environments.
-  // Requests for `/`, `/admin`, `/login` etc. will be handled by their respective pages.
+  // If it's not a store domain (e.g., localhost), treat it as the main platform.
+  // This allows access to /admin, /login, etc. on the main domain.
   return NextResponse.next();
 }
 
