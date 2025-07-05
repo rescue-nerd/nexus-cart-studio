@@ -2,39 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { categories, products as allProducts, stores } from "@/lib/placeholder-data";
 import { notFound } from "next/navigation";
-
-function ProductCard({ product }: { product: typeof allProducts[0] }) {
-  return (
-    <Link href={`/store/products/${product.id}`} className="group block h-full">
-      <Card className="overflow-hidden transition-shadow hover:shadow-lg h-full flex flex-col">
-        <CardHeader className="p-0">
-          <div className="overflow-hidden">
-            <Image
-              src={product.imageUrl}
-              alt={product.name}
-              width={600}
-              height={400}
-              className="object-cover w-full h-auto aspect-square transition-transform duration-300 group-hover:scale-105"
-              data-ai-hint="product image"
-            />
-          </div>
-        </CardHeader>
-        <CardContent className="p-4 flex-grow flex flex-col justify-between">
-          <div>
-            <h3 className="text-lg font-semibold line-clamp-2">{product.name}</h3>
-            <p className="text-sm text-muted-foreground mt-1">{product.category}</p>
-          </div>
-          <div className="mt-4 flex items-center justify-between">
-            <p className="text-xl font-bold">Rs {product.price.toFixed(2)}</p>
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-}
+import { ProductCard } from "@/components/storefront/product-card";
 
 export default function StorePage() {
   const headersList = headers();
@@ -58,7 +28,9 @@ export default function StorePage() {
             Authentic, handcrafted treasures from the heart of the Himalayas.
           </p>
           <div className="mt-6">
-            <Button size="lg">Shop Now</Button>
+            <Button size="lg" asChild>
+              <Link href="#products">Shop Now</Link>
+            </Button>
           </div>
         </div>
       </section>
