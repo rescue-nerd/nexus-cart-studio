@@ -2,7 +2,7 @@
 # NexusCart Technical Handoff & System Overview
 
 **Date:** {current_date}
-**Version:** 1.7 - Robust Credential Handling
+**Version:** 1.8 - User Flow Documentation
 
 This document provides a comprehensive overview of the NexusCart application's architecture, database schema, feature status, and deployment requirements. It is intended for developers, project managers, and new team members.
 
@@ -199,16 +199,16 @@ erDiagram
 
 ---
 
-## 3. Initial Page and Authentication Workflow
+## 3. User & Authentication Flows
 
-### Initial Page
+### A. Initial Page
 
 The first page a user sees depends on the URL they visit:
 
 1.  **Main Platform Domain** (e.g., `your-platform.com`): The user lands on the main welcome page located at `src/app/page.tsx`. This page serves as a central hub with links to either the Superadmin panel or the store owner login.
 2.  **Store Subdomain** (e.g., `my-store.your-platform.com`): The `middleware.ts` file detects the subdomain and automatically directs the user to that specific store's public-facing storefront, located at `src/app/store/page.tsx`.
 
-### Authentication Workflow
+### B. Authentication Workflow
 
 The authentication system is designed to be secure and robust, using a combination of client-side Firebase authentication and a server-side session cookie for route protection.
 
@@ -219,14 +219,34 @@ The authentication system is designed to be secure and robust, using a combinati
 3.  **Redirection to Login:** The middleware redirects the user to the `/login` page. To ensure a good user experience, it appends the original URL as a `redirectedFrom` query parameter, so the user can be sent back to their intended page after a successful login.
 4.  **User Authentication:** On the login page, the user enters their credentials. The client-side code uses the public Firebase keys (from your `.env` file) to communicate with Firebase Auth and sign the user in.
 5.  **Server-Side Session Creation:** Upon successful authentication with Firebase, the client receives a temporary `idToken`. This token is immediately sent to the application's backend API route at `POST /api/auth/session`.
-6.  **Token Verification & Cookie Issuing:** The backend API route, using the **secret Firebase Admin SDK credentials**, verifies the `idToken`. If valid, it generates a secure, HttpOnly `session` cookie. This cookie acts as the user's authenticated session for all subsequent server-side requests.
+6.  **Token Verification & Cookie Issuing:** The backend API route, using the **secret Firebase Admin SDK credentials**, verifies the `idToken`. If valid, it generates a secure, HttpOnly `session` cookie with its `path` explicitly set to `/`. This cookie acts as the user's authenticated session for all subsequent server-side requests across the entire domain.
 7.  **Secure Navigation to Dashboard:** The login page client code, upon receiving a success response from the backend, performs a **full-page navigation** to the originally intended URL (or `/dashboard`). This is a critical step (`window.location.assign(...)`) that ensures the browser sends the newly-created `session` cookie with the next request.
 8.  **Final Access & Authorization:** The user's browser requests the protected route again. The `middleware.ts` intercepts it, finds the valid `session` cookie, and grants access. It also performs authorization by checking if the user is on the correct domain for the requested route (e.g., `/admin` only on the main domain).
 
 **Logout Process:**
+- When a user clicks "Log out," the client-side Firebase session is cleared.
+- Simultaneously, a `DELETE` request is sent to `/api/auth/session`, which instructs the server to clear the HttpOnly `session` cookie, fully terminating the session on both the client and server.
 
--   When a user clicks "Log out," the client-side Firebase session is cleared.
--   Simultaneously, a `DELETE` request is sent to `/api/auth/session`, which instructs the server to clear the HttpOnly `session` cookie, fully terminating the session on both the client and server.
+### C. Post-Authentication User Flows
+
+#### Superadmin Workflow
+1.  **Login:** The Superadmin logs in from the main platform domain.
+2.  **Initial Page:** Upon successful login, they are redirected to the **Superadmin Dashboard** at `/admin`.
+3.  **Core Tasks:**
+    *   **View All Stores:** The dashboard displays a table of every store on the platform, showing their name, owner, and current status (Active, Inactive, etc.).
+    *   **Add New Stores:** The Superadmin can create a new store for a new client by navigating to `/admin/new`.
+    *   **Manage Store Status:** They can activate, deactivate, or suspend any store directly from the dashboard actions.
+    *   **Access Store Dashboards:** They can jump directly into any store's owner dashboard to assist with management.
+
+#### Store Owner Workflow
+1.  **Login:** The Store Owner logs in from the main platform domain.
+2.  **Initial Page:** After a successful login, the middleware automatically redirects them to their own unique store subdomain and lands them on their **Store Dashboard** (e.g., `my-store.your-platform.com/dashboard`).
+3.  **Core Tasks:**
+    *   **View Analytics (`/dashboard`):** The dashboard presents key metrics for their store, such as total sales, order volume, and product counts.
+    *   **Manage Products (`/products`):** They can add, edit, and delete their products, including setting prices, stock levels, and generating descriptions with AI.
+    *   **Manage Orders (`/orders`):** This is where they view incoming orders, update their status (e.g., mark as "Shipped"), print receipts for packaging, and issue refunds for online payments.
+    *   **Configure Settings (`/settings`):** This comprehensive section allows them to update their store's profile, configure payment methods (Khalti, eSewa, QR Codes, Bank Transfer), manage SEO settings, and change the visual theme and color scheme of their storefront.
+    *   **View Storefront:** They can easily navigate to their public-facing store to see how it looks to customers.
 
 ---
 
