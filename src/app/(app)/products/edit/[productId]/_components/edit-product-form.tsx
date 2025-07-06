@@ -64,7 +64,7 @@ export function EditProductForm({ product }: { product: Product }) {
       if (!productName) {
         toast({
           variant: "destructive",
-          title: t('products.toast.nameRequired'),
+          title: t('products.toast.nameRequiredTitle'),
           description: t('products.toast.nameRequiredDesc'),
         });
         return;
@@ -82,7 +82,7 @@ export function EditProductForm({ product }: { product: Product }) {
         toast({
           variant: "destructive",
           title: t('products.toast.aiFailTitle'),
-          description: result.message || t('products.toast.aiFailDesc'),
+          description: t(result.messageKey),
         });
       }
     });
@@ -101,11 +101,14 @@ export function EditProductForm({ product }: { product: Product }) {
 
       const result = await updateProduct(product.id, formData);
 
-      if (!result.success) {
+      if (result.success) {
+        // The page redirects on success, so a toast isn't necessary here,
+        // but you could show one if you remove the redirect.
+      } else {
         toast({
           variant: "destructive",
-          title: t('products.toast.failTitle'),
-          description: result.message || t('products.toast.failDesc'),
+          title: t('error.genericTitle'),
+          description: t(result.messageKey),
         });
       }
     });

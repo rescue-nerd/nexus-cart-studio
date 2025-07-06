@@ -60,8 +60,8 @@ export default function CheckoutPage() {
       } else {
         toast({
           variant: "destructive",
-          title: t('storefront.checkout.toast.orderFailed'),
-          description: result.message || t('storefront.checkout.toast.orderFailedDesc'),
+          title: t('error.genericTitle'),
+          description: result.messageKey ? t(`storefront.${result.messageKey}`) : t('error.unexpected'),
         });
       }
     });

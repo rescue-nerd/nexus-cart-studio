@@ -47,7 +47,7 @@ function CartItemView({ item }: { item: CartItem }) {
               value={item.quantity}
               onChange={handleQuantityChange}
               className="h-8 w-16"
-              aria-label="Quantity"
+              aria-label={t('storefront.cart.quantityAriaLabel')}
             />
             <span className="text-sm text-muted-foreground">x Rs {item.product.price.toFixed(2)}</span>
         </div>
@@ -78,7 +78,7 @@ export function CartSheet() {
               {cartCount}
             </Badge>
           )}
-          <span className="sr-only">Open Shopping Cart</span>
+          <span className="sr-only">{t('storefront.cart.openCart')}</span>
         </Button>
       </SheetTrigger>
       <SheetContent className="flex w-full flex-col sm:max-w-lg">

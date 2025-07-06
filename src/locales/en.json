@@ -11,6 +11,14 @@
     "about": "About",
     "toggleMenu": "Toggle Menu"
   },
+  "error": {
+    "genericTitle": "Uh oh! Something went wrong.",
+    "unexpected": "An unexpected error occurred. Please try again.",
+    "storeIdMissing": "Could not identify the store. Please log in again.",
+    "invalidFields": "Some fields have invalid values. Please check and try again.",
+    "productNotFound": "The requested product could not be found.",
+    "storeNotFound": "The requested store could not be found."
+  },
   "home": {
     "title": "Welcome to GrowNexus",
     "subtitle": "The platform for building your e-commerce empire.",
@@ -98,17 +106,17 @@
       "back": "Back"
     },
     "toast": {
-      "nameRequired": "Product Name Required",
+      "nameRequiredTitle": "Product Name Required",
       "nameRequiredDesc": "Please enter a product name first to generate a description.",
+      "imageRequired": "Product image is required.",
       "aiSuccessTitle": "Description Generated!",
       "aiSuccessDescAdd": "The AI-powered description has been added.",
       "aiSuccessDescUpdate": "The AI-powered description has been updated.",
       "aiFailTitle": "Generation Failed",
-      "aiFailDesc": "The AI could not generate a description.",
+      "aiFail": "The AI could not generate a description.",
       "addSuccessTitle": "Product Added!",
-      "addSuccessDesc": "The product \"{name}\" has been successfully added.",
-      "failTitle": "Uh oh! Something went wrong.",
-      "failDesc": "There was a problem with your request."
+      "addSuccess": "The product \"{name}\" has been successfully added.",
+      "updateSuccess": "The product has been successfully updated."
     }
   },
   "productActions": {
@@ -119,18 +127,24 @@
     "confirmDescription": "This action cannot be undone. This will permanently delete this product and remove its data from our servers.",
     "cancel": "Cancel",
     "continue": "Continue",
+    "toggleMenu": "Toggle menu",
     "toast": {
       "deletedTitle": "Product Deleted",
-      "deletedDesc": "The product has been successfully removed.",
-      "deleteFailedTitle": "Deletion Failed",
-      "deleteFailedDesc": "Could not delete the product."
+      "deletedSuccess": "The product has been successfully removed."
     }
   },
   "orders": {
     "description": "Manage your orders and view their details.",
     "export": "Export",
     "customer": "Customer",
-    "status": "Status",
+    "status": {
+      "title": "Status",
+      "pending": "Pending",
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled"
+    },
     "date": "Date",
     "amount": "Amount",
     "actions": "Actions",
@@ -148,8 +162,9 @@
     },
     "toast": {
       "updatedTitle": "Order Updated",
+      "orderUpdateSuccess": "Order status has been updated to {status}.",
       "cancelledTitle": "Order Cancelled",
-      "updateFailedTitle": "Update Failed"
+      "orderUpdateFailed": "Failed to update order status."
     }
   },
   "orderDetails": {
@@ -167,10 +182,6 @@
   },
   "settings": {
     "saveButton": "Save changes",
-    "toast": {
-      "failTitle": "Update Failed",
-      "failDesc": "An unknown error occurred."
-    },
     "tabs": {
       "profile": "Store Profile",
       "billing": "Billing & Plan",
@@ -185,7 +196,7 @@
       "storeDescLabel": "Store Description",
       "toast": {
         "successTitle": "Profile Updated!",
-        "successDesc": "Your store details have been saved."
+        "success": "Your store details have been saved."
       }
     },
     "billing": {
@@ -198,7 +209,8 @@
       "switchTo": "Switch to {planName}",
       "toast": {
         "successTitle": "Plan Updated!",
-        "successDesc": "Your store is now on the {planName} plan."
+        "success": "Your store is now on the {planName} plan.",
+        "planNotFound": "The selected plan could not be found."
       }
     },
     "payments": {
@@ -216,12 +228,13 @@
       "suggestWithAI": "Suggest with AI",
       "toast": {
         "successTitle": "SEO Settings Saved",
-        "successDesc": "Your storefront has been updated.",
-        "failDesc": "Could not save SEO settings.",
+        "success": "Your storefront has been updated.",
+        "fail": "Could not save SEO settings.",
         "aiSuccessTitle": "Keywords Suggested",
-        "aiSuccessDesc": "AI has generated new keywords based on your store description.",
+        "aiSuccess": "AI has generated new keywords based on your store description.",
         "aiFailTitle": "Suggestion Failed",
-        "aiFailDesc": "Could not get AI suggestions."
+        "aiFail": "Could not get AI suggestions.",
+        "descriptionRequired": "A store description is needed to suggest keywords."
       }
     },
     "appearance": {
@@ -279,11 +292,11 @@
       "shippingCost": "Free",
       "total": "Total",
       "placeOrder": "Place Order",
+      "invalidForm": "Invalid form data. Please check your inputs.",
+      "emptyCart": "Your cart is empty.",
       "toast": {
         "redirectingToWhatsapp": "Redirecting to WhatsApp",
-        "finalizeOrder": "Finalize your order with the seller.",
-        "orderFailed": "Order Failed",
-        "orderFailedDesc": "There was a problem placing your order."
+        "finalizeOrder": "Finalize your order with the seller."
       }
     },
     "orderSuccess": {
@@ -316,6 +329,7 @@
       "emptyTitle": "Your cart is empty.",
       "startShopping": "Start Shopping",
       "openCart": "Open Shopping Cart",
+      "quantityAriaLabel": "Quantity",
       "toast": {
         "stockLimitTitle": "Stock Limit Reached",
         "stockLimitDesc": "You cannot add more than {stock} of this item.",
@@ -361,7 +375,12 @@
       "add": "Add New Store",
       "name": "Store Name",
       "owner": "Owner",
-      "status": "Status",
+      "status": {
+        "title": "Status",
+        "active": "Active",
+        "inactive": "Inactive",
+        "suspended": "Suspended"
+      },
       "products": "Products",
       "orders": "Orders",
       "actions": "Actions",
@@ -378,10 +397,9 @@
         "confirm": "Confirm"
       },
       "toast": {
-        "statusUpdated": "Status Updated",
-        "statusUpdatedDesc": "Store \"{name}\" has been {status}.",
-        "updateFailed": "Update Failed",
-        "updateFailedDesc": "Could not update store status."
+        "statusUpdatedTitle": "Status Updated",
+        "statusUpdated": "Store \"{name}\" has been {status}.",
+        "updateFailed": "Could not update store status."
       }
     },
     "newStore": {
@@ -402,8 +420,7 @@
         "create": "Create Store"
       },
       "toast": {
-        "failTitle": "Uh oh! Something went wrong.",
-        "failDesc": "There was a problem with your request."
+        "domainTaken": "This subdomain is already taken."
       }
     }
   },

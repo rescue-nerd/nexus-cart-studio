@@ -38,14 +38,14 @@ export function ProductActions({ productId }: { productId: string }) {
       if (result.success) {
         toast({
           title: t('productActions.toast.deletedTitle'),
-          description: t('productActions.toast.deletedDesc'),
+          description: t(result.messageKey),
         });
         setIsAlertOpen(false);
       } else {
         toast({
           variant: "destructive",
-          title: t('productActions.toast.deleteFailedTitle'),
-          description: result.message || t('productActions.toast.deleteFailedDesc'),
+          title: t('error.genericTitle'),
+          description: t(result.messageKey),
         });
       }
     });
@@ -75,7 +75,7 @@ export function ProductActions({ productId }: { productId: string }) {
         <DropdownMenuTrigger asChild>
           <Button aria-haspopup="true" size="icon" variant="ghost">
             <MoreHorizontal className="h-4 w-4" />
-            <span className="sr-only">Toggle menu</span>
+            <span className="sr-only">{t('productActions.toggleMenu')}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

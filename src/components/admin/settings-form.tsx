@@ -86,9 +86,9 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
       
       const result = await updateStoreProfile(store.id, formData);
       if (result.success) {
-        toast({ title: t('settings.profile.toast.successTitle'), description: t('settings.profile.toast.successDesc') });
+        toast({ title: t('settings.profile.toast.successTitle'), description: t(result.messageKey) });
       } else {
-        toast({ variant: "destructive", title: t('settings.toast.failTitle'), description: result.message });
+        toast({ variant: "destructive", title: t('error.genericTitle'), description: t(result.messageKey) });
       }
     });
   };
@@ -107,14 +107,14 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
       if (result.success) {
         toast({
           title: t('settings.billing.toast.successTitle'),
-          description: t('settings.billing.toast.successDesc', { planName: result.newPlanName || '' }),
+          description: t(result.messageKey, { planName: result.newPlanName || '' }),
         });
         router.refresh();
       } else {
         toast({
           variant: "destructive",
-          title: t('settings.toast.failTitle'),
-          description: result.message || t('settings.toast.failDesc'),
+          title: t('error.genericTitle'),
+          description: t(result.messageKey),
         });
       }
       setPendingPlanId(null);
@@ -132,13 +132,13 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
       if (result.success) {
         toast({
           title: t('settings.seo.toast.successTitle'),
-          description: t('settings.seo.toast.successDesc'),
+          description: t(result.messageKey),
         });
       } else {
         toast({
           variant: "destructive",
-          title: t('settings.toast.failTitle'),
-          description: result.message || t('settings.seo.toast.failDesc'),
+          title: t('error.genericTitle'),
+          description: t(result.messageKey),
         });
       }
     });
@@ -146,7 +146,6 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
 
   const handleSuggestKeywords = () => {
     startAiTransition(async () => {
-      // We can use the store description or meta description as a source
       const sourceText = store.description || metaDescription;
       const result = await suggestKeywordsAction(sourceText);
 
@@ -154,13 +153,13 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
         setMetaKeywords(result.keywords.join(', '));
         toast({
           title: t('settings.seo.toast.aiSuccessTitle'),
-          description: t('settings.seo.toast.aiSuccessDesc'),
+          description: t(result.messageKey),
         });
       } else {
         toast({
           variant: "destructive",
           title: t('settings.seo.toast.aiFailTitle'),
-          description: result.message || t('settings.seo.toast.aiFailDesc'),
+          description: t(result.messageKey),
         });
       }
     });

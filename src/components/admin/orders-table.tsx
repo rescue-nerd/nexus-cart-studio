@@ -68,9 +68,9 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
     startTransition(async () => {
         const result = await updateOrderStatus(orderId, 'Shipped');
         if (result.success) {
-            toast({ title: t('orders.toast.updatedTitle'), description: result.message });
+            toast({ title: t('orders.toast.updatedTitle'), description: t(result.messageKey, { status: t('orders.status.shipped') }) });
         } else {
-            toast({ variant: "destructive", title: t('orders.toast.updateFailedTitle'), description: result.message });
+            toast({ variant: "destructive", title: t('error.genericTitle'), description: t(result.messageKey) });
         }
     });
   }
@@ -85,9 +85,9 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
     startTransition(async () => {
         const result = await updateOrderStatus(selectedOrder.id, 'Cancelled');
         if (result.success) {
-            toast({ title: t('orders.toast.cancelledTitle'), description: result.message });
+            toast({ title: t('orders.toast.cancelledTitle'), description: t(result.messageKey, { status: t('orders.status.cancelled') }) });
         } else {
-            toast({ variant: "destructive", title: t('orders.toast.updateFailedTitle'), description: result.message });
+            toast({ variant: "destructive", title: t('error.genericTitle'), description: t(result.messageKey) });
         }
         setDialogOpen(false);
         setSelectedOrder(null);
@@ -138,7 +138,7 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     <Badge className="text-xs" variant={getStatusVariant(order.status)}>
-                      {order.status}
+                      {t(`orders.status.${order.status.toLowerCase()}`)}
                     </Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">

@@ -4,15 +4,21 @@ import { revalidatePath } from 'next/cache';
 import { orders as allOrders, type Order } from '@/lib/placeholder-data';
 import { sendOrderUpdateNotifications } from '@/lib/order-service';
 
+export type UpdateOrderStatusResult = {
+    success: boolean;
+    messageKey: 'orderUpdateSuccess' | 'orderNotFound' | 'orderUpdateFailed';
+    status?: Order['status'];
+};
+
 export async function updateOrderStatus(
   orderId: string,
   status: Order['status']
-): Promise<{ success: boolean; message?: string }> {
+): Promise<UpdateOrderStatusResult> {
   try {
     const order = allOrders.find((o) => o.id === orderId);
 
     if (!order) {
-      return { success: false, message: 'Order not found.' };
+      return { success: false, messageKey: 'orderNotFound' };
     }
 
     // In a real app, this would update the database.
@@ -24,9 +30,9 @@ export async function updateOrderStatus(
     revalidatePath('/orders');
     revalidatePath(`/orders/${orderId}`);
 
-    return { success: true, message: `Order ${orderId} marked as ${status}.` };
+    return { success: true, messageKey: 'orderUpdateSuccess', status };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'An unexpected error occurred.';
-    return { success: false, message };
+    console.error('Failed to update order status:', error);
+    return { success: false, messageKey: 'orderUpdateFailed' };
   }
 }

@@ -71,17 +71,17 @@ export default function SuperAdminDashboard() {
     if (!selectedStore || !targetStatus) return;
 
     startTransition(async () => {
-      const result = await updateStoreStatus(selectedStore.id, targetStatus);
+      const result = await updateStoreStatus(selectedStore.id, targetStatus!);
        if (result.success) {
         toast({
-          title: t('superadmin.stores.toast.statusUpdated'),
-          description: t('superadmin.stores.toast.statusUpdatedDesc', { name: selectedStore.name, status: targetStatus.toLowerCase() }),
+          title: t('superadmin.stores.toast.statusUpdatedTitle'),
+          description: t(result.messageKey, { name: selectedStore.name, status: t(`superadmin.stores.status.${targetStatus.toLowerCase()}`) }),
         });
       } else {
         toast({
           variant: "destructive",
-          title: t('superadmin.stores.toast.updateFailed'),
-          description: result.message || t('superadmin.stores.toast.updateFailedDesc'),
+          title: t('error.genericTitle'),
+          description: t(result.messageKey),
         });
       }
       setDialogOpen(false);
@@ -138,7 +138,7 @@ export default function SuperAdminDashboard() {
                   </TableCell>
                   <TableCell>
                     <Badge variant={getStatusVariant(store.status)}>
-                      {store.status}
+                      {t(`superadmin.stores.status.${store.status.toLowerCase()}`)}
                     </Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">{store.productCount}</TableCell>
@@ -182,7 +182,7 @@ export default function SuperAdminDashboard() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t('superadmin.stores.dialog.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('superadmin.stores.dialog.description', { name: selectedStore?.name, status: targetStatus })}
+              {t('superadmin.stores.dialog.description', { name: selectedStore?.name, status: targetStatus ? t(`superadmin.stores.status.${targetStatus.toLowerCase()}`) : '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { useForm } from "hookform";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, Sparkles } from "lucide-react";
@@ -63,7 +63,7 @@ export function AddProductForm() {
       if (!productName) {
         toast({
           variant: "destructive",
-          title: t('products.toast.nameRequired'),
+          title: t('products.toast.nameRequiredTitle'),
           description: t('products.toast.nameRequiredDesc'),
         });
         return;
@@ -81,7 +81,7 @@ export function AddProductForm() {
         toast({
           variant: "destructive",
           title: t('products.toast.aiFailTitle'),
-          description: result.message || t('products.toast.aiFailDesc'),
+          description: t(result.messageKey),
         });
       }
     });
@@ -98,16 +98,16 @@ export function AddProductForm() {
 
       const result = await addProduct(formData);
 
-      if (result.success) {
-        toast({
+      if (result.success && result.productName) {
+         toast({
           title: t('products.toast.addSuccessTitle'),
-          description: t('products.toast.addSuccessDesc', { name: values.name }),
+          description: t(result.messageKey, { name: result.productName }),
         });
       } else {
         toast({
           variant: "destructive",
-          title: t('products.toast.failTitle'),
-          description: result.message || t('products.toast.failDesc'),
+          title: t('error.genericTitle'),
+          description: t(result.messageKey),
         });
       }
     });

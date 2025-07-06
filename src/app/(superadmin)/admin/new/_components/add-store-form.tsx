@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { useForm } from "hookform";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
@@ -59,8 +59,8 @@ export function AddStoreForm() {
       if (!result.success) {
         toast({
           variant: "destructive",
-          title: t('superadmin.newStore.toast.failTitle'),
-          description: result.message || t('superadmin.newStore.toast.failDesc'),
+          title: t('error.genericTitle'),
+          description: t(result.messageKey),
         });
       }
     });

@@ -22,7 +22,7 @@ type CheckoutFormValues = z.infer<typeof checkoutFormSchema>;
 
 type PlaceOrderResult = {
   success: boolean;
-  message?: string;
+  messageKey?: 'checkout.invalidForm' | 'checkout.emptyCart';
   orderId?: string;
   whatsappUrl?: string;
   paymentMethod?: CheckoutFormValues['paymentMethod'];
@@ -37,12 +37,12 @@ export async function placeOrder(
   if (!validatedFields.success) {
     return {
       success: false,
-      message: 'Invalid form data.',
+      messageKey: 'checkout.invalidForm',
     };
   }
 
   if (cartItems.length === 0) {
-    return { success: false, message: 'Your cart is empty.' };
+    return { success: false, messageKey: 'checkout.emptyCart' };
   }
 
   const { customerName, customerEmail, customerPhone, address, city, paymentMethod } = validatedFields.data;
@@ -70,7 +70,6 @@ export async function placeOrder(
   // --- Handle Normal Orders (COD, eSewa) ---
   const orderId = `ORD-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
   
-  // This is a placeholder for getting the storeId. In a real app, this might come from the session or domain.
   const storeId = 'store_001'; 
 
   const newOrder = {
@@ -87,18 +86,12 @@ export async function placeOrder(
     total: cartTotal,
   };
 
-  // In a real app, you would save this to a database.
   allOrders.unshift(newOrder);
-
-  // In a real eSewa integration, you'd call their API here and redirect the user.
-  // We'll just simulate success.
   
-  // Send notifications
   await sendOrderUpdateNotifications(newOrder);
 
   revalidatePath('/store');
   revalidatePath('/orders');
   
-  // We don't redirect here. The client will redirect based on the response.
   return { success: true, paymentMethod, orderId };
 }

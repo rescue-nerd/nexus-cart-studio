@@ -7,6 +7,18 @@ import { z } from "zod";
 import { stores, plans } from '@/lib/placeholder-data';
 import { suggestSeoKeywords } from '@/ai/flows/seo-keyword-suggestion';
 
+type ActionResponse = {
+  success: boolean;
+  messageKey: string;
+};
+
+type PlanResponse = ActionResponse & {
+  newPlanName?: string;
+};
+
+type KeywordsResponse = ActionResponse & {
+  keywords?: string[];
+};
 
 const storeProfileSchema = z.object({
   name: z.string().min(2, "Store name is required."),
@@ -14,10 +26,10 @@ const storeProfileSchema = z.object({
 });
 
 
-export async function updateStoreProfile(storeId: string, formData: FormData) {
+export async function updateStoreProfile(storeId: string, formData: FormData): Promise<ActionResponse> {
   const store = stores.find(s => s.id === storeId);
   if (!store) {
-    return { success: false, message: 'Store not found.' };
+    return { success: false, messageKey: 'error.storeNotFound' };
   }
   
   const validatedFields = storeProfileSchema.safeParse({
@@ -26,10 +38,7 @@ export async function updateStoreProfile(storeId: string, formData: FormData) {
   });
 
   if (!validatedFields.success) {
-    return {
-      success: false,
-      message: validatedFields.error.flatten().fieldErrors.toString(),
-    };
+    return { success: false, messageKey: 'error.invalidFields' };
   }
   
   const { name, description } = validatedFields.data;
@@ -41,66 +50,64 @@ export async function updateStoreProfile(storeId: string, formData: FormData) {
   revalidatePath('/settings');
   revalidatePath('/dashboard'); // Name might be shown on dashboard
   
-  return { success: true, message: "Store profile updated successfully." };
+  return { success: true, messageKey: "settings.profile.toast.success" };
 }
 
-export async function updateStorePlan(storeId: string, newPlanId: string): Promise<{ success: boolean; message?: string; newPlanName?: string; }> {
+export async function updateStorePlan(storeId: string, newPlanId: string): Promise<PlanResponse> {
   try {
     const store = stores.find(s => s.id === storeId);
     const newPlan = plans.find(p => p.id === newPlanId);
 
     if (!store) {
-      return { success: false, message: 'Store not found.' };
+      return { success: false, messageKey: 'error.storeNotFound' };
     }
     
     if (!newPlan) {
-        return { success: false, message: 'Selected plan not found.' };
+        return { success: false, messageKey: 'settings.billing.toast.planNotFound' };
     }
 
     // In a real app, you would update the database and handle billing here.
     store.planId = newPlanId;
     
-    // Revalidating the path will cause the server component data to be refetched on the next visit.
     revalidatePath('/settings');
 
-    return { success: true, newPlanName: newPlan.name };
+    return { success: true, messageKey: "settings.billing.toast.success", newPlanName: newPlan.name };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'An unexpected error occurred.';
-    return { success: false, message };
+    console.error("Failed to update store plan:", error);
+    return { success: false, messageKey: 'error.unexpected' };
   }
 }
 
-export async function updateSeoSettings(storeId: string, data: { title: string; description: string; keywords: string; }): Promise<{ success: boolean, message?: string }> {
+export async function updateSeoSettings(storeId: string, data: { title: string; description: string; keywords: string; }): Promise<ActionResponse> {
   try {
     const store = stores.find(s => s.id === storeId);
     if (!store) {
-      return { success: false, message: 'Store not found.' };
+      return { success: false, messageKey: 'error.storeNotFound' };
     }
 
-    // In a real app, this would update the database.
     store.metaTitle = data.title;
     store.metaDescription = data.description;
     store.metaKeywords = data.keywords;
 
-    revalidatePath('/store'); // Revalidate the public storefront
-    revalidatePath('/settings'); // Revalidate the settings page
+    revalidatePath('/store'); 
+    revalidatePath('/settings');
 
-    return { success: true, message: 'SEO settings updated successfully.' };
+    return { success: true, messageKey: 'settings.seo.toast.success' };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'An unexpected error occurred.';
-    return { success: false, message };
+    console.error("Failed to update SEO settings:", error);
+    return { success: false, messageKey: 'settings.seo.toast.fail' };
   }
 }
 
-export async function suggestKeywordsAction(description: string): Promise<{ success: boolean; keywords?: string[]; message?: string; }> {
+export async function suggestKeywordsAction(description: string): Promise<KeywordsResponse> {
     if (!description) {
-        return { success: false, message: 'A store description is needed to suggest keywords.' };
+        return { success: false, messageKey: 'settings.seo.toast.descriptionRequired' };
     }
     try {
         const result = await suggestSeoKeywords({ productCatalogDescription: description });
-        return { success: true, keywords: result.keywords };
+        return { success: true, messageKey: "settings.seo.toast.aiSuccess", keywords: result.keywords };
     } catch (error) {
         console.error("AI Keyword Suggestion Error:", error);
-        return { success: false, message: 'Failed to suggest keywords. Please try again.' };
+        return { success: false, messageKey: 'settings.seo.toast.aiFail' };
     }
 }
