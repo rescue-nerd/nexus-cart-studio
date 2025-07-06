@@ -36,6 +36,7 @@ export type Store = {
   domain: string;
   planId: string;
   description?: string;
+  whatsappNumber?: string;
   metaTitle?: string;
   metaDescription?: string;
   metaKeywords?: string;

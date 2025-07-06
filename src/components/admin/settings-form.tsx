@@ -89,6 +89,9 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
     qrCode: z.instanceof(File).optional(),
     khaltiSecretKey: z.string().optional(),
     khaltiTestMode: z.boolean().default(false),
+    eSewaMerchantCode: z.string().optional(),
+    eSewaSecretKey: z.string().optional(),
+    eSewaTestMode: z.boolean().default(false),
   });
   type PaymentFormValues = z.infer<typeof paymentFormSchema>;
 
@@ -101,6 +104,9 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
         branch: store.paymentSettings?.bankDetails?.branch || "",
         khaltiSecretKey: store.paymentSettings?.khaltiSecretKey || "",
         khaltiTestMode: store.paymentSettings?.khaltiTestMode || false,
+        eSewaMerchantCode: store.paymentSettings?.eSewaMerchantCode || "",
+        eSewaSecretKey: store.paymentSettings?.eSewaSecretKey || "",
+        eSewaTestMode: store.paymentSettings?.eSewaTestMode || false,
     }
   });
 
@@ -364,42 +370,102 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
                             <CardTitle>{t('settings.payments.onlineGatewaysTitle')}</CardTitle>
                             <CardDescription>{t('settings.payments.onlineGatewaysDesc')}</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-6">
-                            <FormField
-                                control={paymentForm.control}
-                                name="khaltiSecretKey"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>{t('settings.payments.khaltiSecretKey')}</FormLabel>
-                                        <FormControl>
-                                            <Input {...field} placeholder="live_secret_key_..." type="password" />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={paymentForm.control}
-                                name="khaltiTestMode"
-                                render={({ field }) => (
-                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                                        <div className="space-y-0.5">
-                                        <FormLabel className="text-base">
-                                            {t('settings.payments.khaltiTestMode')}
-                                        </FormLabel>
-                                        <FormDescription>
-                                            {t('settings.payments.khaltiTestModeDesc')}
-                                        </FormDescription>
-                                        </div>
-                                        <FormControl>
-                                        <Switch
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
+                        <CardContent className="space-y-6 divide-y">
+                            {/* Khalti Settings */}
+                            <div className="pt-6 first:pt-0">
+                                <h3 className="text-lg font-medium mb-4">{t('settings.payments.khaltiTitle')}</h3>
+                                <div className="space-y-4">
+                                <FormField
+                                    control={paymentForm.control}
+                                    name="khaltiSecretKey"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>{t('settings.payments.khaltiSecretKey')}</FormLabel>
+                                            <FormControl>
+                                                <Input {...field} placeholder="live_secret_key_..." type="password" />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={paymentForm.control}
+                                    name="khaltiTestMode"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                            <div className="space-y-0.5">
+                                            <FormLabel className="text-base">
+                                                {t('settings.payments.khaltiTestMode')}
+                                            </FormLabel>
+                                            <FormDescription>
+                                                {t('settings.payments.khaltiTestModeDesc')}
+                                            </FormDescription>
+                                            </div>
+                                            <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                                </div>
+                            </div>
+                             {/* eSewa Settings */}
+                            <div className="pt-6">
+                                <h3 className="text-lg font-medium mb-4">{t('settings.payments.eSewaTitle')}</h3>
+                                <div className="space-y-4">
+                                    <FormField
+                                        control={paymentForm.control}
+                                        name="eSewaMerchantCode"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>{t('settings.payments.eSewaMerchantCode')}</FormLabel>
+                                                <FormControl>
+                                                    <Input {...field} placeholder="EPAYTEST" />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={paymentForm.control}
+                                        name="eSewaSecretKey"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>{t('settings.payments.eSewaSecretKey')}</FormLabel>
+                                                <FormControl>
+                                                    <Input {...field} type="password" />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={paymentForm.control}
+                                        name="eSewaTestMode"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                                <div className="space-y-0.5">
+                                                <FormLabel className="text-base">
+                                                    {t('settings.payments.eSewaTestMode')}
+                                                </FormLabel>
+                                                <FormDescription>
+                                                    {t('settings.payments.eSewaTestModeDesc')}
+                                                </FormDescription>
+                                                </div>
+                                                <FormControl>
+                                                <Switch
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
                     {/* Manual Methods */}
