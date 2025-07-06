@@ -17,16 +17,18 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTranslation } from "@/hooks/use-translation";
 
 export function SidebarNav({ store }: { store?: StoreType }) {
   const pathname = usePathname();
+  const { t } = useTranslation();
 
   const navItems = [
-    { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/products", icon: Package, label: "Products" },
-    { href: "/orders", icon: ShoppingCart, label: "Orders" },
-    { href: "/settings", icon: Settings, label: "Settings" },
-    { href: store ? `http://${store.domain}` : '/store', icon: Store, label: "View Store", target: "_blank" },
+    { href: "/dashboard", icon: LayoutDashboard, label: t('nav.dashboard') },
+    { href: "/products", icon: Package, label: t('nav.products') },
+    { href: "/orders", icon: ShoppingCart, label: t('nav.orders') },
+    { href: "/settings", icon: Settings, label: t('nav.settings') },
+    { href: store ? `http://${store.domain}` : '/store', icon: Store, label: t('nav.viewStore'), target: "_blank" },
   ];
 
   return (

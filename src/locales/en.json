@@ -1,0 +1,38 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "orders": "Orders",
+    "settings": "Settings",
+    "viewStore": "View Store",
+    "categories": "Categories",
+    "about": "About"
+  },
+  "login": {
+    "title": "Login",
+    "description": "Enter your email below to login to your account",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "forgotPassword": "Forgot your password?",
+    "loginButton": "Login",
+    "loginWithGoogle": "Login with Google",
+    "noAccount": "Don't have an account?",
+    "signUpLink": "Sign up"
+  },
+  "storefront": {
+    "heroTitle": "Discover the Soul of Nepal at {storeName}",
+    "heroSubtitle": "Authentic, handcrafted treasures from the heart of the Himalayas.",
+    "shopNow": "Shop Now",
+    "collectionsTitle": "Our Collections",
+    "featuredTitle": "Featured Products",
+    "addToCart": "Add to Cart"
+  },
+  "userNav": {
+    "language": "Language",
+    "english": "English",
+    "nepali": "नेपाली (Nepali)",
+    "profile": "Profile",
+    "billing": "Billing",
+    "logout": "Log out"
+  }
+}

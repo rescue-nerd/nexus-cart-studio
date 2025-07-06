@@ -4,10 +4,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { NexusCartLogo } from "@/components/icons";
-import { Search, User, Menu } from "lucide-react";
+import { Search, User, Menu, Languages } from "lucide-react";
 import { CartSheet } from "./cart-sheet";
+import { useTranslation } from "@/hooks/use-translation";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export function Header({ storeName }: { storeName: string }) {
+  const { t, language, setLanguage } = useTranslation();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
@@ -21,19 +25,19 @@ export function Header({ storeName }: { storeName: string }) {
               href="/store#categories"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
-              Categories
+              {t('nav.categories')}
             </Link>
             <Link
               href="/store#products"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
-              Products
+              {t('nav.products')}
             </Link>
             <Link
               href="#"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
-              About
+              {t('nav.about')}
             </Link>
           </nav>
         </div>
@@ -56,9 +60,9 @@ export function Header({ storeName }: { storeName: string }) {
             </Link>
             <div className="divide-y divide-border">
               <nav className="grid gap-2 py-6">
-                <Link href="/store#categories" className="flex w-full items-center py-2 text-lg font-semibold">Categories</Link>
-                <Link href="/store#products" className="flex w-full items-center py-2 text-lg font-semibold">Products</Link>
-                <Link href="#" className="flex w-full items-center py-2 text-lg font-semibold">About</Link>
+                <Link href="/store#categories" className="flex w-full items-center py-2 text-lg font-semibold">{t('nav.categories')}</Link>
+                <Link href="/store#products" className="flex w-full items-center py-2 text-lg font-semibold">{t('nav.products')}</Link>
+                <Link href="#" className="flex w-full items-center py-2 text-lg font-semibold">{t('nav.about')}</Link>
               </nav>
             </div>
           </SheetContent>
@@ -73,6 +77,22 @@ export function Header({ storeName }: { storeName: string }) {
               <User className="h-5 w-5" />
             </Link>
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Languages className="h-5 w-5" />
+                <span className="sr-only">Change language</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setLanguage('en')} disabled={language === 'en'}>
+                English
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLanguage('ne')} disabled={language === 'ne'}>
+                नेपाली
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <CartSheet />
         </div>
       </div>

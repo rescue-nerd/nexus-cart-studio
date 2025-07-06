@@ -1,0 +1,38 @@
+{
+  "nav": {
+    "dashboard": "ड्यासबोर्ड",
+    "products": "उत्पादनहरू",
+    "orders": "अर्डरहरू",
+    "settings": "सेटिङहरू",
+    "viewStore": "स्टोर हेर्नुहोस्",
+    "categories": "कोटिहरू",
+    "about": "हाम्रो बारेमा"
+  },
+  "login": {
+    "title": "लग - इन",
+    "description": "आफ्नो खातामा लगइन गर्न तल आफ्नो इमेल प्रविष्ट गर्नुहोस्",
+    "emailLabel": "इमेल",
+    "passwordLabel": "पासवर्ड",
+    "forgotPassword": "पासवर्ड भुल्नु भयो?",
+    "loginButton": "लग - इन",
+    "loginWithGoogle": "Google बाट लगइन गर्नुहोस्",
+    "noAccount": "खाता छैन?",
+    "signUpLink": "साइन अप गर्नुहोस्"
+  },
+  "storefront": {
+    "heroTitle": "{storeName} मा नेपालको आत्मा पत्ता लगाउनुहोस्",
+    "heroSubtitle": "हिमालयको मुटुबाट प्रामाणिक, हस्तनिर्मित खजानाहरू।",
+    "shopNow": "अब किन्नुहोस्",
+    "collectionsTitle": "हाम्रो संग्रह",
+    "featuredTitle": "विशेष उत्पादनहरू",
+    "addToCart": "कार्टमा थप्नुहोस्"
+  },
+  "userNav": {
+    "language": "भाषा",
+    "english": "English",
+    "nepali": "नेपाली (Nepali)",
+    "profile": "प्रोफाइल",
+    "billing": "बिलिङ",
+    "logout": "लग आउट"
+  }
+}
