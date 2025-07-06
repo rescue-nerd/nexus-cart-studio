@@ -2,7 +2,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { updateOrder, getOrder } from '@/lib/firebase-service';
+import { updateOrder, getOrder, getStore } from '@/lib/firebase-service';
 import type { Order } from "@/lib/types";
 import { sendOrderUpdateNotifications } from '@/lib/order-service';
 
@@ -11,6 +11,11 @@ export type UpdateOrderStatusResult = {
     messageKey: 'orderUpdateSuccess' | 'orderNotFound' | 'orderUpdateFailed' | 'orderCancelSuccess';
     status?: Order['status'];
 };
+
+export type RefundResult = {
+    success: boolean;
+    messageKey: 'refundSuccess' | 'refundFailed' | 'refundError' | 'orderNotFound' | 'invalidForRefund' | 'khaltiNotConfigured';
+}
 
 export async function updateOrderStatus(
   orderId: string,
@@ -38,4 +43,51 @@ export async function updateOrderStatus(
     console.error('Failed to update order status:', error);
     return { success: false, messageKey: 'orderUpdateFailed' };
   }
+}
+
+export async function refundKhaltiOrder(orderId: string): Promise<RefundResult> {
+    const order = await getOrder(orderId);
+    if (!order) {
+        return { success: false, messageKey: 'orderNotFound' };
+    }
+
+    if (order.paymentMethod !== 'Khalti' || !order.paymentDetails?.transactionId) {
+        return { success: false, messageKey: 'invalidForRefund' };
+    }
+
+    const store = await getStore(order.storeId);
+    if (!store?.paymentSettings?.khaltiSecretKey) {
+        return { success: false, messageKey: 'khaltiNotConfigured' };
+    }
+
+    const khaltiApiUrl = store.paymentSettings.khaltiTestMode
+        ? `https://dev.khalti.com/api/merchant-transaction/${order.paymentDetails.transactionId}/refund/`
+        : `https://khalti.com/api/merchant-transaction/${order.paymentDetails.transactionId}/refund/`;
+
+    try {
+        const response = await fetch(khaltiApiUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Key ${store.paymentSettings.khaltiSecretKey}`,
+                'Content-Type': 'application/json',
+            },
+            // For now, only full refunds are supported. No body is needed for full wallet refunds.
+            // For partial: body: JSON.stringify({ amount: order.total * 100 })
+        });
+        
+        const data = await response.json();
+
+        if (response.ok && data.detail === "Transaction refund successful.") {
+            await updateOrder(orderId, { status: 'Refunded' });
+            revalidatePath('/orders');
+            revalidatePath(`/orders/${orderId}`);
+            return { success: true, messageKey: 'refundSuccess' };
+        } else {
+            console.error('Khalti refund failed:', data);
+            return { success: false, messageKey: 'refundFailed' };
+        }
+    } catch (error) {
+        console.error('Error processing Khalti refund:', error);
+        return { success: false, messageKey: 'refundError' };
+    }
 }

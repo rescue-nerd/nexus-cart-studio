@@ -151,7 +151,8 @@
       "shipped": "Shipped",
       "delivered": "Delivered",
       "cancelled": "Cancelled",
-      "failed": "Failed"
+      "failed": "Failed",
+      "refunded": "Refunded"
     },
     "date": "Date",
     "amount": "Amount",
@@ -188,7 +189,21 @@
     "customerTitle": "Customer",
     "paymentTitle": "Payment Details",
     "paymentMethod": "Method",
-    "paymentDate": "Date"
+    "paymentDate": "Date",
+    "refund": {
+      "button": "Refund Order",
+      "dialogTitle": "Are you sure you want to refund this order?",
+      "dialogDescription": "This action cannot be undone. This will issue a full refund for order #{orderId} via Khalti.",
+      "dialogCancel": "Cancel",
+      "dialogConfirm": "Yes, issue refund",
+      "toastSuccessTitle": "Refund Successful",
+      "refundSuccess": "The order has been successfully refunded.",
+      "toastErrorTitle": "Refund Failed",
+      "refundFailed": "The refund could not be processed by Khalti. Please check your Khalti merchant panel.",
+      "refundError": "An unexpected error occurred while processing the refund.",
+      "invalidForRefund": "This order is not eligible for a Khalti refund.",
+      "khaltiNotConfigured": "Khalti payment is not configured for this store."
+    }
   },
   "settings": {
     "saveButton": "Save Changes",

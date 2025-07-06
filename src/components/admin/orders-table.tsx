@@ -54,12 +54,13 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  const getStatusVariant = (status: string) => {
+  const getStatusVariant = (status: Order['status']) => {
     switch (status) {
       case 'Delivered': return 'default';
       case 'Processing': case 'Shipped': return 'outline';
       case 'Pending': return 'secondary';
-      case 'Cancelled': return 'destructive';
+      case 'Cancelled': case 'Failed': return 'destructive';
+      case 'Refunded': return 'destructive';
       default: return 'default';
     }
   };

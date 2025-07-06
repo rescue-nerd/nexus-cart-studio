@@ -70,7 +70,7 @@ export type Order = {
   city: string;
   paymentMethod: 'COD' | 'QR' | 'Bank Transfer' | 'Khalti';
   date: string; // Should be ISO string
-  status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | 'Failed';
+  status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | 'Failed' | 'Refunded';
   total: number;
   items: OrderItem[];
   paymentDetails?: {
