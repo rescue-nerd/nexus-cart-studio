@@ -38,6 +38,15 @@ const nextConfig: NextConfig = {
 
     // Add fallbacks for Node.js built-in modules in client-side bundles
     if (!isServer) {
+      config.externals = [
+        ...(config.externals || []),
+        'firebase-admin',
+        '@google-cloud/storage',
+        'google-logging-utils',
+        'google-auth-library',
+        'gcp-metadata',
+      ];
+
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
