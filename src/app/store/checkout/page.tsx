@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -16,7 +17,7 @@ import { Loader2, ShoppingCart, Banknote, QrCode, Truck, Copy } from 'lucide-rea
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { placeOrder } from './actions';
+import { placeManualOrder, initiateKhaltiPayment } from './actions';
 import type { CheckoutFormValues } from './actions';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useTranslation } from '@/hooks/use-translation';
@@ -63,7 +64,7 @@ export default function CheckoutPage() {
     customerPhone: z.string().min(10, t('zod.checkout.phoneInvalid')),
     address: z.string().min(5, t('zod.checkout.addressRequired')),
     city: z.string().min(2, t('zod.checkout.cityRequired')),
-    paymentMethod: z.enum(['cod', 'qr', 'bank'], {
+    paymentMethod: z.enum(['cod', 'qr', 'bank', 'khalti'], {
       required_error: t('zod.checkout.paymentRequired'),
     }),
   });
@@ -86,17 +87,30 @@ export default function CheckoutPage() {
 
   const onSubmit = (values: FormValues) => {
     startTransition(async () => {
-      const result = await placeOrder(values, cartItems, language);
-
-      if (result.success) {
-        clearCart();
-        router.push(`/store/checkout/success/${result.orderId}`);
+      if (values.paymentMethod === 'khalti') {
+          const result = await initiateKhaltiPayment(values, cartItems);
+          if (result.success && result.paymentUrl) {
+              clearCart();
+              window.location.href = result.paymentUrl;
+          } else {
+              toast({
+                  variant: "destructive",
+                  title: t('error.genericTitle'),
+                  description: result.messageKey ? t(`storefront.${result.messageKey}`) : t('error.unexpected'),
+              });
+          }
       } else {
-        toast({
-          variant: "destructive",
-          title: t('error.genericTitle'),
-          description: result.messageKey ? t(`storefront.${result.messageKey}`) : t('error.unexpected'),
-        });
+          const result = await placeManualOrder(values, cartItems, language);
+          if (result.success) {
+            clearCart();
+            router.push(`/store/checkout/success/${result.orderId}`);
+          } else {
+            toast({
+              variant: "destructive",
+              title: t('error.genericTitle'),
+              description: result.messageKey ? t(`storefront.${result.messageKey}`) : t('error.unexpected'),
+            });
+          }
       }
     });
   };
@@ -151,6 +165,16 @@ export default function CheckoutPage() {
                         <FormItem>
                             <FormControl>
                                 <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="grid gap-4">
+                                    {store?.paymentSettings?.khaltiSecretKey && (
+                                         <Label htmlFor="khalti" className="flex items-center gap-4 rounded-md border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:ring-1 has-[[data-state=checked]]:ring-primary">
+                                            <RadioGroupItem value="khalti" id="khalti" />
+                                            <svg role="img" viewBox="0 0 128 128" className="h-6 w-6"><path d="M127.32 74.12l-23.77-5.06-2.58-12.06 14.17-20.08L97.58 19.36l-19.98 14.3-11.96-2.7-5-23.85H31.11l5.03 23.8-12.03 2.6-20.1-14.2L-2.26 36.8l14.2 20.04-2.6 12.04L-23.9 74.06v29.58l23.8 5.06 2.58 12.06-14.17 20.08 17.56 17.56 20-14.3 11.94 2.73 5.02 23.8h29.53l-5.03-23.85 12.03-2.6L129.58 149l17.56-17.56-14.2-20.04 2.6-12.04 23.8-5.03zM64 100a36 36 0 110-72 36 36 0 010 72z" fill="#5D2E91"></path></svg>
+                                            <div className="grid gap-1.5">
+                                                <p className="font-semibold">{t('storefront.checkout.khalti')}</p>
+                                                <p className="text-sm text-muted-foreground">{t('storefront.checkout.khaltiDesc')}</p>
+                                            </div>
+                                        </Label>
+                                    )}
                                     <Label htmlFor="cod" className="flex items-center gap-4 rounded-md border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:ring-1 has-[[data-state=checked]]:ring-primary">
                                         <RadioGroupItem value="cod" id="cod" />
                                         <Truck className="h-6 w-6" />
@@ -249,7 +273,7 @@ export default function CheckoutPage() {
             </Card>
              <Button type="submit" size="lg" className="w-full" disabled={isPending}>
                 {isPending && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                {t('storefront.checkout.placeOrder')}
+                {selectedPaymentMethod === 'khalti' ? t('storefront.checkout.proceedToKhalti') : t('storefront.checkout.placeOrder')}
             </Button>
           </div>
         </form>

@@ -33,6 +33,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
+import { Switch } from "@/components/ui/switch"
 import { useTheme } from "@/hooks/use-theme.tsx"
 import { cn } from "@/lib/utils"
 import { type Store, type Plan } from "@/lib/types"
@@ -81,11 +82,13 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
   });
 
   const paymentFormSchema = z.object({
-    bankName: z.string(),
-    accountName: z.string(),
-    accountNumber: z.string(),
-    branch: z.string(),
+    bankName: z.string().optional(),
+    accountName: z.string().optional(),
+    accountNumber: z.string().optional(),
+    branch: z.string().optional(),
     qrCode: z.instanceof(File).optional(),
+    khaltiSecretKey: z.string().optional(),
+    khaltiTestMode: z.boolean().default(false),
   });
   type PaymentFormValues = z.infer<typeof paymentFormSchema>;
 
@@ -96,6 +99,8 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
         accountName: store.paymentSettings?.bankDetails?.accountName || "",
         accountNumber: store.paymentSettings?.bankDetails?.accountNumber || "",
         branch: store.paymentSettings?.bankDetails?.branch || "",
+        khaltiSecretKey: store.paymentSettings?.khaltiSecretKey || "",
+        khaltiTestMode: store.paymentSettings?.khaltiTestMode || false,
     }
   });
 
@@ -120,8 +125,15 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
     startPaymentTransition(async () => {
         const formData = new FormData();
         Object.entries(values).forEach(([key, value]) => {
-            if (value) {
-                formData.append(key, value);
+            if (value !== undefined) {
+                if (typeof value === 'boolean') {
+                    formData.append(key, value ? 'on' : 'off');
+                } else if (value instanceof File) {
+                    if (value.size > 0) formData.append('qrCode', value);
+                }
+                else {
+                    formData.append(key, value);
+                }
             }
         });
         const result = await updatePaymentSettings(store.id, formData);
@@ -345,50 +357,100 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
                         {t('settings.payments.description')}
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-8">
-                  {/* QR Code Section */}
-                  <div className="p-6 border rounded-lg">
-                      <h3 className="text-lg font-medium mb-4">{t('settings.payments.qrCodeTitle')}</h3>
-                      <div className="grid md:grid-cols-2 gap-6 items-start">
-                          <FormField
-                              control={paymentForm.control}
-                              name="qrCode"
-                              render={({ field: { onChange, value, ...rest }}) => (
-                                  <FormItem>
-                                      <FormLabel>{t('settings.payments.uploadQr')}</FormLabel>
-                                      <FormControl>
-                                        <div className="flex items-center gap-2">
-                                          <Input type="file" accept="image/*" onChange={(e) => onChange(e.target.files?.[0])} {...rest} />
+                <CardContent className="space-y-6">
+                    {/* Online Gateways */}
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>{t('settings.payments.onlineGatewaysTitle')}</CardTitle>
+                            <CardDescription>{t('settings.payments.onlineGatewaysDesc')}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <FormField
+                                control={paymentForm.control}
+                                name="khaltiSecretKey"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{t('settings.payments.khaltiSecretKey')}</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} placeholder="live_secret_key_..." type="password" />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={paymentForm.control}
+                                name="khaltiTestMode"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                        <div className="space-y-0.5">
+                                        <FormLabel className="text-base">
+                                            {t('settings.payments.khaltiTestMode')}
+                                        </FormLabel>
+                                        <FormDescription>
+                                            {t('settings.payments.khaltiTestModeDesc')}
+                                        </FormDescription>
                                         </div>
-                                      </FormControl>
-                                      <FormDescription>{t('settings.payments.uploadQrDesc')}</FormDescription>
-                                      <FormMessage />
-                                  </FormItem>
-                              )}
-                          />
-                          <div>
-                              <FormLabel>{t('settings.payments.currentQr')}</FormLabel>
-                              <div className="mt-2 w-48 h-48 border rounded-md flex items-center justify-center bg-muted">
-                                  {store.paymentSettings?.qrCodeUrl ? (
-                                      <Image src={store.paymentSettings.qrCodeUrl} alt="Current QR Code" width={192} height={192} data-ai-hint="qr code"/>
-                                  ) : (
-                                      <p className="text-sm text-muted-foreground">{t('settings.payments.noQr')}</p>
-                                  )}
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-
-                  {/* Bank Transfer Section */}
-                  <div className="p-6 border rounded-lg">
-                      <h3 className="text-lg font-medium mb-4">{t('settings.payments.bankTransferTitle')}</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField control={paymentForm.control} name="bankName" render={({ field }) => (<FormItem><FormLabel>{t('settings.payments.bankName')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={paymentForm.control} name="accountName" render={({ field }) => (<FormItem><FormLabel>{t('settings.payments.accountName')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={paymentForm.control} name="accountNumber" render={({ field }) => (<FormItem><FormLabel>{t('settings.payments.accountNumber')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField control={paymentForm.control} name="branch" render={({ field }) => (<FormItem><FormLabel>{t('settings.payments.branch')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                      </div>
-                  </div>
+                                        <FormControl>
+                                        <Switch
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        </CardContent>
+                    </Card>
+                    {/* Manual Methods */}
+                    <Card>
+                        <CardHeader>
+                             <CardTitle>{t('settings.payments.manualMethodsTitle')}</CardTitle>
+                            <CardDescription>{t('settings.payments.manualMethodsDesc')}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-8">
+                            <div className="p-6 border rounded-lg">
+                                <h3 className="text-lg font-medium mb-4">{t('settings.payments.qrCodeTitle')}</h3>
+                                <div className="grid md:grid-cols-2 gap-6 items-start">
+                                    <FormField
+                                        control={paymentForm.control}
+                                        name="qrCode"
+                                        render={({ field: { onChange, value, ...rest }}) => (
+                                            <FormItem>
+                                                <FormLabel>{t('settings.payments.uploadQr')}</FormLabel>
+                                                <FormControl>
+                                                    <div className="flex items-center gap-2">
+                                                    <Input type="file" accept="image/*" onChange={(e) => onChange(e.target.files?.[0])} {...rest} />
+                                                    </div>
+                                                </FormControl>
+                                                <FormDescription>{t('settings.payments.uploadQrDesc')}</FormDescription>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <div>
+                                        <FormLabel>{t('settings.payments.currentQr')}</FormLabel>
+                                        <div className="mt-2 w-48 h-48 border rounded-md flex items-center justify-center bg-muted">
+                                            {store.paymentSettings?.qrCodeUrl ? (
+                                                <Image src={store.paymentSettings.qrCodeUrl} alt="Current QR Code" width={192} height={192} data-ai-hint="qr code"/>
+                                            ) : (
+                                                <p className="text-sm text-muted-foreground">{t('settings.payments.noQr')}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-6 border rounded-lg">
+                                <h3 className="text-lg font-medium mb-4">{t('settings.payments.bankTransferTitle')}</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <FormField control={paymentForm.control} name="bankName" render={({ field }) => (<FormItem><FormLabel>{t('settings.payments.bankName')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={paymentForm.control} name="accountName" render={({ field }) => (<FormItem><FormLabel>{t('settings.payments.accountName')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={paymentForm.control} name="accountNumber" render={({ field }) => (<FormItem><FormLabel>{t('settings.payments.accountNumber')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={paymentForm.control} name="branch" render={({ field }) => (<FormItem><FormLabel>{t('settings.payments.branch')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </CardContent>
                 <CardFooter>
                     <Button type="submit" disabled={isPaymentPending}>

@@ -129,7 +129,15 @@ export async function deleteProduct(productId: string, storeId: string): Promise
 
 // --- Order Functions ---
 
-export async function getOrder(orderId: string): Promise<Order | null> {
+export async function getOrder(orderId: string, isPidx: boolean = false): Promise<Order | null> {
+    if (isPidx) {
+        const q = query(ordersCollection, where("id", "==", orderId), limit(1));
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.empty) {
+            return null;
+        }
+        return docToType<Order>(querySnapshot.docs[0]);
+    }
     const docRef = doc(db, 'orders', orderId);
     const docSnap = await getDoc(docRef);
     return docSnap.exists() ? docToType<Order>(docSnap) : null;
@@ -153,14 +161,16 @@ export async function addOrder(orderData: Omit<Order, 'id'>): Promise<Order> {
     const orderRef = doc(collection(db, 'orders'));
     batch.set(orderRef, orderData);
 
-    for (const item of orderData.items) {
-        const productRef = doc(db, 'products', item.productId);
-        batch.update(productRef, { stock: increment(-item.quantity) });
+    // Only decrement stock for non-failed/cancelled initial orders
+    if (orderData.status === 'Pending' || orderData.status === 'Processing') {
+        for (const item of orderData.items) {
+            const productRef = doc(db, 'products', item.productId);
+            batch.update(productRef, { stock: increment(-item.quantity) });
+        }
+        const storeRef = doc(db, 'stores', orderData.storeId);
+        batch.update(storeRef, { orderCount: increment(1) });
     }
-
-    const storeRef = doc(db, 'stores', orderData.storeId);
-    batch.update(storeRef, { orderCount: increment(1) });
-
+    
     await batch.commit();
 
     return { id: orderRef.id, ...orderData };

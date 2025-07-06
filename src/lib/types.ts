@@ -18,6 +18,8 @@ export type PaymentSettings = {
     bankName: string;
     branch: string;
   };
+  khaltiSecretKey?: string;
+  khaltiTestMode?: boolean;
 };
 
 export type Store = {
@@ -66,9 +68,13 @@ export type Order = {
   customerPhone: string;
   address: string;
   city: string;
-  paymentMethod: 'COD' | 'QR' | 'Bank Transfer';
+  paymentMethod: 'COD' | 'QR' | 'Bank Transfer' | 'Khalti';
   date: string; // Should be ISO string
-  status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+  status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | 'Failed';
   total: number;
   items: OrderItem[];
+  paymentDetails?: {
+    pidx?: string;
+    transactionId?: string;
+  }
 };

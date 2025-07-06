@@ -84,13 +84,16 @@ export async function updatePaymentSettings(storeId: string, formData: FormData)
         }
 
         const paymentSettings: PaymentSettings = {
+            ...store.paymentSettings,
             qrCodeUrl: qrCodeUrl,
             bankDetails: {
                 bankName: formData.get('bankName') as string,
                 accountName: formData.get('accountName') as string,
                 accountNumber: formData.get('accountNumber') as string,
                 branch: formData.get('branch') as string,
-            }
+            },
+            khaltiSecretKey: formData.get('khaltiSecretKey') as string,
+            khaltiTestMode: formData.get('khaltiTestMode') === 'on',
         };
 
         await updateStore(storeId, { paymentSettings });
