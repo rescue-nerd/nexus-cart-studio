@@ -1,3 +1,4 @@
+
 import { NextResponse, type NextRequest } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
 
@@ -24,6 +25,7 @@ export async function POST(request: NextRequest) {
             maxAge: expiresIn,
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
+            path: '/', // Explicitly set path to root
         };
         
         const response = NextResponse.json({ status: 'success' });
@@ -42,6 +44,7 @@ export async function DELETE() {
         name: SESSION_COOKIE_NAME,
         value: '',
         maxAge: -1,
+        path: '/', // Explicitly set path to root
     };
     
     const response = NextResponse.json({ status: 'success' });
