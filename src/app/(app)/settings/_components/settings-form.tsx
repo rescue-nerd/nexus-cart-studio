@@ -68,7 +68,6 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
   const profileFormSchema = z.object({
     name: z.string().min(2, t('zod.settings.nameLength')),
     description: z.string().optional(),
-    whatsappNumber: z.string().optional(),
   });
   type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
@@ -77,7 +76,6 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
     defaultValues: {
       name: store.name || "",
       description: store.description || "",
-      whatsappNumber: store.whatsappNumber || "",
     },
   });
 
@@ -116,7 +114,6 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
       const formData = new FormData();
       formData.append('name', values.name);
       formData.append('description', values.description || '');
-      formData.append('whatsappNumber', values.whatsappNumber || '');
       
       const result = await updateStoreProfile(store.id, formData);
       if (result.success) {
@@ -268,20 +265,6 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
                          <FormControl>
                           <Textarea {...field} />
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={profileForm.control}
-                    name="whatsappNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('settings.profile.whatsappNumberLabel')}</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder={t('settings.profile.whatsappNumberPlaceholder')} />
-                        </FormControl>
-                         <FormDescription>{t('settings.profile.whatsappNumberDesc')}</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}

@@ -9,7 +9,6 @@ import { randomUUID } from 'crypto';
 
 import { addOrder, getStore, updateOrder, getOrderByTransactionUUID } from '@/lib/firebase-service';
 import type { CartItem } from '@/hooks/use-cart';
-import { sendOrderUpdateNotifications } from '@/lib/order-service';
 import type { OrderItem, Order } from '@/lib/types';
 
 
@@ -109,8 +108,6 @@ export async function placeManualOrder(
 
   const newOrder = await addOrder(newOrderData);
   
-  await sendOrderUpdateNotifications(newOrder, lang);
-
   revalidatePath('/store');
   revalidatePath('/orders');
   

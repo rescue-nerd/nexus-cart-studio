@@ -26,6 +26,4 @@ export const categories: Category[] = [
   { id: 'handmade-jewelry', name: 'Handmade Jewelry' },
 ];
 
-export const storeConfig = {
-  sellerWhatsAppNumber: process.env.NEXT_PUBLIC_SELLER_WHATSAPP_NUMBER || '+9779860000000', 
-};
+export const storeConfig = {};

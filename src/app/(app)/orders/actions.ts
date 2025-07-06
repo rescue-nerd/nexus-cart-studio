@@ -4,7 +4,6 @@
 import { revalidatePath } from 'next/cache';
 import { updateOrder, getOrder, getStore } from '@/lib/firebase-service';
 import type { Order } from "@/lib/types";
-import { sendOrderUpdateNotifications } from '@/lib/order-service';
 
 export type UpdateOrderStatusResult = {
     success: boolean;
@@ -30,9 +29,6 @@ export async function updateOrderStatus(
     }
 
     await updateOrder(orderId, { status });
-    const updatedOrder = { ...order, status };
-
-    await sendOrderUpdateNotifications(updatedOrder, lang);
 
     revalidatePath('/orders');
     revalidatePath(`/orders/${orderId}`);

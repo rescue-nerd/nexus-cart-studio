@@ -190,12 +190,10 @@ erDiagram
     - Orders: "View Details," "Mark as Shipped," "Cancel Order," and "Refund Khalti Order" are functional, persisting to Firestore.
     - Settings: Saving "Store Profile," "SEO," and "Payments" changes works, persisting to Firestore.
     - Superadmin: "Add New Store" and store status changes are fully implemented, persisting to Firestore.
-- **WhatsApp Order Confirmation**: Store owners can set their WhatsApp number, and customers will see a "Confirm on WhatsApp" button after checkout. Seller notifications are also routed to this number.
 
 ### UI/Foundation Only (Backend Logic is Mocked or Incomplete)
 - **Plan Management & Subscription Logic**: UI for changing plans is complete. The backend action updates the store's `planId` in Firestore but does not handle billing, payments, or subscription lifecycle events (e.g., renewals, cancellations).
 - **Product Category Management**: UI does not exist for dynamic category management. Categories are currently static and defined in a config file.
-- **Notification Flows (WhatsApp)**: The `sendWhatsAppNotification` flow is implemented. It will send real messages via Twilio if credentials are provided, but falls back to `console.log` otherwise. There is no persistent logging of sent notifications to a database.
 
 ### Features Not Started
 - **Activity Logs**: No UI or backend logic exists for logging user actions.
@@ -220,7 +218,7 @@ The application uses **Next.js Server Actions** and **API Routes** for backend l
 - `generateDescriptionAction(productName)`: Calls the Genkit flow to generate a product description.
 
 ### Module: Orders (`/app/(app)/orders/actions.ts`)
-- `updateOrderStatus(orderId, status, lang)`: Updates the status of an order document in Firestore and triggers a WhatsApp notification flow.
+- `updateOrderStatus(orderId, status, lang)`: Updates the status of an order document in Firestore.
 - `refundKhaltiOrder(orderId)`: Initiates a full refund for a completed Khalti transaction. It calls the Khalti Refund API and updates the order status to "Refunded" in Firestore upon success.
 
 ### Module: Settings (`/app/(app)/settings/actions.ts`)
@@ -243,14 +241,12 @@ The application uses **Next.js Server Actions** and **API Routes** for backend l
 
 ### Module: AI & Notifications
 - **AI Flows (`/src/ai/flows/*.ts`):** Genkit flows for product description generation, SEO keyword suggestion, and a chat assistant. They are self-contained and called by Server Actions.
-- **WhatsApp (`/src/ai/flows/whatsapp-notification.ts`):** A Genkit flow that uses the Twilio SDK to send messages. It has a graceful fallback to console logging if API keys are missing.
 
 ### Third-Party Integrations
 - **Firebase**: For user authentication (Client SDK), database (Firestore), and server-side session management (Admin SDK). Fully implemented.
 - **Genkit (Google AI)**: For all AI features. Fully implemented.
 - **Khalti**: For real-time payments and refunds. Fully implemented.
 - **eSewa**: For real-time payments. Fully implemented.
-- **Twilio**: For WhatsApp messages. Implemented with a "simulation" mode if keys are not present.
 - **Google Cloud Storage**: For image uploads. Implemented and fully functional.
 
 ---
@@ -268,7 +264,6 @@ The application uses **Next.js Server Actions** and **API Routes** for backend l
 - Manual payment configuration (QR, Bank, COD) by store owners.
 - **Khalti Payment Gateway**: End-to-end payment processing, including configuration, checkout, server-side verification, and refunds.
 - **eSewa Payment Gateway**: End-to-end payment processing, including configuration, checkout, and server-side verification.
-- **WhatsApp Order Confirmation**: Customers can initiate a WhatsApp chat with the merchant after placing an order.
 
 ### UI Only / Mocked Backend
 - **Subscription Billing**: The app does not handle recurring payments or subscription lifecycle management.
@@ -291,7 +286,6 @@ The application uses **Next.js Server Actions** and **API Routes** for backend l
 - **Authentication**: Firebase Auth (Client & Admin SDKs)
 - **UI**: React 18, Tailwind CSS, ShadCN UI
 - **AI**: Google AI via Genkit
-- **Notifications**: Twilio API (for WhatsApp)
 - **File Storage**: Google Cloud Storage
 
 ### Environment Variables
@@ -316,11 +310,6 @@ GCS_PROJECT_ID=
 GCS_BUCKET_NAME=
 # The full JSON key file content as a single-line string
 GOOGLE_APPLICATION_CREDENTIALS_JSON=
-
-# Twilio (Optional, for real WhatsApp notifications)
-TWILIO_ACCOUNT_SID=
-TWILIO_AUTH_TOKEN=
-TWILIO_WHATSAPP_FROM_NUMBER=
 ```
 
 ### Security Measures
@@ -348,4 +337,4 @@ TWILIO_WHATSAPP_FROM_NUMBER=
 3.  **Create a CI/CD Pipeline**: Automate testing and deployment using GitHub Actions or a similar service.
 
 ### Blockers
-- **External Service Credentials**: Full functionality for certain features (GCS, Twilio, Firebase Admin) is blocked pending the acquisition and configuration of API keys and credentials.
+- **External Service Credentials**: Full functionality for certain features (GCS, Firebase Admin) is blocked pending the acquisition and configuration of API keys and credentials.
