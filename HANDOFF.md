@@ -2,7 +2,7 @@
 # NexusCart Technical Handoff & System Overview
 
 **Date:** {current_date}
-**Version:** 1.3 - Post-Khalti-Integration
+**Version:** 1.4 - Post-eSewa-Integration
 
 This document provides a comprehensive overview of the NexusCart application's architecture, database schema, feature status, and deployment requirements. It is intended for developers, project managers, and new team members.
 
@@ -177,6 +177,10 @@ erDiagram
     - **Checkout**: Customers can pay via Khalti, which redirects them to the Khalti payment portal.
     - **Verification**: The system automatically verifies payments on the backend via the Khalti lookup API before confirming an order.
     - **Refunds**: Store owners can initiate full refunds for Khalti transactions directly from the order details page.
+- **eSewa Payment Gateway Integration**:
+    - **Configuration**: Store owners can add their eSewa Merchant Code and Secret Key, and toggle test mode in the settings panel.
+    - **Checkout**: Customers can pay via eSewa. The system generates a signed form that auto-submits, redirecting the user to the eSewa payment page.
+    - **Verification**: The system automatically verifies payments on the backend via the eSewa Status Check API after the user is redirected back to the app. Orders are only confirmed upon successful verification.
 - **Admin Actions (UI & Logic)**:
     - Products: "Add", "Edit", and "Delete" are fully functional, persisting to Firestore.
     - Orders: "View Details," "Mark as Shipped," "Cancel Order," and "Refund Khalti Order" are functional, persisting to Firestore.
@@ -184,7 +188,6 @@ erDiagram
     - Superadmin: "Add New Store" and store status changes are fully implemented, persisting to Firestore.
 
 ### UI/Foundation Only (Backend Logic is Mocked or Incomplete)
-- **eSewa Payment Gateway**: The system does not yet connect to any other real-time payment gateway API (like eSewa) for processing money automatically.
 - **Plan Management & Subscription Logic**: UI for changing plans is complete. The backend action updates the store's `planId` in Firestore but does not handle billing, payments, or subscription lifecycle events (e.g., renewals, cancellations).
 - **Product Category Management**: UI does not exist for dynamic category management. Categories are currently static and defined in a config file.
 - **Notification Flows (WhatsApp)**: The `sendWhatsAppNotification` flow is implemented. It will send real messages via Twilio if credentials are provided, but falls back to `console.log` otherwise. There is no persistent logging of sent notifications to a database.
@@ -214,16 +217,20 @@ The application uses **Next.js Server Actions** instead of a traditional API. Al
 ### Module: Settings (`/app/(app)/settings/actions.ts`)
 - `updateStoreProfile(storeId, formData)`: Updates a store document's name and description in Firestore.
 - `updateStorePlan(storeId, newPlanId)`: Updates a store document's planId in Firestore.
-- `updatePaymentSettings(storeId, formData)`: Updates a store's payment details, including QR code, bank info, and **Khalti credentials**.
+- `updatePaymentSettings(storeId, formData)`: Updates a store's payment details, including QR code, bank info, **Khalti credentials**, and **eSewa credentials**.
 - `updateSeoSettings(storeId, data)`: Updates a store document's meta fields in Firestore.
 - `suggestKeywordsAction(description)`: Calls Genkit flow to suggest SEO keywords.
 
 ### Module: Checkout (`/app/store/checkout/actions.ts`)
 - `placeManualOrder(values, cartItems, lang)`: The main checkout handler for manual methods (COD, QR, Bank). Creates an order with 'Pending' or 'Processing' status.
 - `initiateKhaltiPayment(values, cartItems)`: Handles the Khalti checkout process. It creates a preliminary order in Firestore, initiates a payment with Khalti's API, and returns the payment URL for redirection.
+- `initiateESewaPayment(values, cartItems)`: Handles the eSewa checkout. It creates a preliminary order, generates a secure signature, and returns the necessary form data to the client for auto-redirection to eSewa.
 
 ### Module: Khalti Callback (`/app/store/checkout/khalti/callback/actions.ts`)
 - `verifyKhaltiPayment(pidx)`: Called on the server after the user returns from Khalti. It uses the `pidx` to call Khalti's lookup API, verifies the transaction status, and updates the final order status in Firestore ('Processing' or 'Cancelled').
+
+### Module: eSewa Callback (`/app/store/checkout/esewa/callback/actions.ts`)
+- `verifyESewaPayment(base64Data)`: Called after the user returns from eSewa. It decodes the Base64 data, verifies the signature, and makes a server-to-server call to eSewa's Status Check API to confirm the transaction before updating the order status in Firestore.
 
 ### Module: AI & Notifications
 - **AI Flows (`/src/ai/flows/*.ts`):** Genkit flows for product description generation, SEO keyword suggestion, and a chat assistant. They are self-contained and called by Server Actions.
@@ -233,6 +240,7 @@ The application uses **Next.js Server Actions** instead of a traditional API. Al
 - **Firebase**: For user authentication and database (Firestore). Fully implemented.
 - **Genkit (Google AI)**: For all AI features. Fully implemented.
 - **Khalti**: For real-time payments and refunds. Fully implemented.
+- **eSewa**: For real-time payments. Fully implemented.
 - **Twilio**: For WhatsApp messages. Implemented with a "simulation" mode if keys are not present.
 - **Google Cloud Storage**: For image uploads. Implemented and fully functional.
 
@@ -249,13 +257,14 @@ The application uses **Next.js Server Actions** instead of a traditional API. Al
 - PWA configuration.
 - Manual payment configuration (QR, Bank, COD) by store owners.
 - **Khalti Payment Gateway**: End-to-end payment processing, including configuration, checkout, server-side verification, and refunds.
+- **eSewa Payment Gateway**: End-to-end payment processing, including configuration, checkout, and server-side verification.
 
 ### UI Only / Mocked Backend
-- **Other Payment Gateways (e.g., eSewa)**: The app does not connect to any other real-time gateway.
 - **Subscription Billing**: The app does not handle recurring payments or subscription lifecycle management.
 - **Real-time Analytics**: The dashboard uses randomized data, not real aggregates from the database.
 
 ### Not Started
+- eSewa Refunds (API not provided).
 - Activity logging and auditing.
 - Email sending infrastructure.
 - Database backups, migrations, and seeding strategy.
