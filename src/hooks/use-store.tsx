@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getStore, getProductsByStore, getAllCategories } from '@/lib/firebase-service';
+import { getStore, getProductsByStore, getAllCategories } from '@/lib/firebase-client-data';
 import type { Store, Product, Category } from '@/lib/types';
 
 interface StoreContextType {

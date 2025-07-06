@@ -1,7 +1,7 @@
 
 'use client';
 
-import { getOrder as fetchOrder, getStore as fetchStore } from '@/lib/firebase-service';
+import { getOrder as fetchOrder, getStore as fetchStore } from '@/lib/firebase-client-data';
 import type { Order, Store } from '@/lib/types';
 
 export async function getOrder(orderId: string) {
