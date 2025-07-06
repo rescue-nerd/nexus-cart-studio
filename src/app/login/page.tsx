@@ -84,15 +84,21 @@ export default function LoginPage() {
 
       // Redirect to dashboard (or intended destination if provided)
       const redirectedFrom = searchParams.get('redirectedFrom');
-      router.push(redirectedFrom || "/dashboard");
+      // Use window.location.assign for a full page navigation to ensure the cookie is sent.
+      window.location.assign(redirectedFrom || "/dashboard");
 
     } catch (error: any) {
       const errorCode = error.code || 'auth/unknown-error';
       console.error(`Login Error (${errorCode}):`, error.message);
+      let friendlyMessage = error.message || t('login.errorDesc');
+      if (error.message.includes('Failed to create session')) {
+        friendlyMessage = "Failed to create session. Please try again or contact support."
+      }
+      
       toast({
         variant: "destructive",
         title: t('login.errorTitle'),
-        description: error.message || t('login.errorDesc'),
+        description: friendlyMessage,
       });
       setIsLoading(false);
     }
