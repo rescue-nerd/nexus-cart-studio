@@ -1,8 +1,48 @@
+
 "use server"
 
+import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { z } from "zod";
 import { stores, plans } from '@/lib/placeholder-data';
 import { suggestSeoKeywords } from '@/ai/flows/seo-keyword-suggestion';
+
+
+const storeProfileSchema = z.object({
+  name: z.string().min(2, "Store name is required."),
+  description: z.string().optional(),
+});
+
+
+export async function updateStoreProfile(storeId: string, formData: FormData) {
+  const store = stores.find(s => s.id === storeId);
+  if (!store) {
+    return { success: false, message: 'Store not found.' };
+  }
+  
+  const validatedFields = storeProfileSchema.safeParse({
+    name: formData.get("name"),
+    description: formData.get("description"),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      success: false,
+      message: validatedFields.error.flatten().fieldErrors.toString(),
+    };
+  }
+  
+  const { name, description } = validatedFields.data;
+
+  // In a real app, you'd update the database
+  store.name = name;
+  store.description = description;
+
+  revalidatePath('/settings');
+  revalidatePath('/dashboard'); // Name might be shown on dashboard
+  
+  return { success: true, message: "Store profile updated successfully." };
+}
 
 export async function updateStorePlan(storeId: string, newPlanId: string): Promise<{ success: boolean; message?: string; newPlanName?: string; }> {
   try {

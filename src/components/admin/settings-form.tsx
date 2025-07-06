@@ -1,7 +1,11 @@
+
 "use client"
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -11,8 +15,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import {
   Tabs,
@@ -25,7 +37,7 @@ import { cn } from "@/lib/utils"
 import { type Store, type Plan } from "@/lib/placeholder-data"
 import { CheckCircle, Loader2, Sparkles } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
-import { updateStorePlan, updateSeoSettings, suggestKeywordsAction } from "@/app/(app)/settings/actions";
+import { updateStorePlan, updateSeoSettings, suggestKeywordsAction, updateStoreProfile } from "@/app/(app)/settings/actions";
 
 
 interface SettingsFormProps {
@@ -34,19 +46,50 @@ interface SettingsFormProps {
     allPlans: Plan[];
 }
 
+const profileFormSchema = z.object({
+  name: z.string().min(2, "Store name must be at least 2 characters."),
+  description: z.string().optional(),
+});
+type ProfileFormValues = z.infer<typeof profileFormSchema>;
+
+
 export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps) {
   const { theme, setTheme } = useTheme()
   const { toast } = useToast();
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [isPlanPending, startPlanTransition] = useTransition();
   const [isSeoPending, startSeoTransition] = useTransition();
   const [isAiPending, startAiTransition] = useTransition();
+  const [isProfilePending, startProfileTransition] = useTransition();
   const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
 
   // SEO State
   const [metaTitle, setMetaTitle] = useState(store.metaTitle || '');
   const [metaDescription, setMetaDescription] = useState(store.metaDescription || '');
   const [metaKeywords, setMetaKeywords] = useState(store.metaKeywords || '');
+
+  const profileForm = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileFormSchema),
+    defaultValues: {
+      name: store.name || "",
+      description: store.description || "",
+    },
+  });
+
+  const onProfileSubmit = (values: ProfileFormValues) => {
+    startProfileTransition(async () => {
+      const formData = new FormData();
+      formData.append('name', values.name);
+      formData.append('description', values.description || '');
+      
+      const result = await updateStoreProfile(store.id, formData);
+      if (result.success) {
+        toast({ title: "Profile Updated!", description: "Your store details have been saved." });
+      } else {
+        toast({ variant: "destructive", title: "Update Failed", description: result.message });
+      }
+    });
+  };
 
   const themes = [
     { name: 'default', label: 'Default', colors: ['#619bc9', '#f6f8fa'] },
@@ -57,7 +100,7 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
 
   const handlePlanChange = (newPlanId: string) => {
     setPendingPlanId(newPlanId);
-    startTransition(async () => {
+    startPlanTransition(async () => {
       const result = await updateStorePlan(store.id, newPlanId);
       if (result.success) {
         toast({
@@ -131,27 +174,52 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
         </TabsList>
         <TabsContent value="profile">
-          <Card>
-            <CardHeader>
-              <CardTitle>Store Profile</CardTitle>
-              <CardDescription>
-                Update your store's public details.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-1">
-                <Label htmlFor="name">Store Name</Label>
-                <Input id="name" defaultValue={store.name} />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="description">Store Description</Label>
-                <Textarea id="description" defaultValue={store.description} />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button>Save changes</Button>
-            </CardFooter>
-          </Card>
+          <Form {...profileForm}>
+            <form onSubmit={profileForm.handleSubmit(onProfileSubmit)}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Store Profile</CardTitle>
+                  <CardDescription>
+                    Update your store's public details.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={profileForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Store Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={profileForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Store Description</FormLabel>
+                         <FormControl>
+                          <Textarea {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+                <CardFooter>
+                  <Button type="submit" disabled={isProfilePending}>
+                    {isProfilePending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Save changes
+                  </Button>
+                </CardFooter>
+              </Card>
+            </form>
+          </Form>
         </TabsContent>
         <TabsContent value="billing">
             <Card>
@@ -196,10 +264,10 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
                                 <CardFooter>
                                     <Button 
                                         className="w-full"
-                                        disabled={isPending || plan.id === currentPlan?.id}
+                                        disabled={isPlanPending || plan.id === currentPlan?.id}
                                         onClick={() => handlePlanChange(plan.id)}
                                     >
-                                        {isPending && pendingPlanId === plan.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                        {isPlanPending && pendingPlanId === plan.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                         {plan.id === currentPlan?.id ? 'Current Plan' : 'Switch to ' + plan.name}
                                     </Button>
                                 </CardFooter>
@@ -255,15 +323,15 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1">
-                <Label htmlFor="meta-title">Meta Title</Label>
+                <FormLabel htmlFor="meta-title">Meta Title</FormLabel>
                 <Input id="meta-title" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="meta-description">Meta Description</Label>
+                <FormLabel htmlFor="meta-description">Meta Description</FormLabel>
                 <Textarea id="meta-description" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="meta-keywords">Meta Keywords</Label>
+                <FormLabel htmlFor="meta-keywords">Meta Keywords</FormLabel>
                 <div className="flex items-center gap-2">
                   <Input id="meta-keywords" value={metaKeywords} onChange={(e) => setMetaKeywords(e.target.value)} className="flex-grow"/>
                   <Button variant="outline" size="sm" onClick={handleSuggestKeywords} disabled={isAiPending}>
