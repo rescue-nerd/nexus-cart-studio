@@ -301,8 +301,10 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
 
 # Firebase Admin SDK (Required for server-side session management & route protection)
-# The full JSON key file content for your Firebase service account, as a single-line string.
-# Get this from Firebase Console > Project Settings > Service accounts > Generate new private key
+# To get this:
+# 1. Go to your Firebase Console > Project Settings > Service accounts.
+# 2. Click "Generate new private key" and download the JSON file.
+# 3. Open the file, copy its entire contents, and paste it here as a single-line string.
 FIREBASE_ADMIN_SDK_JSON=
 
 # Google Cloud Storage (Required for real image uploads)
@@ -338,3 +340,4 @@ GOOGLE_APPLICATION_CREDENTIALS_JSON=
 
 ### Blockers
 - **External Service Credentials**: Full functionality for certain features (GCS, Firebase Admin) is blocked pending the acquisition and configuration of API keys and credentials.
+

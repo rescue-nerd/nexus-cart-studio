@@ -7,8 +7,9 @@ if (!admin.apps.length) {
     console.warn(`
 ----------------------------------------------------------------
 NOTICE: Firebase Admin SDK is not configured. 
-Server-side session management will not work.
-To enable it, set FIREBASE_ADMIN_SDK_JSON in your .env file.
+Server-side features like session management and route protection will not work.
+To enable it, set the FIREBASE_ADMIN_SDK_JSON environment variable with your service account key.
+See HANDOFF.md for instructions.
 ----------------------------------------------------------------
 `);
   } else {
@@ -18,7 +19,7 @@ To enable it, set FIREBASE_ADMIN_SDK_JSON in your .env file.
         });
         console.log("Firebase Admin SDK initialized.");
     } catch(e) {
-        console.error("Failed to initialize Firebase Admin SDK", e);
+        console.error("Failed to initialize Firebase Admin SDK. Check that FIREBASE_ADMIN_SDK_JSON is a valid, single-line JSON string.", e);
     }
   }
 }
