@@ -10,9 +10,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetTrigger
 import { Trash2, ShoppingCart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useTranslation } from '@/hooks/use-translation';
 
-function CartItem({ item }: { item: CartItem }) {
+function CartItemView({ item }: { item: CartItem }) {
   const { updateQuantity, removeFromCart } = useCart();
+  const { t } = useTranslation();
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuantity = Number(e.target.value);
@@ -54,7 +56,7 @@ function CartItem({ item }: { item: CartItem }) {
         <p className="font-semibold">Rs {(item.product.price * item.quantity).toFixed(2)}</p>
         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => removeFromCart(item.product.id)}>
           <Trash2 className="h-4 w-4" />
-          <span className="sr-only">Remove item</span>
+          <span className="sr-only">{t('storefront.cart.removeItem')}</span>
         </Button>
       </div>
     </div>
@@ -64,6 +66,7 @@ function CartItem({ item }: { item: CartItem }) {
 
 export function CartSheet() {
   const { cartItems, cartCount, cartTotal, clearCart } = useCart();
+  const { t } = useTranslation();
 
   return (
     <Sheet>
@@ -80,7 +83,7 @@ export function CartSheet() {
       </SheetTrigger>
       <SheetContent className="flex w-full flex-col sm:max-w-lg">
         <SheetHeader className="pr-6">
-          <SheetTitle>Shopping Cart ({cartCount})</SheetTitle>
+          <SheetTitle>{t('storefront.cart.title', { count: cartCount })}</SheetTitle>
         </SheetHeader>
         <Separator />
         {cartCount > 0 ? (
@@ -88,27 +91,27 @@ export function CartSheet() {
             <ScrollArea className="flex-1 pr-6 -mr-6">
               <div className="divide-y">
                 {cartItems.map(item => (
-                  <CartItem key={item.product.id} item={item} />
+                  <CartItemView key={item.product.id} item={item} />
                 ))}
               </div>
             </ScrollArea>
             <SheetFooter className="mt-4 flex-col space-y-4 text-center">
               <div className="flex justify-between font-semibold text-lg">
-                <span>Subtotal</span>
+                <span>{t('storefront.cart.subtotal')}</span>
                 <span>Rs {cartTotal.toFixed(2)}</span>
               </div>
               <Button size="lg" className="w-full" asChild>
-                <Link href="/store/checkout">Proceed to Checkout</Link>
+                <Link href="/store/checkout">{t('storefront.cart.checkout')}</Link>
               </Button>
-              <Button variant="outline" onClick={clearCart}>Clear Cart</Button>
+              <Button variant="outline" onClick={clearCart}>{t('storefront.cart.clearCart')}</Button>
             </SheetFooter>
           </>
         ) : (
           <div className="flex flex-1 flex-col items-center justify-center space-y-4">
             <ShoppingCart className="h-16 w-16 text-muted-foreground" />
-            <p className="text-muted-foreground">Your cart is empty.</p>
+            <p className="text-muted-foreground">{t('storefront.cart.emptyTitle')}</p>
             <Button variant="outline" asChild>
-                <Link href="/store#products">Start Shopping</Link>
+                <Link href="/store#products">{t('storefront.cart.startShopping')}</Link>
             </Button>
           </div>
         )}

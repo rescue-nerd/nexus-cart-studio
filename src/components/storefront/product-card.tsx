@@ -8,9 +8,11 @@ import type { Product } from "@/lib/placeholder-data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useCart } from "@/hooks/use-cart";
+import { useTranslation } from "@/hooks/use-translation";
 
 export function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart();
+  const { t } = useTranslation();
 
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault(); // Prevent navigating to product page
@@ -44,7 +46,7 @@ export function ProductCard({ product }: { product: Product }) {
               variant="outline"
               onClick={handleAddToCart}
               disabled={product.stock === 0}
-              aria-label="Add to cart"
+              aria-label={t('storefront.addToCart')}
             >
               <ShoppingCart className="h-5 w-5" />
             </Button>

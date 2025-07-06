@@ -1,9 +1,14 @@
+"use client";
+
 import { NexusCartLogo } from "@/components/icons";
 import { UserNav } from "@/components/admin/user-nav";
 import Link from "next/link";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useTranslation } from "@/hooks/use-translation";
 
 export default function SuperAdminLayout({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
+
   return (
     <TooltipProvider>
       <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -13,7 +18,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
             className="flex items-center gap-2 font-semibold"
           >
             <NexusCartLogo className="h-6 w-6" />
-            <span>GrowNexus Admin</span>
+            <span>{t('superadmin.title')}</span>
           </Link>
           <div className="relative ml-auto flex-1 md:grow-0">
             {/* Search can go here later */}

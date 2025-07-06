@@ -42,8 +42,10 @@ import {
 import { stores, type Store } from "@/lib/placeholder-data";
 import { updateStoreStatus } from "./actions";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/use-translation";
 
 export default function SuperAdminDashboard() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -72,14 +74,14 @@ export default function SuperAdminDashboard() {
       const result = await updateStoreStatus(selectedStore.id, targetStatus);
        if (result.success) {
         toast({
-          title: "Status Updated",
-          description: `Store "${selectedStore.name}" has been ${targetStatus.toLowerCase()}.`,
+          title: t('superadmin.stores.toast.statusUpdated'),
+          description: t('superadmin.stores.toast.statusUpdatedDesc', { name: selectedStore.name, status: targetStatus.toLowerCase() }),
         });
       } else {
         toast({
           variant: "destructive",
-          title: "Update Failed",
-          description: result.message || "Could not update store status.",
+          title: t('superadmin.stores.toast.updateFailed'),
+          description: result.message || t('superadmin.stores.toast.updateFailedDesc'),
         });
       }
       setDialogOpen(false);
@@ -94,16 +96,16 @@ export default function SuperAdminDashboard() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>All Stores</CardTitle>
+              <CardTitle>{t('superadmin.stores.title')}</CardTitle>
               <CardDescription>
-                Manage all stores on the platform.
+                {t('superadmin.stores.description')}
               </CardDescription>
             </div>
             <Button size="sm" className="gap-1" asChild>
               <Link href="/admin/new">
                 <PlusCircle className="h-3.5 w-3.5" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                  Add New Store
+                  {t('superadmin.stores.add')}
                 </span>
               </Link>
             </Button>
@@ -113,13 +115,13 @@ export default function SuperAdminDashboard() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Store Name</TableHead>
-                <TableHead>Owner</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="hidden md:table-cell">Products</TableHead>
-                <TableHead className="hidden md:table-cell">Orders</TableHead>
+                <TableHead>{t('superadmin.stores.name')}</TableHead>
+                <TableHead>{t('superadmin.stores.owner')}</TableHead>
+                <TableHead>{t('superadmin.stores.status')}</TableHead>
+                <TableHead className="hidden md:table-cell">{t('superadmin.stores.products')}</TableHead>
+                <TableHead className="hidden md:table-cell">{t('superadmin.stores.orders')}</TableHead>
                 <TableHead>
-                  <span className="sr-only">Actions</span>
+                  <span className="sr-only">{t('superadmin.stores.actions')}</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -146,25 +148,25 @@ export default function SuperAdminDashboard() {
                       <DropdownMenuTrigger asChild>
                         <Button aria-haspopup="true" size="icon" variant="ghost">
                           <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
+                          <span className="sr-only">{t('superadmin.stores.toggleMenu')}</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem asChild><Link href={`http://${store.domain}`} target="_blank">View Storefront</Link></DropdownMenuItem>
-                        <DropdownMenuItem asChild><Link href={`http://${store.domain}/dashboard`} target="_blank">View Dashboard</Link></DropdownMenuItem>
+                        <DropdownMenuLabel>{t('superadmin.stores.actions')}</DropdownMenuLabel>
+                        <DropdownMenuItem asChild><Link href={`http://${store.domain}`} target="_blank">{t('superadmin.stores.viewStorefront')}</Link></DropdownMenuItem>
+                        <DropdownMenuItem asChild><Link href={`http://${store.domain}/dashboard`} target="_blank">{t('superadmin.stores.viewDashboard')}</Link></DropdownMenuItem>
                         <DropdownMenuSeparator />
                         {store.status === 'Active' ? (
                           <DropdownMenuItem onClick={() => handleStatusChangeClick(store, 'Inactive')}>
-                            <PowerOff className="mr-2 h-4 w-4" /> Deactivate
+                            <PowerOff className="mr-2 h-4 w-4" /> {t('superadmin.stores.deactivate')}
                           </DropdownMenuItem>
                         ) : (
                            <DropdownMenuItem onClick={() => handleStatusChangeClick(store, 'Active')}>
-                            <Power className="mr-2 h-4 w-4" /> Activate
+                            <Power className="mr-2 h-4 w-4" /> {t('superadmin.stores.activate')}
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleStatusChangeClick(store, 'Suspended')}>
-                          <PowerOff className="mr-2 h-4 w-4" /> Suspend
+                          <PowerOff className="mr-2 h-4 w-4" /> {t('superadmin.stores.suspend')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -178,17 +180,16 @@ export default function SuperAdminDashboard() {
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('superadmin.stores.dialog.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will change the status of the store '{selectedStore?.name}' to '{targetStatus}'. 
-              The store owner may be notified.
+              {t('superadmin.stores.dialog.description', { name: selectedStore?.name, status: targetStatus })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('superadmin.stores.dialog.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmStatusChange} disabled={isPending}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Confirm
+              {t('superadmin.stores.dialog.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

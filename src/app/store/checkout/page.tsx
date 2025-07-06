@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { placeOrder, checkoutFormSchema } from './actions';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useTranslation } from '@/hooks/use-translation';
 
 type CheckoutFormValues = z.infer<typeof checkoutFormSchema>;
 
@@ -25,6 +26,7 @@ export default function CheckoutPage() {
   const { cartItems, cartTotal, cartCount, clearCart } = useCart();
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [isPending, startTransition] = React.useTransition();
 
   const form = useForm<CheckoutFormValues>({
@@ -47,20 +49,19 @@ export default function CheckoutPage() {
         clearCart();
         if (result.paymentMethod === 'whatsapp' && result.whatsappUrl) {
             toast({
-                title: "Redirecting to WhatsApp",
-                description: "Finalize your order with the seller."
+                title: t('storefront.checkout.toast.redirectingToWhatsapp'),
+                description: t('storefront.checkout.toast.finalizeOrder')
             });
             window.open(result.whatsappUrl, '_blank');
             router.push('/store');
         } else if (result.orderId) {
-            // For COD or eSewa (simulated)
             router.push(`/store/checkout/success/${result.orderId}`);
         }
       } else {
         toast({
           variant: "destructive",
-          title: "Order Failed",
-          description: result.message || "There was a problem placing your order.",
+          title: t('storefront.checkout.toast.orderFailed'),
+          description: result.message || t('storefront.checkout.toast.orderFailedDesc'),
         });
       }
     });
@@ -70,10 +71,10 @@ export default function CheckoutPage() {
     return (
         <div className="container mx-auto px-4 md:px-6 py-12 flex flex-col items-center justify-center text-center h-[50vh]">
             <ShoppingCart className="h-24 w-24 text-muted-foreground mb-4" />
-            <h1 className="text-2xl font-bold mb-2">Your Cart is Empty</h1>
-            <p className="text-muted-foreground mb-6">Looks like you haven't added anything to your cart yet.</p>
+            <h1 className="text-2xl font-bold mb-2">{t('storefront.checkout.emptyCartTitle')}</h1>
+            <p className="text-muted-foreground mb-6">{t('storefront.checkout.emptyCartDesc')}</p>
             <Button asChild>
-                <Link href="/store#products">Continue Shopping</Link>
+                <Link href="/store#products">{t('storefront.checkout.continueShopping')}</Link>
             </Button>
         </div>
     )
@@ -81,36 +82,36 @@ export default function CheckoutPage() {
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-12">
-      <h1 className="text-3xl font-bold mb-8 text-center">Checkout</h1>
+      <h1 className="text-3xl font-bold mb-8 text-center">{t('storefront.checkout.title')}</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid md:grid-cols-2 gap-12">
           {/* Left Side: Shipping & Payment */}
           <div className="space-y-8">
             <Card>
-                <CardHeader><CardTitle>Shipping Information</CardTitle></CardHeader>
+                <CardHeader><CardTitle>{t('storefront.checkout.shippingInfo')}</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                     <FormField control={form.control} name="customerName" render={({ field }) => (
-                        <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="Your Name" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>{t('storefront.checkout.fullName')}</FormLabel><FormControl><Input placeholder={t('storefront.checkout.fullNamePlaceholder')} {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                     <div className="grid sm:grid-cols-2 gap-4">
                          <FormField control={form.control} name="customerEmail" render={({ field }) => (
-                            <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="you@example.com" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>{t('storefront.checkout.email')}</FormLabel><FormControl><Input placeholder={t('storefront.checkout.emailPlaceholder')} {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                          <FormField control={form.control} name="customerPhone" render={({ field }) => (
-                            <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="+977..." {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>{t('storefront.checkout.phone')}</FormLabel><FormControl><Input placeholder={t('storefront.checkout.phonePlaceholder')} {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
                     </div>
                      <FormField control={form.control} name="address" render={({ field }) => (
-                        <FormItem><FormLabel>Street Address</FormLabel><FormControl><Input placeholder="123 Kumaripati" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>{t('storefront.checkout.address')}</FormLabel><FormControl><Input placeholder={t('storefront.checkout.addressPlaceholder')} {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                      <FormField control={form.control} name="city" render={({ field }) => (
-                        <FormItem><FormLabel>City</FormLabel><FormControl><Input placeholder="Lalitpur" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>{t('storefront.checkout.city')}</FormLabel><FormControl><Input placeholder={t('storefront.checkout.cityPlaceholder')} {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </CardContent>
             </Card>
 
             <Card>
-                <CardHeader><CardTitle>Payment Method</CardTitle></CardHeader>
+                <CardHeader><CardTitle>{t('storefront.checkout.paymentMethod')}</CardTitle></CardHeader>
                 <CardContent>
                     <FormField control={form.control} name="paymentMethod" render={({ field }) => (
                         <FormItem>
@@ -120,24 +121,24 @@ export default function CheckoutPage() {
                                         <RadioGroupItem value="cod" id="cod" />
                                         <Truck className="h-6 w-6" />
                                         <div className="grid gap-1.5">
-                                            <p className="font-semibold">Cash on Delivery</p>
-                                            <p className="text-sm text-muted-foreground">Pay with cash upon receiving your order.</p>
+                                            <p className="font-semibold">{t('storefront.checkout.cod')}</p>
+                                            <p className="text-sm text-muted-foreground">{t('storefront.checkout.codDesc')}</p>
                                         </div>
                                     </Label>
                                     <Label htmlFor="esewa" className="flex items-center gap-4 rounded-md border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:ring-1 has-[[data-state=checked]]:ring-primary">
                                         <RadioGroupItem value="esewa" id="esewa" />
                                         <CreditCard className="h-6 w-6" />
                                         <div className="grid gap-1.5">
-                                            <p className="font-semibold">eSewa or Card Payment</p>
-                                            <p className="text-sm text-muted-foreground">Pay with eSewa, mobile banking, or card.</p>
+                                            <p className="font-semibold">{t('storefront.checkout.esewa')}</p>
+                                            <p className="text-sm text-muted-foreground">{t('storefront.checkout.esewaDesc')}</p>
                                         </div>
                                     </Label>
                                     <Label htmlFor="whatsapp" className="flex items-center gap-4 rounded-md border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:ring-1 has-[[data-state=checked]]:ring-primary">
                                         <RadioGroupItem value="whatsapp" id="whatsapp" />
                                         <MessageSquare className="h-6 w-6" />
                                         <div className="grid gap-1.5">
-                                            <p className="font-semibold">Order on WhatsApp</p>
-                                            <p className="text-sm text-muted-foreground">Chat with the seller to finalize your order.</p>
+                                            <p className="font-semibold">{t('storefront.checkout.whatsapp')}</p>
+                                            <p className="text-sm text-muted-foreground">{t('storefront.checkout.whatsappDesc')}</p>
                                         </div>
                                     </Label>
                                 </RadioGroup>
@@ -152,7 +153,7 @@ export default function CheckoutPage() {
           {/* Right Side: Order Summary */}
           <div className="space-y-8">
             <Card>
-                <CardHeader><CardTitle>Order Summary</CardTitle></CardHeader>
+                <CardHeader><CardTitle>{t('storefront.checkout.orderSummary')}</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                     {cartItems.map(item => (
                         <div key={item.product.id} className="flex items-center justify-between gap-4">
@@ -160,7 +161,7 @@ export default function CheckoutPage() {
                                 <Image src={item.product.imageUrl} alt={item.product.name} width={64} height={64} className="rounded-md border object-cover" data-ai-hint="product image" />
                                 <div>
                                     <p className="font-medium line-clamp-1">{item.product.name}</p>
-                                    <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                                    <p className="text-sm text-muted-foreground">{t('storefront.checkout.quantity', { quantity: item.quantity })}</p>
                                 </div>
                             </div>
                             <p className="font-medium text-right shrink-0">Rs {(item.product.price * item.quantity).toFixed(2)}</p>
@@ -168,23 +169,23 @@ export default function CheckoutPage() {
                     ))}
                     <Separator className="my-4" />
                     <div className="flex justify-between">
-                        <p>Subtotal</p>
+                        <p>{t('storefront.checkout.subtotal')}</p>
                         <p>Rs {cartTotal.toFixed(2)}</p>
                     </div>
                      <div className="flex justify-between">
-                        <p>Shipping</p>
-                        <p>Free</p>
+                        <p>{t('storefront.checkout.shipping')}</p>
+                        <p>{t('storefront.checkout.shippingCost')}</p>
                     </div>
                     <Separator />
                     <div className="flex justify-between font-bold text-lg">
-                        <p>Total</p>
+                        <p>{t('storefront.checkout.total')}</p>
                         <p>Rs {cartTotal.toFixed(2)}</p>
                     </div>
                 </CardContent>
             </Card>
              <Button type="submit" size="lg" className="w-full" disabled={isPending}>
                 {isPending && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                Place Order
+                {t('storefront.checkout.placeOrder')}
             </Button>
           </div>
         </form>

@@ -60,7 +60,47 @@
     "actions": "Actions",
     "inStock": "In Stock",
     "outOfStock": "Out of Stock",
-    "footer": "Showing <strong>{start}-{end}</strong> of <strong>{total}</strong> products"
+    "footer": "Showing <strong>{start}-{end}</strong> of <strong>{total}</strong> products",
+    "editProduct": "Edit Product",
+    "new": {
+      "title": "Add New Product",
+      "header": "Product Details",
+      "description": "Fill in the information below to add a new product to your store."
+    },
+    "edit": {
+      "title": "Edit Product",
+      "header": "Product Details",
+      "description": "Update the information for your product."
+    },
+    "form": {
+      "productName": "Product Name",
+      "productNamePlaceholder": "e.g. Pashmina Shawl",
+      "description": "Description",
+      "generateWithAi": "Generate with AI",
+      "descriptionPlaceholder": "Tell us a little bit about the product, or generate one with AI.",
+      "price": "Price (Rs)",
+      "stock": "Stock",
+      "currentImage": "Current Image",
+      "updateImage": "Update Image",
+      "updateImageDesc": "Upload a new image to replace the current one.",
+      "productImage": "Product Image",
+      "productImageDesc": "Upload an image for your product.",
+      "saveChanges": "Save Changes",
+      "back": "Back"
+    },
+    "toast": {
+      "nameRequired": "Product Name Required",
+      "nameRequiredDesc": "Please enter a product name first to generate a description.",
+      "aiSuccessTitle": "Description Generated!",
+      "aiSuccessDescAdd": "The AI-powered description has been added.",
+      "aiSuccessDescUpdate": "The AI-powered description has been updated.",
+      "aiFailTitle": "Generation Failed",
+      "aiFailDesc": "The AI could not generate a description.",
+      "addSuccessTitle": "Product Added!",
+      "addSuccessDesc": "The product \"{name}\" has been successfully added.",
+      "failTitle": "Uh oh! Something went wrong.",
+      "failDesc": "There was a problem with your request."
+    }
   },
   "productActions": {
     "actions": "Actions",
@@ -192,7 +232,106 @@
     "shopNow": "Shop Now",
     "collectionsTitle": "Our Collections",
     "featuredTitle": "Featured Products",
-    "addToCart": "Add to Cart"
+    "addToCart": "Add to cart",
+    "productDetails": {
+      "home": "Home",
+      "products": "Products",
+      "inStock": "In Stock ({stock})",
+      "outOfStock": "Out of Stock",
+      "addToCart": "Add to Cart"
+    },
+    "checkout": {
+      "title": "Checkout",
+      "emptyCartTitle": "Your Cart is Empty",
+      "emptyCartDesc": "Looks like you haven't added anything to your cart yet.",
+      "continueShopping": "Continue Shopping",
+      "shippingInfo": "Shipping Information",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "Your Name",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "phone": "Phone Number",
+      "phonePlaceholder": "+977...",
+      "address": "Street Address",
+      "addressPlaceholder": "123 Kumaripati",
+      "city": "City",
+      "cityPlaceholder": "Lalitpur",
+      "paymentMethod": "Payment Method",
+      "cod": "Cash on Delivery",
+      "codDesc": "Pay with cash upon receiving your order.",
+      "esewa": "eSewa or Card Payment",
+      "esewaDesc": "Pay with eSewa, mobile banking, or card.",
+      "whatsapp": "Order on WhatsApp",
+      "whatsappDesc": "Chat with the seller to finalize your order.",
+      "orderSummary": "Order Summary",
+      "quantity": "Qty: {quantity}",
+      "subtotal": "Subtotal",
+      "shipping": "Shipping",
+      "shippingCost": "Free",
+      "total": "Total",
+      "placeOrder": "Place Order",
+      "toast": {
+        "redirectingToWhatsapp": "Redirecting to WhatsApp",
+        "finalizeOrder": "Finalize your order with the seller.",
+        "orderFailed": "Order Failed",
+        "orderFailedDesc": "There was a problem placing your order."
+      }
+    },
+    "orderSuccess": {
+      "title": "Thank You for Your Order!",
+      "description": "Your order has been placed successfully.",
+      "orderIdLabel": "Your Order ID is:",
+      "summaryTitle": "Order Summary",
+      "customer": "Customer:",
+      "paymentMethod": "Payment Method:",
+      "shippingTo": "Shipping To:",
+      "total": "Total:",
+      "continueShopping": "Continue Shopping",
+      "viewDashboard": "View My Dashboard",
+      "confirmationEmail": "You will receive a confirmation email shortly. If you chose eSewa, your order will be processed after payment confirmation."
+    },
+    "aiChat": {
+      "title": "AI Shopping Assistant",
+      "description": "Ask me anything about our products, and I'll help you find what you need.",
+      "placeholder": "Ask about our products...",
+      "thinking": "Thinking...",
+      "send": "Send"
+    },
+    "cart": {
+      "title": "Shopping Cart ({count})",
+      "removeItem": "Remove item",
+      "subtotal": "Subtotal",
+      "checkout": "Proceed to Checkout",
+      "clearCart": "Clear Cart",
+      "emptyTitle": "Your cart is empty.",
+      "startShopping": "Start Shopping",
+      "toast": {
+        "stockLimitTitle": "Stock Limit Reached",
+        "stockLimitDesc": "You cannot add more than {stock} of this item.",
+        "itemAdded": "Item added to cart",
+        "quantityUpdated": "{name} quantity updated to {quantity}.",
+        "itemAddedDesc": "{quantity} x {name} has been added.",
+        "itemRemoved": "Item removed",
+        "itemRemovedDesc": "{name} has been removed from your cart.",
+        "cartCleared": "Cart cleared",
+        "cartClearedDesc": "All items have been removed from your cart."
+      }
+    },
+    "footer": {
+      "slogan": "Authentic, handcrafted treasures from the heart of the Himalayas.",
+      "quickLinks": "Quick Links",
+      "home": "Home",
+      "about": "About Us",
+      "shop": "Shop",
+      "contact": "Contact",
+      "customerService": "Customer Service",
+      "faq": "FAQ",
+      "shippingReturns": "Shipping & Returns",
+      "privacyPolicy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "followUs": "Follow Us",
+      "copyright": "© {year} {storeName}. All Rights Reserved."
+    }
   },
   "userNav": {
     "language": "Language",
@@ -201,5 +340,58 @@
     "profile": "Profile",
     "billing": "Billing",
     "logout": "Log out"
+  },
+  "superadmin": {
+    "title": "GrowNexus Admin",
+    "stores": {
+      "title": "All Stores",
+      "description": "Manage all stores on the platform.",
+      "add": "Add New Store",
+      "name": "Store Name",
+      "owner": "Owner",
+      "status": "Status",
+      "products": "Products",
+      "orders": "Orders",
+      "actions": "Actions",
+      "toggleMenu": "Toggle menu",
+      "viewStorefront": "View Storefront",
+      "viewDashboard": "View Dashboard",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "suspend": "Suspend",
+      "dialog": {
+        "title": "Are you absolutely sure?",
+        "description": "This will change the status of the store '{name}' to '{status}'. The store owner may be notified.",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+      },
+      "toast": {
+        "statusUpdated": "Status Updated",
+        "statusUpdatedDesc": "Store \"{name}\" has been {status}.",
+        "updateFailed": "Update Failed",
+        "updateFailedDesc": "Could not update store status."
+      }
+    },
+    "newStore": {
+      "title": "Create New Store",
+      "header": "New Store Details",
+      "description": "Fill in the information below to create a new store on the platform.",
+      "form": {
+        "storeName": "Store Name",
+        "storeNamePlaceholder": "e.g. Himalayan Crafts",
+        "ownerName": "Owner's Full Name",
+        "ownerNamePlaceholder": "e.g. Anjali Lama",
+        "ownerEmail": "Owner's Email",
+        "ownerEmailPlaceholder": "owner@example.com",
+        "subdomain": "Subdomain",
+        "subdomainPlaceholder": "himalayan-crafts",
+        "subdomainDesc": "This will be the public URL for the store.",
+        "create": "Create Store"
+      },
+      "toast": {
+        "failTitle": "Uh oh! Something went wrong.",
+        "failDesc": "There was a problem with your request."
+      }
+    }
   }
 }

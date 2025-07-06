@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { addProduct, generateDescriptionAction } from "@/app/(app)/products/actions";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/use-translation";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -43,6 +44,7 @@ export function AddProductForm() {
   const [isPending, startTransition] = useTransition();
   const [isAiPending, startAiTransition] = useTransition();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -61,8 +63,8 @@ export function AddProductForm() {
       if (!productName) {
         toast({
           variant: "destructive",
-          title: "Product Name Required",
-          description: "Please enter a product name first to generate a description.",
+          title: t('products.toast.nameRequired'),
+          description: t('products.toast.nameRequiredDesc'),
         });
         return;
       }
@@ -72,14 +74,14 @@ export function AddProductForm() {
       if (result.success && result.description) {
         form.setValue("description", result.description, { shouldValidate: true });
         toast({
-          title: "Description Generated!",
-          description: "The AI-powered description has been added.",
+          title: t('products.toast.aiSuccessTitle'),
+          description: t('products.toast.aiSuccessDescAdd'),
         });
       } else {
         toast({
           variant: "destructive",
-          title: "Generation Failed",
-          description: result.message || "The AI could not generate a description.",
+          title: t('products.toast.aiFailTitle'),
+          description: result.message || t('products.toast.aiFailDesc'),
         });
       }
     });
@@ -98,14 +100,14 @@ export function AddProductForm() {
 
       if (result.success) {
         toast({
-          title: "Product Added!",
-          description: `The product "${values.name}" has been successfully added.`,
+          title: t('products.toast.addSuccessTitle'),
+          description: t('products.toast.addSuccessDesc', { name: values.name }),
         });
       } else {
         toast({
           variant: "destructive",
-          title: "Uh oh! Something went wrong.",
-          description: result.message || "There was a problem with your request.",
+          title: t('products.toast.failTitle'),
+          description: result.message || t('products.toast.failDesc'),
         });
       }
     });
@@ -119,9 +121,9 @@ export function AddProductForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Product Name</FormLabel>
+              <FormLabel>{t('products.form.productName')}</FormLabel>
               <FormControl>
-                <Input placeholder="e.g. Pashmina Shawl" {...field} />
+                <Input placeholder={t('products.form.productNamePlaceholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -133,7 +135,7 @@ export function AddProductForm() {
           render={({ field }) => (
             <FormItem>
               <div className="flex items-center justify-between">
-                <FormLabel>Description</FormLabel>
+                <FormLabel>{t('products.form.description')}</FormLabel>
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -142,12 +144,12 @@ export function AddProductForm() {
                   disabled={isAiPending || !form.watch('name')}
                 >
                   {isAiPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                  Generate with AI
+                  {t('products.form.generateWithAi')}
                 </Button>
               </div>
               <FormControl>
                 <Textarea
-                  placeholder="Tell us a little bit about the product, or generate one with AI."
+                  placeholder={t('products.form.descriptionPlaceholder')}
                   className="resize-none"
                   {...field}
                 />
@@ -162,7 +164,7 @@ export function AddProductForm() {
             name="price"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Price (Rs)</FormLabel>
+                <FormLabel>{t('products.form.price')}</FormLabel>
                 <FormControl>
                   <Input type="number" {...field} />
                 </FormControl>
@@ -175,7 +177,7 @@ export function AddProductForm() {
             name="stock"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Stock</FormLabel>
+                <FormLabel>{t('products.form.stock')}</FormLabel>
                 <FormControl>
                   <Input type="number" {...field} />
                 </FormControl>
@@ -189,12 +191,12 @@ export function AddProductForm() {
           name="image"
           render={({ field: { onChange, value, ...rest } }) => (
             <FormItem>
-              <FormLabel>Product Image</FormLabel>
+              <FormLabel>{t('products.form.productImage')}</FormLabel>
               <FormControl>
                 <Input type="file" accept="image/*" onChange={(e) => onChange(e.target.files?.[0])} {...rest} />
               </FormControl>
                <FormDescription>
-                Upload an image for your product.
+                {t('products.form.productImageDesc')}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -202,7 +204,7 @@ export function AddProductForm() {
         />
         <Button type="submit" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Add Product
+          {t('products.addProduct')}
         </Button>
       </form>
     </Form>

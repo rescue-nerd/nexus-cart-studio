@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getAiChatResponse } from "@/app/actions";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/hooks/use-translation";
 
 type Message = {
   role: "user" | "assistant";
@@ -23,6 +24,7 @@ type Message = {
 };
 
 export function AIChat() {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -66,9 +68,9 @@ export function AIChat() {
         </SheetTrigger>
         <SheetContent className="flex flex-col">
           <SheetHeader>
-            <SheetTitle>AI Shopping Assistant</SheetTitle>
+            <SheetTitle>{t('storefront.aiChat.title')}</SheetTitle>
             <SheetDescription>
-              Ask me anything about our products, and I'll help you find what you need.
+              {t('storefront.aiChat.description')}
             </SheetDescription>
           </SheetHeader>
           <ScrollArea className="flex-1 pr-4 -mr-6" ref={scrollAreaRef}>
@@ -110,7 +112,7 @@ export function AIChat() {
                     </div>
                   <div className="p-3 rounded-lg bg-muted flex items-center space-x-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm text-muted-foreground">Thinking...</span>
+                    <span className="text-sm text-muted-foreground">{t('storefront.aiChat.thinking')}</span>
                   </div>
                 </div>
               )}
@@ -122,12 +124,12 @@ export function AIChat() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about our products..."
+                placeholder={t('storefront.aiChat.placeholder')}
                 disabled={isPending}
               />
               <Button type="submit" disabled={isPending} size="icon">
                 <Send className="h-4 w-4" />
-                <span className="sr-only">Send</span>
+                <span className="sr-only">{t('storefront.aiChat.send')}</span>
               </Button>
             </form>
           </SheetFooter>

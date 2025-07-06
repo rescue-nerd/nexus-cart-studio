@@ -60,7 +60,47 @@
     "actions": "कार्यहरू",
     "inStock": "स्टकमा छ",
     "outOfStock": "स्टक बाहिर",
-    "footer": "<strong>{total}</strong> उत्पादनहरू मध्ये <strong>{start}-{end}</strong> देखाउँदै"
+    "footer": "<strong>{total}</strong> उत्पादनहरू मध्ये <strong>{start}-{end}</strong> देखाउँदै",
+    "editProduct": "उत्पादन सम्पादन गर्नुहोस्",
+    "new": {
+      "title": "नयाँ उत्पादन थप्नुहोस्",
+      "header": "उत्पादन विवरण",
+      "description": "आफ्नो स्टोरमा नयाँ उत्पादन थप्न तलको जानकारी भर्नुहोस्।"
+    },
+    "edit": {
+      "title": "उत्पादन सम्पादन गर्नुहोस्",
+      "header": "उत्पादन विवरण",
+      "description": "आफ्नो उत्पादनको जानकारी अद्यावधिक गर्नुहोस्।"
+    },
+    "form": {
+      "productName": "उत्पादनको नाम",
+      "productNamePlaceholder": "उदाहरण: पश्मिना शल",
+      "description": "विवरण",
+      "generateWithAi": "AI द्वारा उत्पन्न गर्नुहोस्",
+      "descriptionPlaceholder": "उत्पादनको बारेमा थोरै बताउनुहोस्, वा AI द्वारा उत्पन्न गर्नुहोस्।",
+      "price": "मूल्य (रु)",
+      "stock": "स्टक",
+      "currentImage": "हालको छवि",
+      "updateImage": "छवि अद्यावधिक गर्नुहोस्",
+      "updateImageDesc": "हालको छविको सट्टामा नयाँ छवि अपलोड गर्नुहोस्।",
+      "productImage": "उत्पादन छवि",
+      "productImageDesc": "आफ्नो उत्पादनको लागि एउटा छवि अपलोड गर्नुहोस्।",
+      "saveChanges": "परिवर्तनहरू बचत गर्नुहोस्",
+      "back": "पछाडि"
+    },
+    "toast": {
+      "nameRequired": "उत्पादनको नाम आवश्यक छ",
+      "nameRequiredDesc": "विवरण उत्पन्न गर्न कृपया पहिले उत्पादनको नाम प्रविष्ट गर्नुहोस्।",
+      "aiSuccessTitle": "विवरण उत्पन्न भयो!",
+      "aiSuccessDescAdd": "AI-संचालित विवरण थपिएको छ।",
+      "aiSuccessDescUpdate": "AI-संचालित विवरण अद्यावधिक गरिएको छ।",
+      "aiFailTitle": "उत्पन्न गर्न असफल",
+      "aiFailDesc": "AI ले विवरण उत्पन्न गर्न सकेन।",
+      "addSuccessTitle": "उत्पादन थपियो!",
+      "addSuccessDesc": "उत्पादन \"{name}\" सफलतापूर्वक थपिएको छ।",
+      "failTitle": "उफ्! केहि गलत भयो।",
+      "failDesc": "तपाईंको अनुरोधमा समस्या भयो।"
+    }
   },
   "productActions": {
     "actions": "कार्यहरू",
@@ -192,7 +232,106 @@
     "shopNow": "अब किन्नुहोस्",
     "collectionsTitle": "हाम्रो संग्रह",
     "featuredTitle": "विशेष उत्पादनहरू",
-    "addToCart": "कार्टमा थप्नुहोस्"
+    "addToCart": "कार्टमा थप्नुहोस्",
+    "productDetails": {
+      "home": "गृह पृष्ठ",
+      "products": "उत्पादनहरू",
+      "inStock": "स्टकमा छ ({stock})",
+      "outOfStock": "स्टक बाहिर",
+      "addToCart": "कार्टमा थप्नुहोस्"
+    },
+    "checkout": {
+      "title": "चेकआउट",
+      "emptyCartTitle": "तपाईंको कार्ट खाली छ",
+      "emptyCartDesc": "तपाईंले आफ्नो कार्टमा केहि पनि थप्नुभएको छैन जस्तो देखिन्छ।",
+      "continueShopping": "किनमेल जारी राख्नुहोस्",
+      "shippingInfo": "ढुवानी जानकारी",
+      "fullName": "पूरा नाम",
+      "fullNamePlaceholder": "तपाईंको नाम",
+      "email": "इमेल",
+      "emailPlaceholder": "you@example.com",
+      "phone": "फोन नम्बर",
+      "phonePlaceholder": "+९७७...",
+      "address": "सडक ठेगाना",
+      "addressPlaceholder": "१२३ कुमारीपाटी",
+      "city": "शहर",
+      "cityPlaceholder": "ललितपुर",
+      "paymentMethod": "भुक्तानी विधि",
+      "cod": "डेलिभरीमा नगद",
+      "codDesc": "तपाईंको अर्डर प्राप्त गर्दा नगदमा भुक्तानी गर्नुहोस्।",
+      "esewa": "इसेवा वा कार्ड भुक्तानी",
+      "esewaDesc": "इसेवा, मोबाइल बैंकिङ, वा कार्डबाट भुक्तानी गर्नुहोस्।",
+      "whatsapp": "WhatsApp मा अर्डर गर्नुहोस्",
+      "whatsappDesc": "तपाईंको अर्डरलाई अन्तिम रूप दिन बिक्रेतासँग कुराकानी गर्नुहोस्।",
+      "orderSummary": "अर्डर सारांश",
+      "quantity": "मात्रा: {quantity}",
+      "subtotal": "उप-कुल",
+      "shipping": "ढुवानी",
+      "shippingCost": "नि:शुल्क",
+      "total": "कुल",
+      "placeOrder": "अर्डर गर्नुहोस्",
+      "toast": {
+        "redirectingToWhatsapp": "WhatsApp मा रिडिरेक्ट गर्दै",
+        "finalizeOrder": "आफ्नो अर्डर बिक्रेतासँग अन्तिम रूप दिनुहोस्।",
+        "orderFailed": "अर्डर असफल भयो",
+        "orderFailedDesc": "तपाईंको अर्डर राख्नमा समस्या भयो।"
+      }
+    },
+    "orderSuccess": {
+      "title": "तपाईंको अर्डरको लागि धन्यवाद!",
+      "description": "तपाईंको अर्डर सफलतापूर्वक राखिएको छ।",
+      "orderIdLabel": "तपाईंको अर्डर ID हो:",
+      "summaryTitle": "अर्डर सारांश",
+      "customer": "ग्राहक:",
+      "paymentMethod": "भुक्तानी विधि:",
+      "shippingTo": "ढुवानी ठेगाना:",
+      "total": "कुल:",
+      "continueShopping": "किनमेल जारी राख्नुहोस्",
+      "viewDashboard": "मेरो ड्यासबोर्ड हेर्नुहोस्",
+      "confirmationEmail": "तपाईंले चाँडै एक पुष्टिकरण इमेल प्राप्त गर्नुहुनेछ। यदि तपाईंले इसेवा छान्नुभयो भने, तपाईंको अर्डर भुक्तानी पुष्टि भएपछि प्रशोधन गरिनेछ।"
+    },
+    "aiChat": {
+      "title": "AI सपिङ सहायक",
+      "description": "हाम्रा उत्पादनहरूको बारेमा मलाई केहि पनि सोध्नुहोस्, र म तपाईंलाई आवश्यक कुरा फेला पार्न मद्दत गर्नेछु।",
+      "placeholder": "हाम्रा उत्पादनहरूको बारेमा सोध्नुहोस्...",
+      "thinking": "सोच्दै...",
+      "send": "पठाउनुहोस्"
+    },
+    "cart": {
+      "title": "सपिङ कार्ट ({count})",
+      "removeItem": "वस्तु हटाउनुहोस्",
+      "subtotal": "उप-कुल",
+      "checkout": "चेकआउटमा जानुहोस्",
+      "clearCart": "कार्ट खाली गर्नुहोस्",
+      "emptyTitle": "तपाईंको कार्ट खाली छ।",
+      "startShopping": "किनमेल सुरु गर्नुहोस्",
+      "toast": {
+        "stockLimitTitle": "स्टक सीमा पुग्यो",
+        "stockLimitDesc": "तपाईंले यो वस्तुको {stock} भन्दा बढी थप्न सक्नुहुन्न।",
+        "itemAdded": "कार्टमा वस्तु थपियो",
+        "quantityUpdated": "{name} को मात्रा {quantity} मा अद्यावधिक गरियो।",
+        "itemAddedDesc": "{quantity} x {name} थपिएको छ।",
+        "itemRemoved": "वस्तु हटाइयो",
+        "itemRemovedDesc": "{name} तपाईंको कार्टबाट हटाइएको छ।",
+        "cartCleared": "कार्ट खाली गरियो",
+        "cartClearedDesc": "सबै वस्तुहरू तपाईंको कार्टबाट हटाइएका छन्।"
+      }
+    },
+    "footer": {
+      "slogan": "हिमालयको मुटुबाट प्रामाणिक, हस्तनिर्मित खजानाहरू।",
+      "quickLinks": "द्रुत लिङ्कहरू",
+      "home": "गृह पृष्ठ",
+      "about": "हाम्रो बारेमा",
+      "shop": "पसल",
+      "contact": "सम्पर्क",
+      "customerService": "ग्राहक सेवा",
+      "faq": "FAQ",
+      "shippingReturns": "ढुवानी र फिर्ता",
+      "privacyPolicy": "गोपनीयता नीति",
+      "terms": "सेवाका सर्तहरू",
+      "followUs": "हामीलाई पछ्याउनुहोस्",
+      "copyright": "© {year} {storeName}. सबै अधिकार सुरक्षित।"
+    }
   },
   "userNav": {
     "language": "भाषा",
@@ -201,5 +340,58 @@
     "profile": "प्रोफाइल",
     "billing": "बिलिङ",
     "logout": "लग आउट"
+  },
+  "superadmin": {
+    "title": "ग्रोनेक्सस एडमिन",
+    "stores": {
+      "title": "सबै स्टोरहरू",
+      "description": "प्लेटफर्ममा सबै स्टोरहरू प्रबन्ध गर्नुहोस्।",
+      "add": "नयाँ स्टोर थप्नुहोस्",
+      "name": "स्टोरको नाम",
+      "owner": "मालिक",
+      "status": "स्थिति",
+      "products": "उत्पादनहरू",
+      "orders": "अर्डरहरू",
+      "actions": "कार्यहरू",
+      "toggleMenu": "मेनु टगल गर्नुहोस्",
+      "viewStorefront": "स्टोरफ्रन्ट हेर्नुहोस्",
+      "viewDashboard": "ड्यासबोर्ड हेर्नुहोस्",
+      "deactivate": "निष्क्रिय गर्नुहोस्",
+      "activate": "सक्रिय गर्नुहोस्",
+      "suspend": "निलम्बन गर्नुहोस्",
+      "dialog": {
+        "title": "के तपाईं पक्का हुनुहुन्छ?",
+        "description": "यसले स्टोर '{name}' को स्थिति '{status}' मा परिवर्तन गर्नेछ। स्टोर मालिकलाई सूचित गर्न सकिन्छ।",
+        "cancel": "रद्द गर्नुहोस्",
+        "confirm": "पुष्टि गर्नुहोस्"
+      },
+      "toast": {
+        "statusUpdated": "स्थिति अद्यावधिक भयो",
+        "statusUpdatedDesc": "स्टोर \"{name}\" {status} भएको छ।",
+        "updateFailed": "अद्यावधिक गर्न असफल",
+        "updateFailedDesc": "स्टोर स्थिति अद्यावधिक गर्न सकिएन।"
+      }
+    },
+    "newStore": {
+      "title": "नयाँ स्टोर सिर्जना गर्नुहोस्",
+      "header": "नयाँ स्टोर विवरण",
+      "description": "प्लेटफर्ममा नयाँ स्टोर सिर्जना गर्न तलको जानकारी भर्नुहोस्।",
+      "form": {
+        "storeName": "स्टोरको नाम",
+        "storeNamePlaceholder": "उदाहरण: हिमालयन क्राफ्ट्स",
+        "ownerName": "मालिकको पूरा नाम",
+        "ownerNamePlaceholder": "उदाहरण: अञ्जली लामा",
+        "ownerEmail": "मालिकको इमेल",
+        "ownerEmailPlaceholder": "owner@example.com",
+        "subdomain": "उपडोमेन",
+        "subdomainPlaceholder": "himalayan-crafts",
+        "subdomainDesc": "यो स्टोरको लागि सार्वजनिक URL हुनेछ।",
+        "create": "स्टोर सिर्जना गर्नुहोस्"
+      },
+      "toast": {
+        "failTitle": "उफ्! केहि गलत भयो।",
+        "failDesc": "तपाईंको अनुरोधमा समस्या भयो।"
+      }
+    }
   }
 }

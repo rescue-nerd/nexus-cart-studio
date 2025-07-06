@@ -10,11 +10,13 @@ import { products as allProducts, type Product } from "@/lib/placeholder-data";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/hooks/use-cart";
+import { useTranslation } from "@/hooks/use-translation";
 
 export default function ProductDetailPage() {
   const params = useParams();
   const { productId } = params;
   const { addToCart } = useCart();
+  const { t } = useTranslation();
 
   const [product, setProduct] = useState<Product | undefined>(undefined);
 
@@ -41,9 +43,9 @@ export default function ProductDetailPage() {
   return (
     <div className="container mx-auto px-4 md:px-6 py-8">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-8">
-        <Link href="/store" className="hover:text-primary">Home</Link>
+        <Link href="/store" className="hover:text-primary">{t('storefront.productDetails.home')}</Link>
         <ChevronRight className="h-4 w-4" />
-        <Link href="/store#products" className="hover:text-primary">Products</Link>
+        <Link href="/store#products" className="hover:text-primary">{t('storefront.productDetails.products')}</Link>
         <ChevronRight className="h-4 w-4" />
         <span className="truncate">{product.name}</span>
       </div>
@@ -71,16 +73,16 @@ export default function ProductDetailPage() {
           <div className="flex items-center gap-4">
             <span className="text-3xl font-bold">Rs {product.price.toFixed(2)}</span>
             {product.stock > 0 ? (
-                <Badge variant="outline">In Stock ({product.stock})</Badge>
+                <Badge variant="outline">{t('storefront.productDetails.inStock', { stock: product.stock })}</Badge>
             ) : (
-                <Badge variant="destructive">Out of Stock</Badge>
+                <Badge variant="destructive">{t('storefront.productDetails.outOfStock')}</Badge>
             )}
           </div>
 
           <div className="mt-4">
             <Button size="lg" className="w-full md:w-auto" disabled={product.stock === 0} onClick={handleAddToCart}>
               <ShoppingCart className="mr-2 h-5 w-5" />
-              Add to Cart
+              {t('storefront.productDetails.addToCart')}
             </Button>
           </div>
         </div>

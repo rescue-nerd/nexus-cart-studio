@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { NexusCartLogo } from "@/components/icons";
+import { useTranslation } from "@/hooks/use-translation";
 
 function SocialIcon({ children }: { children: React.ReactNode }) {
   return (
@@ -10,6 +13,8 @@ function SocialIcon({ children }: { children: React.ReactNode }) {
 }
 
 export function Footer({ storeName }: { storeName: string }) {
+  const { t } = useTranslation();
+
   return (
     <footer className="border-t">
       <div className="container py-12">
@@ -20,29 +25,29 @@ export function Footer({ storeName }: { storeName: string }) {
               <span className="font-bold text-lg">{storeName}</span>
             </Link>
             <p className="text-sm text-muted-foreground">
-              Authentic, handcrafted treasures from the heart of the Himalayas.
+              {t('storefront.footer.slogan')}
             </p>
           </div>
           <div className="space-y-2">
-            <h4 className="font-semibold">Quick Links</h4>
+            <h4 className="font-semibold">{t('storefront.footer.quickLinks')}</h4>
             <ul className="space-y-1">
-              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Home</Link></li>
-              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">About Us</Link></li>
-              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Shop</Link></li>
-              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Contact</Link></li>
+              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">{t('storefront.footer.home')}</Link></li>
+              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">{t('storefront.footer.about')}</Link></li>
+              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">{t('storefront.footer.shop')}</Link></li>
+              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">{t('storefront.footer.contact')}</Link></li>
             </ul>
           </div>
           <div className="space-y-2">
-            <h4 className="font-semibold">Customer Service</h4>
+            <h4 className="font-semibold">{t('storefront.footer.customerService')}</h4>
             <ul className="space-y-1">
-              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">FAQ</Link></li>
-              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Shipping & Returns</Link></li>
-              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
-              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Terms of Service</Link></li>
+              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">{t('storefront.footer.faq')}</Link></li>
+              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">{t('storefront.footer.shippingReturns')}</Link></li>
+              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">{t('storefront.footer.privacyPolicy')}</Link></li>
+              <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">{t('storefront.footer.terms')}</Link></li>
             </ul>
           </div>
           <div className="space-y-2">
-            <h4 className="font-semibold">Follow Us</h4>
+            <h4 className="font-semibold">{t('storefront.footer.followUs')}</h4>
             <div className="flex space-x-4">
               <SocialIcon>
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22.675 0h-21.35c-0.732 0-1.325 0.593-1.325 1.325v21.351c0 0.731 0.593 1.324 1.325 1.324h11.494v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463 0.099 2.795 0.143v3.24l-1.918 0.001c-1.504 0-1.795 0.715-1.795 1.763v2.313h3.587l-0.467 3.622h-3.12v9.294h6.116c0.73 0 1.323-0.593 1.323-1.325v-21.35c0-0.732-0.593-1.325-1.323-1.325z"></path></svg>
@@ -54,7 +59,7 @@ export function Footer({ storeName }: { storeName: string }) {
           </div>
         </div>
         <div className="mt-8 border-t pt-6 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} {storeName}. All Rights Reserved.
+          {t('storefront.footer.copyright', { year: new Date().getFullYear(), storeName })}
         </div>
       </div>
     </footer>

@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { addStore } from "@/app/(superadmin)/admin/actions";
+import { useTranslation } from "@/hooks/use-translation";
 
 
 const formSchema = z.object({
@@ -33,6 +34,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function AddStoreForm() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -57,8 +59,8 @@ export function AddStoreForm() {
       if (!result.success) {
         toast({
           variant: "destructive",
-          title: "Uh oh! Something went wrong.",
-          description: result.message || "There was a problem with your request.",
+          title: t('superadmin.newStore.toast.failTitle'),
+          description: result.message || t('superadmin.newStore.toast.failDesc'),
         });
       }
     });
@@ -72,9 +74,9 @@ export function AddStoreForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Store Name</FormLabel>
+              <FormLabel>{t('superadmin.newStore.form.storeName')}</FormLabel>
               <FormControl>
-                <Input placeholder="e.g. Himalayan Crafts" {...field} />
+                <Input placeholder={t('superadmin.newStore.form.storeNamePlaceholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -86,9 +88,9 @@ export function AddStoreForm() {
             name="ownerName"
             render={({ field }) => (
                 <FormItem>
-                <FormLabel>Owner's Full Name</FormLabel>
+                <FormLabel>{t('superadmin.newStore.form.ownerName')}</FormLabel>
                 <FormControl>
-                    <Input placeholder="e.g. Anjali Lama" {...field} />
+                    <Input placeholder={t('superadmin.newStore.form.ownerNamePlaceholder')} {...field} />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
@@ -99,9 +101,9 @@ export function AddStoreForm() {
             name="ownerEmail"
             render={({ field }) => (
                 <FormItem>
-                <FormLabel>Owner's Email</FormLabel>
+                <FormLabel>{t('superadmin.newStore.form.ownerEmail')}</FormLabel>
                 <FormControl>
-                    <Input type="email" placeholder="owner@example.com" {...field} />
+                    <Input type="email" placeholder={t('superadmin.newStore.form.ownerEmailPlaceholder')} {...field} />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
@@ -114,21 +116,21 @@ export function AddStoreForm() {
           name="domain"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Subdomain</FormLabel>
+              <FormLabel>{t('superadmin.newStore.form.subdomain')}</FormLabel>
               <div className="flex items-center">
                  <FormControl>
-                    <Input placeholder="himalayan-crafts" className="rounded-r-none" {...field} />
+                    <Input placeholder={t('superadmin.newStore.form.subdomainPlaceholder')} className="rounded-r-none" {...field} />
                 </FormControl>
                 <span className="h-10 flex items-center justify-center rounded-r-md border border-l-0 border-input bg-muted px-3 text-muted-foreground text-sm">.nexuscart.com</span>
               </div>
-               <FormDescription>This will be the public URL for the store.</FormDescription>
+               <FormDescription>{t('superadmin.newStore.form.subdomainDesc')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
         <Button type="submit" disabled={isPending}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Create Store
+          {t('superadmin.newStore.form.create')}
         </Button>
       </form>
     </Form>

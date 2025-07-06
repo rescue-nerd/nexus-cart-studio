@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,8 +11,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { AddStoreForm } from "./_components/add-store-form";
+import { useTranslation } from "@/hooks/use-translation";
 
 export default function NewStorePage() {
+  const { t } = useTranslation();
+
   return (
     <div className="mx-auto grid w-full max-w-2xl gap-2">
        <div className="flex items-center gap-4 mb-4">
@@ -21,14 +26,14 @@ export default function NewStorePage() {
             </Link>
           </Button>
           <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-            Create New Store
+            {t('superadmin.newStore.title')}
           </h1>
         </div>
       <Card>
         <CardHeader>
-          <CardTitle>New Store Details</CardTitle>
+          <CardTitle>{t('superadmin.newStore.header')}</CardTitle>
           <CardDescription>
-            Fill in the information below to create a new store on the platform.
+            {t('superadmin.newStore.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>

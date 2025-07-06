@@ -3,6 +3,7 @@
 import type { Product } from '@/lib/placeholder-data';
 import { useToast } from '@/hooks/use-toast';
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { useTranslation } from './use-translation';
 
 export interface CartItem {
   product: Product;
@@ -23,9 +24,22 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'nexus-cart-store';
 
+// A placeholder t function for use when the provider is not yet available.
+const placeholderT = (key: string, params?: { [key: string]: string | number }) => {
+    if (!params) return key;
+    let text = key;
+    Object.keys(params).forEach(paramKey => {
+        text = text.replace(`{${paramKey}}`, String(params[paramKey]));
+    });
+    return text;
+};
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const { toast } = useToast();
+  // Use translation, but provide a safe fallback if not in the provider yet.
+  const translationContext = useContext(TranslationContext);
+  const t = translationContext ? translationContext.t : placeholderT;
 
   useEffect(() => {
     try {
@@ -51,22 +65,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         if (newQuantity > product.stock) {
             toast({
                 variant: 'destructive',
-                title: 'Stock Limit Reached',
-                description: `You cannot add more than ${product.stock} of this item.`,
+                title: t('storefront.cart.toast.stockLimitTitle'),
+                description: t('storefront.cart.toast.stockLimitDesc', { stock: product.stock }),
             });
             return prevItems;
         }
         toast({
-            title: 'Item added to cart',
-            description: `${product.name} quantity updated to ${newQuantity}.`,
+            title: t('storefront.cart.toast.itemAdded'),
+            description: t('storefront.cart.toast.quantityUpdated', { name: product.name, quantity: newQuantity }),
         });
         return prevItems.map(item =>
           item.product.id === product.id ? { ...item, quantity: newQuantity } : item
         );
       } else {
         toast({
-            title: 'Item added to cart',
-            description: `${quantity} x ${product.name} has been added.`,
+            title: t('storefront.cart.toast.itemAdded'),
+            description: t('storefront.cart.toast.itemAddedDesc', { quantity, name: product.name }),
         });
         return [...prevItems, { product, quantity }];
       }
@@ -78,8 +92,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const itemToRemove = prevItems.find(item => item.product.id === productId);
         if (itemToRemove) {
             toast({
-                title: 'Item removed',
-                description: `${itemToRemove.product.name} has been removed from your cart.`,
+                title: t('storefront.cart.toast.itemRemoved'),
+                description: t('storefront.cart.toast.itemRemovedDesc', { name: itemToRemove.product.name }),
             });
         }
         return prevItems.filter(item => item.product.id !== productId);
@@ -100,8 +114,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const clearCart = () => {
     setCartItems([]);
     toast({
-        title: 'Cart cleared',
-        description: 'All items have been removed from your cart.',
+        title: t('storefront.cart.toast.cartCleared'),
+        description: t('storefront.cart.toast.cartClearedDesc'),
     });
   };
   
