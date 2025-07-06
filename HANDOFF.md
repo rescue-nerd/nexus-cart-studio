@@ -2,7 +2,7 @@
 # NexusCart Technical Handoff & System Overview
 
 **Date:** {current_date}
-**Version:** 1.4 - Post-eSewa-Integration
+**Version:** 1.5 - Post-Route-Protection
 
 This document provides a comprehensive overview of the NexusCart application's architecture, database schema, feature status, and deployment requirements. It is intended for developers, project managers, and new team members.
 
@@ -165,14 +165,14 @@ erDiagram
 
 ### Features 100% Complete
 - **User Authentication (Firebase)**: Fully functional login and signup using Firebase Auth. UI and backend logic are complete.
-- **Route Protection**: The `middleware.ts` file now protects all admin routes (e.g., `/dashboard`, `/settings`, `/admin`) by checking for a session cookie and redirecting unauthenticated users to the login page.
+- **Route Protection & Session Management**: The `middleware.ts` file protects all admin routes by checking for a secure, HTTP-only `session` cookie. This cookie is created via an API endpoint that validates the user's Firebase ID token with the Firebase Admin SDK and is destroyed on logout.
 - **Database Persistence (Firestore)**: All application data (Stores, Products, Orders) is now persisted in Firebase Firestore. All Server Actions correctly interact with the database via the service layer in `src/lib/firebase-service.ts`.
 - **Theme/Color Selection**: Theming system is fully implemented with 7+ themes. Users can select a theme, and it's applied across the dashboard and storefront. State is persisted in `localStorage`.
 - **Multilingual Support**: The entire UI is translated into English and Nepali. A `useTranslation` hook and language files (`/src/locales`) manage all text. User preference is persisted.
 - **AI Product Description (UI/Backend)**: The "Generate with AI" buttons on the Add/Edit Product pages are fully functional, calling a Genkit flow to populate the description field.
 - **PWA Support**: The application is configured as a Progressive Web App with a manifest file and service worker registration.
 - **Manual Payment Gateway Configuration**: Store owners can configure their own payment details for "Cash on Delivery," "QR Code Payments," and "Bank Transfers" via the settings dashboard. This includes QR code image uploads and structured bank account details.
-- **Manual Checkout Flow**: The storefront checkout process is fully implemented for COD, QR, and Bank Transfer methods. It dynamically displays the store-specific payment information to the customer and creates orders in Firestore with a "Processing" status for manual verification by the seller.
+- **Manual Checkout Flow**: The storefront checkout process is fully implemented for COD, QR, and Bank Transfer methods. It dynamically displays the store-specific payment information to the customer and creates orders in Firestore with a "Processing" or "Pending" status for manual verification by the seller.
 - **Khalti Payment Gateway Integration**:
     - **Configuration**: Store owners can add their Khalti secret keys and toggle test mode in the settings panel.
     - **Checkout**: Customers can pay via Khalti, which redirects them to the Khalti payment portal.
@@ -187,6 +187,7 @@ erDiagram
     - Orders: "View Details," "Mark as Shipped," "Cancel Order," and "Refund Khalti Order" are functional, persisting to Firestore.
     - Settings: Saving "Store Profile," "SEO," and "Payments" changes works, persisting to Firestore.
     - Superadmin: "Add New Store" and store status changes are fully implemented, persisting to Firestore.
+- **WhatsApp Order Confirmation**: Store owners can set their WhatsApp number, and customers will see a "Confirm on WhatsApp" button after checkout. Seller notifications are also routed to this number.
 
 ### UI/Foundation Only (Backend Logic is Mocked or Incomplete)
 - **Plan Management & Subscription Logic**: UI for changing plans is complete. The backend action updates the store's `planId` in Firestore but does not handle billing, payments, or subscription lifecycle events (e.g., renewals, cancellations).
@@ -203,7 +204,11 @@ erDiagram
 
 ## 3. Backend Logic & "API" Documentation
 
-The application uses **Next.js Server Actions** instead of a traditional API. All actions are defined in `src/app/.../actions.ts` files and interact with the database via `src/lib/firebase-service.ts`.
+The application uses **Next.js Server Actions** and **API Routes** for backend logic. All actions are defined in `src/app/.../actions.ts` files and interact with the database via `src/lib/firebase-service.ts`.
+
+### Module: Authentication (`/app/api/auth/session/route.ts`)
+- `POST /api/auth/session`: Accepts a Firebase ID Token from the client. Verifies it using the Firebase Admin SDK and sets a secure, HTTP-only `session` cookie.
+- `DELETE /api/auth/session`: Clears the `session` cookie, effectively logging the user out from the server's perspective.
 
 ### Module: Products (`/app/(app)/products/actions.ts`)
 - `addProduct(formData)`: Adds a new product. Uploads image via `storage-service`, creates a new document in the `products` collection in Firestore, and revalidates the path.
@@ -238,7 +243,7 @@ The application uses **Next.js Server Actions** instead of a traditional API. Al
 - **WhatsApp (`/src/ai/flows/whatsapp-notification.ts`):** A Genkit flow that uses the Twilio SDK to send messages. It has a graceful fallback to console logging if API keys are missing.
 
 ### Third-Party Integrations
-- **Firebase**: For user authentication and database (Firestore). Fully implemented.
+- **Firebase**: For user authentication (Client SDK), database (Firestore), and server-side session management (Admin SDK). Fully implemented.
 - **Genkit (Google AI)**: For all AI features. Fully implemented.
 - **Khalti**: For real-time payments and refunds. Fully implemented.
 - **eSewa**: For real-time payments. Fully implemented.
@@ -251,7 +256,7 @@ The application uses **Next.js Server Actions** instead of a traditional API. Al
 
 ### Live & Production-Ready (Conceptually)
 - User Authentication (Login, Signup).
-- **Route Protection**: All admin and dashboard routes are now protected by middleware.
+- **Route Protection & Session Management**: All admin and dashboard routes are now protected by middleware that requires a valid server-side session cookie.
 - The entire data layer and database persistence via Firebase Firestore.
 - The entire user interface, including multilingual support and theme selection.
 - All admin actions and forms, which are correctly wired to server actions that modify the database.
@@ -260,6 +265,7 @@ The application uses **Next.js Server Actions** instead of a traditional API. Al
 - Manual payment configuration (QR, Bank, COD) by store owners.
 - **Khalti Payment Gateway**: End-to-end payment processing, including configuration, checkout, server-side verification, and refunds.
 - **eSewa Payment Gateway**: End-to-end payment processing, including configuration, checkout, and server-side verification.
+- **WhatsApp Order Confirmation**: Customers can initiate a WhatsApp chat with the merchant after placing an order.
 
 ### UI Only / Mocked Backend
 - **Subscription Billing**: The app does not handle recurring payments or subscription lifecycle management.
@@ -270,7 +276,6 @@ The application uses **Next.js Server Actions** instead of a traditional API. Al
 - Activity logs and auditing.
 - Email sending infrastructure.
 - Database backups, migrations, and seeding strategy.
-- **Client-side Session Cookie**: The middleware requires a `session` cookie to be set for authentication, but the logic to create this cookie on the client after login is not yet implemented.
 
 ---
 
@@ -280,8 +285,8 @@ The application uses **Next.js Server Actions** instead of a traditional API. Al
 - **Framework**: Next.js 15.3.3 (App Router)
 - **Language**: TypeScript
 - **Database**: Firebase Firestore
+- **Authentication**: Firebase Auth (Client & Admin SDKs)
 - **UI**: React 18, Tailwind CSS, ShadCN UI
-- **Authentication**: Firebase Auth (Client-Side SDK)
 - **AI**: Google AI via Genkit
 - **Notifications**: Twilio API (for WhatsApp)
 - **File Storage**: Google Cloud Storage
@@ -290,13 +295,18 @@ The application uses **Next.js Server Actions** instead of a traditional API. Al
 The following variables must be set in a `.env` file for full functionality. **Missing variables will cause features to run in a simulated/degraded mode.**
 
 ```env
-# Firebase (Required for Authentication & Database)
+# Firebase Client SDK (Required for client-side Auth & DB)
 NEXT_PUBLIC_FIREBASE_API_KEY=
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
+
+# Firebase Admin SDK (Required for server-side session management & route protection)
+# The full JSON key file content for your Firebase service account, as a single-line string.
+# Get this from Firebase Console > Project Settings > Service accounts > Generate new private key
+FIREBASE_ADMIN_SDK_JSON=
 
 # Google Cloud Storage (Required for real image uploads)
 GCS_PROJECT_ID=
@@ -313,12 +323,11 @@ TWILIO_WHATSAPP_FROM_NUMBER=
 ### Security Measures
 - **Authentication**: Handled by Firebase Auth, which is robust and secure.
 - **Input Validation**: Client-side validation is performed with `zod` and `react-hook-form`. Basic server-side checks are present in most actions.
-- **Route Protection**: The `middleware.ts` file now protects all admin and dashboard routes (`/dashboard`, `/settings`, etc.). It checks for a server-side session cookie and redirects unauthenticated users to the login page.
+- **Route Protection & Session Management**: Route protection is handled by `middleware.ts`, which checks for a secure, HTTP-only `session` cookie. This cookie is created via the `/api/auth/session` API route upon successful login. The API route verifies the user's Firebase ID token using the Firebase Admin SDK and then sets the cookie. This creates a secure bridge between client-side authentication and server-side route protection.
 - **CORS**: Handled by Next.js defaults.
 - **Password Storage**: Handled securely by Firebase.
 
 ### Recommendations
-- **Implement Session Cookie on Login**: The middleware is now configured to protect routes based on a `session` cookie. The client-side authentication logic must be updated to create this cookie (e.g., via a serverless function that validates the Firebase ID token) after a user successfully logs in.
 - **Implement Firestore Security Rules**: Add robust security rules to your Firestore database to prevent unauthorized data access directly from the client.
 - **Implement Role-Based Access Control (RBAC)**: Enforce user roles (e.g., 'store_owner', 'super_admin') in server actions to prevent unauthorized data access.
 
@@ -336,4 +345,4 @@ TWILIO_WHATSAPP_FROM_NUMBER=
 3.  **Create a CI/CD Pipeline**: Automate testing and deployment using GitHub Actions or a similar service.
 
 ### Blockers
-- **External Service Credentials**: Full real-time payment functionality is blocked pending the acquisition and configuration of API keys for a payment gateway.
+- **External Service Credentials**: Full functionality for certain features (GCS, Twilio, Firebase Admin) is blocked pending the acquisition and configuration of API keys and credentials.

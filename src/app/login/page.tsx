@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { Loader2 } from "lucide-react";
 
@@ -23,6 +23,7 @@ import { useTranslation } from "@/hooks/use-translation";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
@@ -41,12 +42,31 @@ export default function LoginPage() {
     }
     setIsLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const idToken = await userCredential.user.getIdToken();
+
+      // Send the token to the server to create a session cookie
+      const res = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ idToken }),
+      });
+
+      if (!res.ok) {
+          throw new Error('Failed to create session');
+      }
+
       toast({
         title: t('login.successTitle'),
         description: t('login.successDesc'),
       });
-      router.push("/dashboard");
+
+      // Redirect to dashboard (or intended destination if provided)
+      const redirectedFrom = searchParams.get('redirectedFrom');
+      router.push(redirectedFrom || "/dashboard");
+
     } catch (error: any) {
       const errorCode = error.code || 'auth/unknown-error';
       console.error(`Login Error (${errorCode}):`, error.message);

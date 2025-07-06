@@ -55,6 +55,9 @@ export function UserNav() {
       if (auth) {
         await signOut(auth);
       }
+      // Also clear the server-side session cookie
+      await fetch('/api/auth/session', { method: 'DELETE' });
+      
       router.push('/login');
     } catch (error) {
       console.error("Logout failed", error);
