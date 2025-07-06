@@ -2,7 +2,7 @@
 # NexusCart Technical Handoff & System Overview
 
 **Date:** {current_date}
-**Version:** 1.5 - Post-Route-Protection
+**Version:** 1.6 - Auth Workflow Documentation
 
 This document provides a comprehensive overview of the NexusCart application's architecture, database schema, feature status, and deployment requirements. It is intended for developers, project managers, and new team members.
 
@@ -164,11 +164,7 @@ erDiagram
 ## 2. Features – Status Checklist
 
 ### Features 100% Complete
-- **User Authentication (Firebase)**: Fully functional login and signup using Firebase Auth. UI and backend logic are complete.
-- **Route Protection & Session Management**: The `middleware.ts` file provides robust, domain-aware route protection.
-  - **Authentication**: It checks for a secure, HTTP-only `session` cookie on all protected routes (`/dashboard`, `/admin`, etc.). Unauthenticated users are redirected to the login page.
-  - **Authorization**: It separates superadmin and store owner access based on the domain. The `/admin` routes are only accessible on the main platform domain, while store management routes (`/dashboard`, `/products`, etc.) are only accessible on a store's specific subdomain.
-  - **Session Management**: The session cookie itself is created via the `/api/auth/session` API route upon successful login. This API verifies the user's Firebase ID token using the Firebase Admin SDK and then sets the secure cookie.
+- **Authentication & Authorization**: See the detailed **Authentication Workflow** section below for a full breakdown.
 - **Database Persistence (Firestore)**: All application data (Stores, Products, Orders) is now persisted in Firebase Firestore. All Server Actions correctly interact with the database via the service layer in `src/lib/firebase-service.ts`.
 - **Theme/Color Selection**: Theming system is fully implemented with 7+ themes. Users can select a theme, and it's applied across the dashboard and storefront. State is persisted in `localStorage`.
 - **Multilingual Support**: The entire UI is translated into English and Nepali. A `useTranslation` hook and language files (`/src/locales`) manage all text. User preference is persisted.
@@ -203,7 +199,38 @@ erDiagram
 
 ---
 
-## 3. Backend Logic & "API" Documentation
+## 3. Initial Page and Authentication Workflow
+
+### Initial Page
+
+The first page a user sees depends on the URL they visit:
+
+1.  **Main Platform Domain** (e.g., `your-platform.com`): The user lands on the main welcome page located at `src/app/page.tsx`. This page serves as a central hub with links to either the Superadmin panel or the store owner login.
+2.  **Store Subdomain** (e.g., `my-store.your-platform.com`): The `middleware.ts` file detects the subdomain and automatically directs the user to that specific store's public-facing storefront, located at `src/app/store/page.tsx`.
+
+### Authentication Workflow
+
+The authentication system is designed to be secure and robust, using a combination of client-side Firebase authentication and a server-side session cookie for route protection.
+
+**Step-by-Step Login Process:**
+
+1.  **Access Attempt:** A user navigates to a protected route (e.g., `/dashboard` or `/admin`).
+2.  **Middleware Interception:** The `middleware.ts` runs on the server's edge. It inspects the incoming request and checks for a `session` cookie. Since the user is not logged in, the cookie is absent.
+3.  **Redirection to Login:** The middleware redirects the user to the `/login` page. To ensure a good user experience, it appends the original URL as a `redirectedFrom` query parameter, so the user can be sent back to their intended page after a successful login.
+4.  **User Authentication:** On the login page, the user enters their credentials. The client-side code uses the public Firebase keys (from your `.env` file) to communicate with Firebase Auth and sign the user in.
+5.  **Server-Side Session Creation:** Upon successful authentication with Firebase, the client receives a temporary `idToken`. This token is immediately sent to the application's backend API route at `POST /api/auth/session`.
+6.  **Token Verification & Cookie Issuing:** The backend API route, using the **secret Firebase Admin SDK key**, verifies the `idToken`. If valid, it generates a secure, HttpOnly `session` cookie. This cookie acts as the user's authenticated session for all subsequent server-side requests.
+7.  **Secure Navigation to Dashboard:** The login page client code, upon receiving a success response from the backend, performs a **full-page navigation** to the originally intended URL (or `/dashboard`). This is a critical step (`window.location.assign(...)`) that ensures the browser sends the newly-created `session` cookie with the next request.
+8.  **Final Access & Authorization:** The user's browser requests the protected route again. The `middleware.ts` intercepts it, finds the valid `session` cookie, and grants access. It also performs authorization by checking if the user is on the correct domain for the requested route (e.g., `/admin` only on the main domain).
+
+**Logout Process:**
+
+-   When a user clicks "Log out," the client-side Firebase session is cleared.
+-   Simultaneously, a `DELETE` request is sent to `/api/auth/session`, which instructs the server to clear the HttpOnly `session` cookie, fully terminating the session on both the client and server.
+
+---
+
+## 4. Backend Logic & "API" Documentation
 
 The application uses **Next.js Server Actions** and **API Routes** for backend logic. All actions are defined in `src/app/.../actions.ts` files and interact with the database via `src/lib/firebase-service.ts`.
 
@@ -251,11 +278,10 @@ The application uses **Next.js Server Actions** and **API Routes** for backend l
 
 ---
 
-## 4. What’s Live, What’s Not
+## 5. What’s Live, What’s Not
 
 ### Live & Production-Ready (Conceptually)
-- User Authentication (Login, Signup).
-- **Route Protection & Session Management**: All admin and dashboard routes are now protected by domain-aware middleware that requires a valid server-side session cookie.
+- User Authentication & Session Management.
 - The entire data layer and database persistence via Firebase Firestore.
 - The entire user interface, including multilingual support and theme selection.
 - All admin actions and forms, which are correctly wired to server actions that modify the database.
@@ -277,7 +303,7 @@ The application uses **Next.js Server Actions** and **API Routes** for backend l
 
 ---
 
-## 5. Deployment, Security, and Tech Stack
+## 6. Deployment, Security, and Tech Stack
 
 ### Tech Stack
 - **Framework**: Next.js 15.3.3 (App Router)
@@ -289,18 +315,19 @@ The application uses **Next.js Server Actions** and **API Routes** for backend l
 - **File Storage**: Google Cloud Storage
 
 ### Environment Variables
-The following variables must be set in a `.env` file for full functionality. **Missing variables will cause features to run in a simulated/degraded mode.**
+The following variables must be set in a `.env` file for full functionality.
 
 ```env
-# ------------------
+# ----------------------------------------------------------------------------------
 # Firebase Client SDK (Required for client-side Auth & DB)
-# ------------------
+# ----------------------------------------------------------------------------------
 # To get these values:
-# 1. Go to your Firebase Console.
+# 1. Go to your Firebase Console (https://console.firebase.google.com/).
 # 2. Click the Gear icon > Project settings.
 # 3. In the "General" tab, scroll down to the "Your apps" section.
 # 4. Find your Web App and click on the "SDK setup and configuration" button.
 # 5. Select "Config" and copy the values into the variables below.
+# ----------------------------------------------------------------------------------
 NEXT_PUBLIC_FIREBASE_API_KEY=
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=
@@ -308,21 +335,25 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
 
-# ------------------
+# ----------------------------------------------------------------------------------
 # Firebase Admin SDK (Required for server-side session management & route protection)
-# ------------------
+# ----------------------------------------------------------------------------------
 # To get this:
-# 1. Go to your Firebase Console > Project Settings > Service accounts.
+# 1. Go to your Firebase Console > Project Settings > Service accounts tab.
 # 2. Click "Generate new private key" and download the JSON file.
-# 3. Open the file, copy its entire contents, and paste it here as a single-line string.
+# 3. Open the file, copy its ENTIRE contents, and paste it here as a SINGLE-LINE string.
+#    (You may need to use an online tool to convert the JSON to a single line).
+# ----------------------------------------------------------------------------------
 FIREBASE_ADMIN_SDK_JSON=
 
-# ------------------
+# ----------------------------------------------------------------------------------
 # Google Cloud Storage (Required for real image uploads)
-# ------------------
+# ----------------------------------------------------------------------------------
+# These values are found in the same JSON key file from the step above.
+# ----------------------------------------------------------------------------------
 GCS_PROJECT_ID=
 GCS_BUCKET_NAME=
-# The full JSON key file content as a single-line string
+# The full JSON key file content as a single-line string (can be the same as FIREBASE_ADMIN_SDK_JSON)
 GOOGLE_APPLICATION_CREDENTIALS_JSON=
 ```
 
@@ -339,7 +370,7 @@ GOOGLE_APPLICATION_CREDENTIALS_JSON=
 
 ---
 
-## 6. Additional Notes & Recommendations
+## 7. Additional Notes & Recommendations
 
 ### Technical Debt & Refactoring
 1.  **Static Data in Config**: Plans and Categories are currently hardcoded in `src/lib/config.ts`. For more flexibility, these could be migrated to their own Firestore collections.
@@ -352,5 +383,3 @@ GOOGLE_APPLICATION_CREDENTIALS_JSON=
 
 ### Blockers
 - **External Service Credentials**: Full functionality for certain features (GCS, Firebase Admin) is blocked pending the acquisition and configuration of API keys and credentials.
-
-
