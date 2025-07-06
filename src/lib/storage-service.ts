@@ -12,21 +12,28 @@ import { randomUUID } from 'crypto';
 let storage: Storage | undefined;
 let bucketName: string | undefined;
 
-const projectId = process.env.GCS_PROJECT_ID;
+// Reconstruct credentials from individual environment variables for robustness
+const gcsCredentials = {
+  projectId: process.env.GCS_PROJECT_ID,
+  private_key: (process.env.FIREBASE_ADMIN_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+  client_email: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+};
 bucketName = process.env.GCS_BUCKET_NAME;
-const credentialsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
 
-const isGcsConfigured = projectId && bucketName && credentialsJson;
+const isGcsConfigured = gcsCredentials.projectId && gcsCredentials.private_key && gcsCredentials.client_email && bucketName;
 
 if (isGcsConfigured) {
   try {
     storage = new Storage({
-      projectId,
-      credentials: JSON.parse(credentialsJson),
+      projectId: gcsCredentials.projectId,
+      credentials: {
+        private_key: gcsCredentials.private_key,
+        client_email: gcsCredentials.client_email,
+      },
     });
     console.log('Successfully connected to Google Cloud Storage.');
   } catch (error) {
-    console.error("Failed to parse GCS credentials JSON. Check the GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable.", error);
+    console.error("Failed to initialize GCS client. Check your GCS/Firebase Admin environment variables.", error);
     storage = undefined; // Ensure storage is not used if config is invalid
   }
 } else {
@@ -34,10 +41,8 @@ if (isGcsConfigured) {
 ----------------------------------------------------------------
 NOTICE: Google Cloud Storage is not configured. 
 The application will use placeholder images for uploads.
-To enable real image uploads, set the following environment variables in your .env file:
-- GCS_PROJECT_ID
-- GCS_BUCKET_NAME
-- GOOGLE_APPLICATION_CREDENTIALS_JSON
+To enable real image uploads, set the required environment variables in your .env file.
+See HANDOFF.md for details.
 ----------------------------------------------------------------
 `);
 }

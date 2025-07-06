@@ -2,7 +2,7 @@
 # NexusCart Technical Handoff & System Overview
 
 **Date:** {current_date}
-**Version:** 1.6 - Auth Workflow Documentation
+**Version:** 1.7 - Robust Credential Handling
 
 This document provides a comprehensive overview of the NexusCart application's architecture, database schema, feature status, and deployment requirements. It is intended for developers, project managers, and new team members.
 
@@ -219,7 +219,7 @@ The authentication system is designed to be secure and robust, using a combinati
 3.  **Redirection to Login:** The middleware redirects the user to the `/login` page. To ensure a good user experience, it appends the original URL as a `redirectedFrom` query parameter, so the user can be sent back to their intended page after a successful login.
 4.  **User Authentication:** On the login page, the user enters their credentials. The client-side code uses the public Firebase keys (from your `.env` file) to communicate with Firebase Auth and sign the user in.
 5.  **Server-Side Session Creation:** Upon successful authentication with Firebase, the client receives a temporary `idToken`. This token is immediately sent to the application's backend API route at `POST /api/auth/session`.
-6.  **Token Verification & Cookie Issuing:** The backend API route, using the **secret Firebase Admin SDK key**, verifies the `idToken`. If valid, it generates a secure, HttpOnly `session` cookie. This cookie acts as the user's authenticated session for all subsequent server-side requests.
+6.  **Token Verification & Cookie Issuing:** The backend API route, using the **secret Firebase Admin SDK credentials**, verifies the `idToken`. If valid, it generates a secure, HttpOnly `session` cookie. This cookie acts as the user's authenticated session for all subsequent server-side requests.
 7.  **Secure Navigation to Dashboard:** The login page client code, upon receiving a success response from the backend, performs a **full-page navigation** to the originally intended URL (or `/dashboard`). This is a critical step (`window.location.assign(...)`) that ensures the browser sends the newly-created `session` cookie with the next request.
 8.  **Final Access & Authorization:** The user's browser requests the protected route again. The `middleware.ts` intercepts it, finds the valid `session` cookie, and grants access. It also performs authorization by checking if the user is on the correct domain for the requested route (e.g., `/admin` only on the main domain).
 
@@ -317,44 +317,41 @@ The application uses **Next.js Server Actions** and **API Routes** for backend l
 ### Environment Variables
 The following variables must be set in a `.env` file for full functionality.
 
+#### A. Firebase Client SDK (for Browser)
+To get these values:
+1.  Go to your Firebase Console (https://console.firebase.google.com/).
+2.  Click the Gear icon > Project settings.
+3.  In the "General" tab, scroll down to the "Your apps" section.
+4.  Find your Web App and click on the "SDK setup and configuration" button.
+5.  Select "Config" and copy the values into the variables below.
 ```env
-# ----------------------------------------------------------------------------------
-# Firebase Client SDK (Required for client-side Auth & DB)
-# ----------------------------------------------------------------------------------
-# To get these values:
-# 1. Go to your Firebase Console (https://console.firebase.google.com/).
-# 2. Click the Gear icon > Project settings.
-# 3. In the "General" tab, scroll down to the "Your apps" section.
-# 4. Find your Web App and click on the "SDK setup and configuration" button.
-# 5. Select "Config" and copy the values into the variables below.
-# ----------------------------------------------------------------------------------
 NEXT_PUBLIC_FIREBASE_API_KEY=
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
+```
 
-# ----------------------------------------------------------------------------------
-# Firebase Admin SDK (Required for server-side session management & route protection)
-# ----------------------------------------------------------------------------------
-# To get this:
-# 1. Go to your Firebase Console > Project Settings > Service accounts tab.
-# 2. Click "Generate new private key" and download the JSON file.
-# 3. Open the file, copy its ENTIRE contents, and paste it here as a SINGLE-LINE string.
-#    (You may need to use an online tool to convert the JSON to a single line).
-# ----------------------------------------------------------------------------------
-FIREBASE_ADMIN_SDK_JSON=
+#### B. Firebase Admin SDK (for Server) & Google Cloud Storage
+To get these values:
+1.  Go to your Firebase Console > Project Settings > Service accounts tab.
+2.  Click "Generate new private key" and download the JSON file.
+3.  Open the JSON file and copy the values for `project_id`, `private_key`, and `client_email` into the corresponding variables below.
+4.  **Important:** For `FIREBASE_ADMIN_PRIVATE_KEY`, you must wrap the entire key in double quotes (`"`) to preserve the newline characters.
 
-# ----------------------------------------------------------------------------------
-# Google Cloud Storage (Required for real image uploads)
-# ----------------------------------------------------------------------------------
-# These values are found in the same JSON key file from the step above.
-# ----------------------------------------------------------------------------------
+```env
+FIREBASE_ADMIN_PROJECT_ID=
+FIREBASE_ADMIN_CLIENT_EMAIL=
+FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...your...private...key...\n-----END PRIVATE KEY-----\n"
+```
+
+#### C. Google Cloud Storage Bucket Name
+This is typically your Firebase Project ID with `.appspot.com` appended to it. You can verify this in the Firebase Console under Storage.
+
+```env
 GCS_PROJECT_ID=
 GCS_BUCKET_NAME=
-# The full JSON key file content as a single-line string (can be the same as FIREBASE_ADMIN_SDK_JSON)
-GOOGLE_APPLICATION_CREDENTIALS_JSON=
 ```
 
 ### Security Measures
