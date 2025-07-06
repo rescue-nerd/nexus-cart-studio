@@ -4,6 +4,7 @@
 import { revalidatePath } from 'next/cache';
 import { updateOrder, getOrder, getStore } from '@/lib/firebase-service';
 import type { Order } from "@/lib/types";
+import { getT } from '@/lib/translation-server';
 
 export type UpdateOrderStatusResult = {
     success: boolean;
@@ -21,6 +22,7 @@ export async function updateOrderStatus(
   status: Order['status'],
   lang: 'en' | 'ne' = 'en'
 ): Promise<UpdateOrderStatusResult> {
+  const t = await getT(lang);
   try {
     const order = await getOrder(orderId);
 
@@ -56,6 +58,7 @@ export async function refundKhaltiOrder(orderId: string): Promise<RefundResult> 
         return { success: false, messageKey: 'khaltiNotConfigured' };
     }
 
+    // Use a different endpoint for sandbox vs production refunds
     const khaltiApiUrl = store.paymentSettings.khaltiTestMode
         ? `https://dev.khalti.com/api/merchant-transaction/${order.paymentDetails.transactionId}/refund/`
         : `https://khalti.com/api/merchant-transaction/${order.paymentDetails.transactionId}/refund/`;
@@ -67,8 +70,6 @@ export async function refundKhaltiOrder(orderId: string): Promise<RefundResult> 
                 'Authorization': `Key ${store.paymentSettings.khaltiSecretKey}`,
                 'Content-Type': 'application/json',
             },
-            // For now, only full refunds are supported. No body is needed for full wallet refunds.
-            // For partial: body: JSON.stringify({ amount: order.total * 100 })
         });
         
         const data = await response.json();

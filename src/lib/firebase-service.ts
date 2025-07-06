@@ -35,6 +35,10 @@ const ordersCollection = collection(db, 'orders');
 // Helper to convert Firestore doc to a typed object with ID
 const docToType = <T>(doc: FirebaseFirestore.DocumentSnapshot): T => {
     const data = doc.data();
+    if (!data) {
+        // This case should ideally not happen if doc.exists() is checked before calling
+        throw new Error("Document data is empty");
+    }
     // Convert Timestamps to ISO strings
     for (const key in data) {
         if (data[key]?.toDate) {
@@ -66,7 +70,7 @@ export async function getAllStores(): Promise<Store[]> {
     return querySnapshot.docs.map(doc => docToType<Store>(doc));
 }
 
-export async function addStore(storeData: Omit<Store, 'id' | 'productCount' | 'orderCount'> & { userId: string }): Promise<Store> {
+export async function addStore(storeData: Omit<Store, 'id' | 'productCount' | 'orderCount' | 'createdAt'>): Promise<Store> {
     const newStoreData = {
         ...storeData,
         productCount: 0,
@@ -74,6 +78,9 @@ export async function addStore(storeData: Omit<Store, 'id' | 'productCount' | 'o
         createdAt: serverTimestamp(),
     };
     const docRef = await addDoc(storesCollection, newStoreData);
+    
+    // We can't return the exact Store object with the server timestamp immediately
+    // without another read, so we'll return a client-side approximation.
     return { id: docRef.id, ...storeData, productCount: 0, orderCount: 0 };
 }
 
@@ -96,7 +103,7 @@ export async function getProductsByStore(storeId: string): Promise<Product[]> {
     return querySnapshot.docs.map(doc => docToType<Product>(doc));
 }
 
-export async function addProduct(productData: Omit<Product, 'id'>): Promise<Product> {
+export async function addProduct(productData: Omit<Product, 'id' | 'createdAt'>): Promise<Product> {
     const batch = writeBatch(db);
     
     const productRef = doc(collection(db, 'products'));
@@ -106,7 +113,7 @@ export async function addProduct(productData: Omit<Product, 'id'>): Promise<Prod
     batch.update(storeRef, { productCount: increment(1) });
     
     await batch.commit();
-    return { id: productRef.id, ...productData };
+    return { id: productRef.id, ...productData, createdAt: new Date().toISOString() };
 }
 
 export async function updateProduct(productId: string, data: Partial<Product>): Promise<void> {
@@ -207,20 +214,26 @@ export async function getStoreAnalytics(storeId: string) {
     const storeProducts = await getProductsByStore(storeId);
 
     const totalSales = storeOrders.reduce((sum, order) => {
-        return order.status !== 'Cancelled' ? sum + order.total : sum;
+        return order.status !== 'Cancelled' && order.status !== 'Failed' && order.status !== 'Refunded' ? sum + order.total : sum;
     }, 0);
 
-    const totalOrders = storeOrders.filter(o => o.status !== 'Cancelled').length;
+    const totalOrders = storeOrders.filter(o => o.status !== 'Cancelled' && o.status !== 'Failed').length;
     
-    // Placeholder for real charting data
-    const salesData = [
-        { name: 'Jan', total: Math.floor(Math.random() * 5000) },
-        { name: 'Feb', total: Math.floor(Math.random() * 5000) },
-        { name: 'Mar', total: Math.floor(Math.random() * 5000) },
-        { name: 'Apr', total: Math.floor(Math.random() * 5000) },
-        { name: 'May', total: Math.floor(Math.random() * 5000) },
-        { name: 'Jun', total: Math.floor(Math.random() * 5000) },
-    ];
+    const salesData: { name: string; total: number }[] = [];
+    const months: { [key: string]: number } = { Jan: 0, Feb: 0, Mar: 0, Apr: 0, May: 0, Jun: 0, Jul: 0, Aug: 0, Sep: 0, Oct: 0, Nov: 0, Dec: 0 };
+    
+    storeOrders.forEach(order => {
+        if (order.status !== 'Cancelled' && order.status !== 'Failed' && order.status !== 'Refunded') {
+            const month = new Date(order.date).toLocaleString('default', { month: 'short' });
+            if (months.hasOwnProperty(month)) {
+                months[month] += order.total;
+            }
+        }
+    });
+
+    for (const monthName in months) {
+        salesData.push({ name: monthName, total: months[monthName] });
+    }
     
     return {
         totalSales,

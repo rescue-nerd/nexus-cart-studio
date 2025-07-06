@@ -42,6 +42,7 @@ export type Store = {
   metaKeywords?: string;
   userId: string;
   paymentSettings?: PaymentSettings;
+  createdAt?: string;
 };
 
 export type Product = {
@@ -54,6 +55,7 @@ export type Product = {
   sku: string;
   imageUrl: string;
   description: string;
+  createdAt?: string;
 };
 
 export type OrderItem = {

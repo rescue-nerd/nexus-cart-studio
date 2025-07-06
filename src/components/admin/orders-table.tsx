@@ -69,7 +69,7 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
     startTransition(async () => {
         const result = await updateOrderStatus(orderId, 'Shipped', language);
         if (result.success && result.status) {
-            toast({ title: t('orders.toast.updatedTitle'), description: t(result.messageKey, { status: t(`orders.status.${result.status.toLowerCase()}`) }) });
+            toast({ title: t('orders.toast.updatedTitle'), description: t('orders.toast.orderUpdateSuccess', { status: t(`orders.status.${result.status.toLowerCase()}`) }) });
         } else {
             toast({ variant: "destructive", title: t('error.genericTitle'), description: t(result.messageKey) });
         }
@@ -157,7 +157,7 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>{t('orders.actions')}</DropdownMenuLabel>
                         <DropdownMenuItem asChild>
-                          <Link href={`/orders/${order.id}`}>{t('orders.viewDetails')}</Link>
+                          <Link href={`/orders/${order.id}?lang=${language}`}>{t('orders.viewDetails')}</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleMarkAsShipped(order.id)}>
                           <Truck className="mr-2 h-4 w-4" /> {t('orders.markAsShipped')}

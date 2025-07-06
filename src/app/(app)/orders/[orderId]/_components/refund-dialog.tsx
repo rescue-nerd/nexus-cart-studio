@@ -35,13 +35,13 @@ export function RefundDialog({ orderId }: RefundDialogProps) {
             if (result.success) {
                 toast({
                     title: t('orderDetails.refund.toastSuccessTitle'),
-                    description: t(`orderDetails.refund.${result.messageKey}`),
+                    description: t('orderDetails.refund.refundSuccess'),
                 });
             } else {
                 toast({
                     variant: 'destructive',
                     title: t('orderDetails.refund.toastErrorTitle'),
-                    description: t(`orderDetails.refund.${result.messageKey}`),
+                    description: t(result.messageKey),
                 });
             }
             setOpen(false);

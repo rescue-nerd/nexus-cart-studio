@@ -20,7 +20,7 @@
     "storeNotFound": "The requested store could not be found."
   },
   "home": {
-    "title": "Welcome to GrowNexus",
+    "title": "Welcome to NexusCart",
     "subtitle": "The platform for building your e-commerce empire.",
     "superadminButton": "Go to Superadmin",
     "loginButton": "Login to your Store"
@@ -461,7 +461,7 @@
     "storeOwner": "Store Owner"
   },
   "superadmin": {
-    "title": "GrowNexus Admin",
+    "title": "NexusCart Admin",
     "stores": {
       "title": "All Stores",
       "description": "Manage all stores on the platform.",

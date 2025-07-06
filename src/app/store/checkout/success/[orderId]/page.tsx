@@ -98,12 +98,6 @@ export default function OrderSuccessPage({ params }: { params: { orderId: string
                         {t('storefront.orderSuccess.continueShopping')}
                     </Link>
                 </Button>
-                <Button variant="outline" className="flex-1" asChild>
-                    <Link href="/dashboard">
-                        <Package className="mr-2 h-4 w-4" />
-                        {t('storefront.orderSuccess.viewDashboard')}
-                    </Link>
-                </Button>
             </div>
             <p className="text-xs text-muted-foreground text-center">
                 {t('storefront.orderSuccess.confirmationEmail')}
