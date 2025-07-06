@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache';
 import { updateStore, getStore } from '@/lib/firebase-service';
 import { suggestSeoKeywords } from '@/ai/flows/seo-keyword-suggestion';
 import { getPlans } from '@/lib/firebase-service';
+import type { PaymentSettings } from '@/lib/types';
+import { uploadImage } from '@/lib/storage-service';
 
 type ActionResponse = {
   success: boolean;
@@ -63,6 +65,41 @@ export async function updateStorePlan(storeId: string, newPlanId: string): Promi
     console.error("Failed to update store plan:", error);
     return { success: false, messageKey: 'error.unexpected' };
   }
+}
+
+export async function updatePaymentSettings(storeId: string, formData: FormData): Promise<ActionResponse> {
+    try {
+        const store = await getStore(storeId);
+        if (!store) {
+            return { success: false, messageKey: 'error.storeNotFound' };
+        }
+
+        const qrCodeFile = formData.get('qrCode') as File;
+        let qrCodeUrl = store.paymentSettings?.qrCodeUrl;
+
+        if (qrCodeFile && qrCodeFile.size > 0) {
+            const { url } = await uploadImage(formData, 'qrCode');
+            qrCodeUrl = url;
+        }
+
+        const paymentSettings: PaymentSettings = {
+            qrCodeUrl: qrCodeUrl,
+            bankDetails: {
+                bankName: formData.get('bankName') as string,
+                accountName: formData.get('accountName') as string,
+                accountNumber: formData.get('accountNumber') as string,
+                branch: formData.get('branch') as string,
+            }
+        };
+
+        await updateStore(storeId, { paymentSettings });
+        revalidatePath('/settings');
+        return { success: true, messageKey: 'settings.payments.toast.success' };
+
+    } catch (error) {
+        console.error("Failed to update payment settings:", error);
+        return { success: false, messageKey: 'settings.payments.toast.fail' };
+    }
 }
 
 export async function updateSeoSettings(storeId: string, data: { title: string; description: string; keywords: string; }): Promise<ActionResponse> {

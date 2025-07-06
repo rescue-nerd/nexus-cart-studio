@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, ShoppingCart, MessageSquare, CreditCard, Truck } from 'lucide-react';
+import { Loader2, ShoppingCart, Banknote, QrCode, Truck, Copy } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -20,9 +20,38 @@ import { placeOrder } from './actions';
 import type { CheckoutFormValues } from './actions';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useTranslation } from '@/hooks/use-translation';
+import { useStoreContext } from '@/hooks/use-store';
+
+function BankDetailRow({ label, value }: { label: string, value: string | undefined }) {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+
+  if (!value) return null;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(value);
+    toast({
+      title: t('storefront.checkout.copied'),
+      description: `${label} ${t('storefront.checkout.copiedDesc')}`,
+    });
+  };
+
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-muted-foreground">{label}:</span>
+      <div className="flex items-center gap-2">
+        <span className="font-mono">{value}</span>
+        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopy} type="button">
+          <Copy className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export default function CheckoutPage() {
   const { cartItems, cartTotal, cartCount, clearCart } = useCart();
+  const { store } = useStoreContext();
   const router = useRouter();
   const { toast } = useToast();
   const { t, language } = useTranslation();
@@ -34,7 +63,7 @@ export default function CheckoutPage() {
     customerPhone: z.string().min(10, t('zod.checkout.phoneInvalid')),
     address: z.string().min(5, t('zod.checkout.addressRequired')),
     city: z.string().min(2, t('zod.checkout.cityRequired')),
-    paymentMethod: z.enum(['whatsapp', 'cod', 'esewa'], {
+    paymentMethod: z.enum(['cod', 'qr', 'bank'], {
       required_error: t('zod.checkout.paymentRequired'),
     }),
   });
@@ -53,24 +82,15 @@ export default function CheckoutPage() {
     },
   });
 
+  const selectedPaymentMethod = form.watch('paymentMethod');
+
   const onSubmit = (values: FormValues) => {
     startTransition(async () => {
       const result = await placeOrder(values, cartItems, language);
 
       if (result.success) {
-        if (result.paymentMethod !== 'whatsapp') {
-            clearCart();
-        }
-        if (result.paymentMethod === 'whatsapp' && result.whatsappUrl) {
-            toast({
-                title: t('storefront.checkout.toast.redirectingToWhatsapp'),
-                description: t('storefront.checkout.toast.finalizeOrder')
-            });
-            window.open(result.whatsappUrl, '_blank');
-            router.push('/store');
-        } else if (result.orderId) {
-            router.push(`/store/checkout/success/${result.orderId}`);
-        }
+        clearCart();
+        router.push(`/store/checkout/success/${result.orderId}`);
       } else {
         toast({
           variant: "destructive",
@@ -139,22 +159,26 @@ export default function CheckoutPage() {
                                             <p className="text-sm text-muted-foreground">{t('storefront.checkout.codDesc')}</p>
                                         </div>
                                     </Label>
-                                    <Label htmlFor="esewa" className="flex items-center gap-4 rounded-md border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:ring-1 has-[[data-state=checked]]:ring-primary">
-                                        <RadioGroupItem value="esewa" id="esewa" />
-                                        <CreditCard className="h-6 w-6" />
+                                    {store?.paymentSettings?.qrCodeUrl && (
+                                    <Label htmlFor="qr" className="flex items-center gap-4 rounded-md border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:ring-1 has-[[data-state=checked]]:ring-primary">
+                                        <RadioGroupItem value="qr" id="qr" />
+                                        <QrCode className="h-6 w-6" />
                                         <div className="grid gap-1.5">
-                                            <p className="font-semibold">{t('storefront.checkout.esewa')}</p>
-                                            <p className="text-sm text-muted-foreground">{t('storefront.checkout.esewaDesc')}</p>
+                                            <p className="font-semibold">{t('storefront.checkout.qr')}</p>
+                                            <p className="text-sm text-muted-foreground">{t('storefront.checkout.qrDesc')}</p>
                                         </div>
                                     </Label>
-                                    <Label htmlFor="whatsapp" className="flex items-center gap-4 rounded-md border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:ring-1 has-[[data-state=checked]]:ring-primary">
-                                        <RadioGroupItem value="whatsapp" id="whatsapp" />
-                                        <MessageSquare className="h-6 w-6" />
+                                    )}
+                                    {store?.paymentSettings?.bankDetails?.accountNumber && (
+                                    <Label htmlFor="bank" className="flex items-center gap-4 rounded-md border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:ring-1 has-[[data-state=checked]]:ring-primary">
+                                        <RadioGroupItem value="bank" id="bank" />
+                                        <Banknote className="h-6 w-6" />
                                         <div className="grid gap-1.5">
-                                            <p className="font-semibold">{t('storefront.checkout.whatsapp')}</p>
-                                            <p className="text-sm text-muted-foreground">{t('storefront.checkout.whatsappDesc')}</p>
+                                            <p className="font-semibold">{t('storefront.checkout.bank')}</p>
+                                            <p className="text-sm text-muted-foreground">{t('storefront.checkout.bankDesc')}</p>
                                         </div>
                                     </Label>
+                                    )}
                                 </RadioGroup>
                             </FormControl>
                             <FormMessage className="pt-4"/>
@@ -172,7 +196,7 @@ export default function CheckoutPage() {
                     {cartItems.map(item => (
                         <div key={item.product.id} className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-4">
-                                <Image src={item.product.imageUrl} alt={item.product.name} width={64} height={64} className="rounded-md border object-cover" data-ai-hint="product image" />
+                                <Image src={item.product.imageUrl} alt={item.product.name} width={64} height={64} className="rounded-md border object-cover" data-ai-hint="product image"/>
                                 <div>
                                     <p className="font-medium line-clamp-1">{item.product.name}</p>
                                     <p className="text-sm text-muted-foreground">{t('storefront.checkout.quantity', { quantity: item.quantity })}</p>
@@ -195,6 +219,32 @@ export default function CheckoutPage() {
                         <p>{t('storefront.checkout.total')}</p>
                         <p>Rs {cartTotal.toFixed(2)}</p>
                     </div>
+
+                    {selectedPaymentMethod === 'qr' && store?.paymentSettings?.qrCodeUrl && (
+                        <div className="pt-4 space-y-4">
+                            <Separator />
+                            <h3 className="font-semibold">{t('storefront.checkout.qrInstructionTitle')}</h3>
+                            <div className="flex flex-col items-center gap-2">
+                                <Image src={store.paymentSettings.qrCodeUrl} alt="QR Code for payment" width={200} height={200} className="rounded-md border" data-ai-hint="qr code"/>
+                                <p className="text-sm text-muted-foreground text-center">{t('storefront.checkout.qrInstruction')}</p>
+                            </div>
+                        </div>
+                    )}
+
+                     {selectedPaymentMethod === 'bank' && store?.paymentSettings?.bankDetails && (
+                        <div className="pt-4 space-y-2">
+                            <Separator />
+                            <h3 className="font-semibold">{t('storefront.checkout.bankInstructionTitle')}</h3>
+                            <div className="p-4 border rounded-md space-y-2">
+                                <BankDetailRow label={t('settings.payments.bankName')} value={store.paymentSettings.bankDetails.bankName} />
+                                <BankDetailRow label={t('settings.payments.accountName')} value={store.paymentSettings.bankDetails.accountName} />
+                                <BankDetailRow label={t('settings.payments.accountNumber')} value={store.paymentSettings.bankDetails.accountNumber} />
+                                <BankDetailRow label={t('settings.payments.branch')} value={store.paymentSettings.bankDetails.branch} />
+                            </div>
+                            <p className="text-sm text-muted-foreground text-center">{t('storefront.checkout.bankInstruction')}</p>
+                        </div>
+                    )}
+
                 </CardContent>
             </Card>
              <Button type="submit" size="lg" className="w-full" disabled={isPending}>

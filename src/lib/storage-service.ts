@@ -46,19 +46,19 @@ To enable real image uploads, set the following environment variables in your .e
 /**
  * Uploads a file to Google Cloud Storage. If GCS is not configured, it returns a placeholder URL.
  * @param formData The FormData object containing the file to upload.
- * It's expected to have a 'file' field.
+ * @param fileKey The key in formData that holds the file. Defaults to 'file'.
  * @returns A promise that resolves with the public URL of the uploaded file.
  */
-export async function uploadImage(formData: FormData): Promise<{ url: string }> {
-  const file = formData.get('file') as File;
+export async function uploadImage(formData: FormData, fileKey: string = 'file'): Promise<{ url: string }> {
+  const file = formData.get(fileKey) as File;
 
   if (!file) {
-    throw new Error('No file provided in FormData.');
+    throw new Error(`No file provided in FormData with key '${fileKey}'.`);
   }
 
   // If GCS is not configured, return a placeholder
   if (!storage || !bucketName) {
-    console.log('--- SIMULATING GCS FILE UPLOAD (using placeholder) ---');
+    console.log(`--- SIMULATING GCS FILE UPLOAD (using placeholder for key: ${fileKey}) ---`);
     // Simulate a delay for the upload process.
     await new Promise(resolve => setTimeout(resolve, 500));
     const placeholderUrl = `https://placehold.co/600x400.png`;

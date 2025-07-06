@@ -2,6 +2,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,9 +36,9 @@ import {
 import { useTheme } from "@/hooks/use-theme.tsx"
 import { cn } from "@/lib/utils"
 import { type Store, type Plan } from "@/lib/types"
-import { CheckCircle, Loader2, Sparkles } from "lucide-react"
+import { CheckCircle, Loader2, Sparkles, Upload } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
-import { updateStorePlan, updateSeoSettings, suggestKeywordsAction, updateStoreProfile } from "@/app/(app)/settings/actions";
+import { updateStorePlan, updateSeoSettings, suggestKeywordsAction, updateStoreProfile, updatePaymentSettings } from "@/app/(app)/settings/actions";
 import { useTranslation } from "@/hooks/use-translation";
 
 interface SettingsFormProps {
@@ -55,6 +56,7 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
   const [isSeoPending, startSeoTransition] = useTransition();
   const [isAiPending, startAiTransition] = useTransition();
   const [isProfilePending, startProfileTransition] = useTransition();
+  const [isPaymentPending, startPaymentTransition] = useTransition();
   const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
 
   // SEO State
@@ -76,6 +78,26 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
     },
   });
 
+  const paymentFormSchema = z.object({
+    bankName: z.string(),
+    accountName: z.string(),
+    accountNumber: z.string(),
+    branch: z.string(),
+    qrCode: z.instanceof(File).optional(),
+  });
+  type PaymentFormValues = z.infer<typeof paymentFormSchema>;
+
+  const paymentForm = useForm<PaymentFormValues>({
+    resolver: zodResolver(paymentFormSchema),
+    defaultValues: {
+        bankName: store.paymentSettings?.bankDetails?.bankName || "",
+        accountName: store.paymentSettings?.bankDetails?.accountName || "",
+        accountNumber: store.paymentSettings?.bankDetails?.accountNumber || "",
+        branch: store.paymentSettings?.bankDetails?.branch || "",
+    }
+  });
+
+
   const onProfileSubmit = (values: ProfileFormValues) => {
     startProfileTransition(async () => {
       const formData = new FormData();
@@ -88,6 +110,23 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
       } else {
         toast({ variant: "destructive", title: t('error.genericTitle'), description: t(result.messageKey) });
       }
+    });
+  };
+
+  const onPaymentSubmit = (values: PaymentFormValues) => {
+    startPaymentTransition(async () => {
+        const formData = new FormData();
+        Object.entries(values).forEach(([key, value]) => {
+            if (value) {
+                formData.append(key, value);
+            }
+        });
+        const result = await updatePaymentSettings(store.id, formData);
+        if (result.success) {
+            toast({ title: t('settings.payments.toast.successTitle'), description: t(result.messageKey) });
+        } else {
+            toast({ variant: "destructive", title: t('error.genericTitle'), description: t(result.messageKey) });
+        }
     });
   };
 
@@ -280,40 +319,69 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
             </Card>
         </TabsContent>
         <TabsContent value="payments">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('settings.payments.title')}</CardTitle>
-              <CardDescription>
-                {t('settings.payments.description')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between rounded-lg border p-4">
-                <div>
-                  <h3 className="font-medium">eSewa</h3>
-                  <p className="text-sm text-muted-foreground">{t('settings.payments.notConnected')}</p>
-                </div>
-                <Button variant="outline">{t('settings.payments.connectButton')}</Button>
-              </div>
-              <div className="flex items-center justify-between rounded-lg border p-4">
-                <div>
-                  <h3 className="font-medium">Khalti</h3>
-                  <p className="text-sm text-muted-foreground">{t('settings.payments.notConnected')}</p>
-                </div>
-                <Button variant="outline">{t('settings.payments.connectButton')}</Button>
-              </div>
-              <div className="flex items-center justify-between rounded-lg border p-4">
-                <div>
-                  <h3 className="font-medium">IME Pay</h3>
-                  <p className="text-sm text-muted-foreground">{t('settings.payments.notConnected')}</p>
-                </div>
-                <Button variant="outline">{t('settings.payments.connectButton')}</Button>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button>{t('settings.saveButton')}</Button>
-            </CardFooter>
-          </Card>
+          <Form {...paymentForm}>
+            <form onSubmit={paymentForm.handleSubmit(onPaymentSubmit)}>
+                <Card>
+                <CardHeader>
+                    <CardTitle>{t('settings.payments.title')}</CardTitle>
+                    <CardDescription>
+                        {t('settings.payments.description')}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                  {/* QR Code Section */}
+                  <div className="p-6 border rounded-lg">
+                      <h3 className="text-lg font-medium mb-4">{t('settings.payments.qrCodeTitle')}</h3>
+                      <div className="grid md:grid-cols-2 gap-6 items-start">
+                          <FormField
+                              control={paymentForm.control}
+                              name="qrCode"
+                              render={({ field: { onChange, value, ...rest }}) => (
+                                  <FormItem>
+                                      <FormLabel>{t('settings.payments.uploadQr')}</FormLabel>
+                                      <FormControl>
+                                        <div className="flex items-center gap-2">
+                                          <Input type="file" accept="image/*" onChange={(e) => onChange(e.target.files?.[0])} {...rest} />
+                                        </div>
+                                      </FormControl>
+                                      <FormDescription>{t('settings.payments.uploadQrDesc')}</FormDescription>
+                                      <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
+                          <div>
+                              <FormLabel>{t('settings.payments.currentQr')}</FormLabel>
+                              <div className="mt-2 w-48 h-48 border rounded-md flex items-center justify-center bg-muted">
+                                  {store.paymentSettings?.qrCodeUrl ? (
+                                      <Image src={store.paymentSettings.qrCodeUrl} alt="Current QR Code" width={192} height={192} data-ai-hint="qr code"/>
+                                  ) : (
+                                      <p className="text-sm text-muted-foreground">{t('settings.payments.noQr')}</p>
+                                  )}
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+
+                  {/* Bank Transfer Section */}
+                  <div className="p-6 border rounded-lg">
+                      <h3 className="text-lg font-medium mb-4">{t('settings.payments.bankTransferTitle')}</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField control={paymentForm.control} name="bankName" render={({ field }) => (<FormItem><FormLabel>{t('settings.payments.bankName')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField control={paymentForm.control} name="accountName" render={({ field }) => (<FormItem><FormLabel>{t('settings.payments.accountName')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField control={paymentForm.control} name="accountNumber" render={({ field }) => (<FormItem><FormLabel>{t('settings.payments.accountNumber')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField control={paymentForm.control} name="branch" render={({ field }) => (<FormItem><FormLabel>{t('settings.payments.branch')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                      </div>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                    <Button type="submit" disabled={isPaymentPending}>
+                        {isPaymentPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {t('settings.saveButton')}
+                    </Button>
+                </CardFooter>
+                </Card>
+            </form>
+          </Form>
         </TabsContent>
         <TabsContent value="seo">
           <Card>

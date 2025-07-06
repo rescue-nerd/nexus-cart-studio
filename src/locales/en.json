@@ -190,7 +190,7 @@
     "paymentDate": "Date"
   },
   "settings": {
-    "saveButton": "Save changes",
+    "saveButton": "Save Changes",
     "tabs": {
       "profile": "Store Profile",
       "billing": "Billing & Plan",
@@ -223,10 +223,23 @@
       }
     },
     "payments": {
-      "title": "Payment Gateways",
-      "description": "Connect your payment providers.",
-      "notConnected": "Not Connected",
-      "connectButton": "Connect"
+      "title": "Payment Settings",
+      "description": "Configure the payment methods for your customers.",
+      "qrCodeTitle": "QR Code Payment",
+      "uploadQr": "Upload QR Code Image",
+      "uploadQrDesc": "Upload the QR code image customers will scan to pay.",
+      "currentQr": "Current QR Code",
+      "noQr": "No QR code uploaded.",
+      "bankTransferTitle": "Bank Transfer Details",
+      "bankName": "Bank Name",
+      "accountName": "Account Holder's Name",
+      "accountNumber": "Account Number",
+      "branch": "Branch",
+      "toast": {
+        "successTitle": "Payment Settings Saved",
+        "success": "Your payment methods have been updated.",
+        "fail": "Failed to update payment settings."
+      }
     },
     "seo": {
       "title": "SEO Settings",
@@ -293,10 +306,10 @@
       "paymentMethod": "Payment Method",
       "cod": "Cash on Delivery",
       "codDesc": "Pay with cash upon receiving your order.",
-      "esewa": "eSewa or Card Payment",
-      "esewaDesc": "Pay with eSewa, mobile banking, or card.",
-      "whatsapp": "Order on WhatsApp",
-      "whatsappDesc": "Chat with the seller to finalize your order.",
+      "qr": "QR Code Payment",
+      "qrDesc": "Scan the QR code to pay with your mobile wallet.",
+      "bank": "Bank Transfer",
+      "bankDesc": "Transfer the amount directly to our bank account.",
       "orderSummary": "Order Summary",
       "quantity": "Qty: {quantity}",
       "subtotal": "Subtotal",
@@ -306,10 +319,13 @@
       "placeOrder": "Place Order",
       "invalidForm": "Invalid form data. Please check your inputs.",
       "emptyCart": "Your cart is empty.",
-      "toast": {
-        "redirectingToWhatsapp": "Redirecting to WhatsApp",
-        "finalizeOrder": "Finalize your order with the seller."
-      }
+      "qrInstructionTitle": "Pay with QR Code",
+      "qrInstruction": "Scan this code with your mobile banking or wallet app. Once payment is complete, click 'Place Order'.",
+      "bankInstructionTitle": "Pay with Bank Transfer",
+      "bankInstruction": "Transfer the total amount to this account. Once payment is complete, click 'Place Order'.",
+      "copied": "Copied!",
+      "copiedDesc": "has been copied to your clipboard.",
+      "copy": "Copy"
     },
     "orderSuccess": {
       "title": "Thank You for Your Order!",
@@ -322,7 +338,7 @@
       "total": "Total:",
       "continueShopping": "Continue Shopping",
       "viewDashboard": "View My Dashboard",
-      "confirmationEmail": "You will receive a confirmation email shortly. If you chose eSewa, your order will be processed after payment confirmation."
+      "confirmationEmail": "You will receive a confirmation email shortly. Your order will be processed after payment is verified by the seller."
     },
     "aiChat": {
       "title": "AI Shopping Assistant",
