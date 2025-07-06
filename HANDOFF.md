@@ -2,7 +2,7 @@
 # NexusCart Technical Handoff & System Overview
 
 **Date:** {current_date}
-**Version:** 1.2 - Post-Manual-Payments Implementation
+**Version:** 1.3 - Post-Khalti-Integration
 
 This document provides a comprehensive overview of the NexusCart application's architecture, database schema, feature status, and deployment requirements. It is intended for developers, project managers, and new team members.
 
@@ -15,8 +15,6 @@ This document provides a comprehensive overview of the NexusCart application's a
 **Current Status:** All data is persisted in **Firebase Firestore**. The schema below reflects the collections and data structures in use.
 
 ### A. Entity-Relationship Diagram (ERD)
-
-This diagram outlines the core relationships between the major entities.
 
 ```mermaid
 erDiagram
@@ -174,15 +172,19 @@ erDiagram
 - **PWA Support**: The application is configured as a Progressive Web App with a manifest file and service worker registration.
 - **Manual Payment Gateway Configuration**: Store owners can configure their own payment details for "Cash on Delivery," "QR Code Payments," and "Bank Transfers" via the settings dashboard. This includes QR code image uploads and structured bank account details.
 - **Manual Checkout Flow**: The storefront checkout process is fully implemented for COD, QR, and Bank Transfer methods. It dynamically displays the store-specific payment information to the customer and creates orders in Firestore with a "Processing" status for manual verification by the seller.
+- **Khalti Payment Gateway Integration**:
+    - **Configuration**: Store owners can add their Khalti secret keys and toggle test mode in the settings panel.
+    - **Checkout**: Customers can pay via Khalti, which redirects them to the Khalti payment portal.
+    - **Verification**: The system automatically verifies payments on the backend via the Khalti lookup API before confirming an order.
+    - **Refunds**: Store owners can initiate full refunds for Khalti transactions directly from the order details page.
 - **Admin Actions (UI & Logic)**:
     - Products: "Add", "Edit", and "Delete" are fully functional, persisting to Firestore.
-    - Orders: "View Details," "Mark as Shipped," and "Cancel Order" are functional, persisting to Firestore.
+    - Orders: "View Details," "Mark as Shipped," "Cancel Order," and "Refund Khalti Order" are functional, persisting to Firestore.
     - Settings: Saving "Store Profile," "SEO," and "Payments" changes works, persisting to Firestore.
     - Superadmin: "Add New Store" and store status changes are fully implemented, persisting to Firestore.
 
 ### UI/Foundation Only (Backend Logic is Mocked or Incomplete)
-- **Cloud Storage/Image Upload**: The `storage-service` is fully implemented and integrated with Google Cloud Storage. Image uploads work if credentials are provided.
-- **Automated Payment Gateway Integration**: The system does **not** yet connect to any real-time payment gateway API (like Stripe, Khalti, or eSewa) for processing money automatically.
+- **eSewa Payment Gateway**: The system does not yet connect to any other real-time payment gateway API (like eSewa) for processing money automatically.
 - **Plan Management & Subscription Logic**: UI for changing plans is complete. The backend action updates the store's `planId` in Firestore but does not handle billing, payments, or subscription lifecycle events (e.g., renewals, cancellations).
 - **Product Category Management**: UI does not exist for dynamic category management. Categories are currently static and defined in a config file.
 - **Notification Flows (WhatsApp)**: The `sendWhatsAppNotification` flow is implemented. It will send real messages via Twilio if credentials are provided, but falls back to `console.log` otherwise. There is no persistent logging of sent notifications to a database.
@@ -207,19 +209,21 @@ The application uses **Next.js Server Actions** instead of a traditional API. Al
 
 ### Module: Orders (`/app/(app)/orders/actions.ts`)
 - `updateOrderStatus(orderId, status, lang)`: Updates the status of an order document in Firestore and triggers a WhatsApp notification flow.
+- `refundKhaltiOrder(orderId)`: Initiates a full refund for a completed Khalti transaction. It calls the Khalti Refund API and updates the order status to "Refunded" in Firestore upon success.
 
 ### Module: Settings (`/app/(app)/settings/actions.ts`)
 - `updateStoreProfile(storeId, formData)`: Updates a store document's name and description in Firestore.
 - `updateStorePlan(storeId, newPlanId)`: Updates a store document's planId in Firestore.
-- `updatePaymentSettings(storeId, formData)`: Updates a store's payment details, including QR code image upload and bank info.
+- `updatePaymentSettings(storeId, formData)`: Updates a store's payment details, including QR code, bank info, and **Khalti credentials**.
 - `updateSeoSettings(storeId, data)`: Updates a store document's meta fields in Firestore.
 - `suggestKeywordsAction(description)`: Calls Genkit flow to suggest SEO keywords.
 
 ### Module: Checkout (`/app/store/checkout/actions.ts`)
-- `placeOrder(values, cartItems, lang)`: The main checkout handler.
-    - If payment method is 'cod', creates an order with 'Pending' status.
-    - If 'qr' or 'bank', it creates an order with 'Processing' status for manual seller verification.
-    - It triggers notifications for the new order.
+- `placeManualOrder(values, cartItems, lang)`: The main checkout handler for manual methods (COD, QR, Bank). Creates an order with 'Pending' or 'Processing' status.
+- `initiateKhaltiPayment(values, cartItems)`: Handles the Khalti checkout process. It creates a preliminary order in Firestore, initiates a payment with Khalti's API, and returns the payment URL for redirection.
+
+### Module: Khalti Callback (`/app/store/checkout/khalti/callback/actions.ts`)
+- `verifyKhaltiPayment(pidx)`: Called on the server after the user returns from Khalti. It uses the `pidx` to call Khalti's lookup API, verifies the transaction status, and updates the final order status in Firestore ('Processing' or 'Cancelled').
 
 ### Module: AI & Notifications
 - **AI Flows (`/src/ai/flows/*.ts`):** Genkit flows for product description generation, SEO keyword suggestion, and a chat assistant. They are self-contained and called by Server Actions.
@@ -228,6 +232,7 @@ The application uses **Next.js Server Actions** instead of a traditional API. Al
 ### Third-Party Integrations
 - **Firebase**: For user authentication and database (Firestore). Fully implemented.
 - **Genkit (Google AI)**: For all AI features. Fully implemented.
+- **Khalti**: For real-time payments and refunds. Fully implemented.
 - **Twilio**: For WhatsApp messages. Implemented with a "simulation" mode if keys are not present.
 - **Google Cloud Storage**: For image uploads. Implemented and fully functional.
 
@@ -243,9 +248,10 @@ The application uses **Next.js Server Actions** instead of a traditional API. Al
 - AI features for content generation.
 - PWA configuration.
 - Manual payment configuration (QR, Bank, COD) by store owners.
+- **Khalti Payment Gateway**: End-to-end payment processing, including configuration, checkout, server-side verification, and refunds.
 
 ### UI Only / Mocked Backend
-- **Automated Payment Processing**: The app does not connect to a real-time gateway like eSewa. All non-COD payments require manual verification by the store owner.
+- **Other Payment Gateways (e.g., eSewa)**: The app does not connect to any other real-time gateway.
 - **Subscription Billing**: The app does not handle recurring payments or subscription lifecycle management.
 - **Real-time Analytics**: The dashboard uses randomized data, not real aggregates from the database.
 
@@ -320,4 +326,3 @@ TWILIO_WHATSAPP_FROM_NUMBER=
 
 ### Blockers
 - **External Service Credentials**: Full real-time payment functionality is blocked pending the acquisition and configuration of API keys for a payment gateway.
-
