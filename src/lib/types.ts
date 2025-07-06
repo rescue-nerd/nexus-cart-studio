@@ -21,7 +21,7 @@ export type PaymentSettings = {
 };
 
 export type Store = {
-  id: string;
+  id:string;
   name: string;
   ownerName: string;
   ownerEmail: string;
@@ -31,6 +31,7 @@ export type Store = {
   domain: string;
   planId: string;
   description?: string;
+  whatsappNumber?: string;
   metaTitle?: string;
   metaDescription?: string;
   metaKeywords?: string;

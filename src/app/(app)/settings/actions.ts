@@ -29,12 +29,13 @@ export async function updateStoreProfile(storeId: string, formData: FormData): P
   
   const name = formData.get("name") as string;
   const description = formData.get("description") as string;
+  const whatsappNumber = formData.get("whatsappNumber") as string;
 
   if (!name || name.length < 2) {
     return { success: false, messageKey: 'error.invalidFields' };
   }
   
-  await updateStore(storeId, { name, description });
+  await updateStore(storeId, { name, description, whatsappNumber });
 
   revalidatePath('/settings');
   revalidatePath('/dashboard');
