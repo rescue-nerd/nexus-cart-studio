@@ -38,6 +38,17 @@ const nextConfig: NextConfig = {
 
     // Add fallbacks for Node.js built-in modules in client-side bundles
     if (!isServer) {
+      // Add plugin to handle node: prefixed imports
+      config.plugins = [
+        ...(config.plugins || []),
+        new config.webpack.NormalModuleReplacementPlugin(
+          /^node:/,
+          (resource) => {
+            resource.request = resource.request.replace(/^node:/, '');
+          }
+        ),
+      ];
+
       config.externals = [
         ...(config.externals || []),
         'firebase-admin',
