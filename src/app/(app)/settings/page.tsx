@@ -1,21 +1,26 @@
+
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { stores, plans } from "@/lib/placeholder-data";
-import { SettingsForm } from "@/components/admin/settings-form";
+import { getStore, getPlans } from "@/lib/firebase-service";
 import { ClientSettingsPage } from "./_components/client-settings-page";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
   const headersList = headers();
   const storeId = headersList.get('x-store-id');
 
-  const store = stores.find(s => s.id === storeId);
-  if (!store) {
+  if (!storeId) {
     notFound();
   }
 
-  const currentPlan = plans.find(p => p.id === store.planId);
+  const store = await getStore(storeId);
+  if (!store) {
+    notFound();
+  }
+  
+  const allPlans = await getPlans();
+  const currentPlan = allPlans.find(p => p.id === store.planId);
 
   return (
-    <ClientSettingsPage store={store} currentPlan={currentPlan} allPlans={plans} />
+    <ClientSettingsPage store={store} currentPlan={currentPlan} allPlans={allPlans} />
   );
 }

@@ -1,12 +1,14 @@
+
 'use client';
 
 import Image from "next/image";
 import { notFound, useParams } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight, ShoppingCart } from "lucide-react";
+import { ChevronRight, ShoppingCart, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { products as allProducts, type Product } from "@/lib/placeholder-data";
+import type { Product } from "@/lib/types";
+import { getProduct as fetchProduct } from './actions';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/hooks/use-cart";
@@ -18,14 +20,17 @@ export default function ProductDetailPage() {
   const { addToCart } = useCart();
   const { t } = useTranslation();
 
-  const [product, setProduct] = useState<Product | undefined>(undefined);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const foundProduct = allProducts.find((p) => p.id === productId);
-    if (foundProduct) {
+    async function getProduct() {
+        const foundProduct = await fetchProduct(productId as string);
         setProduct(foundProduct);
-    } else {
-        notFound();
+        setLoading(false);
+    }
+    if (productId) {
+        getProduct();
     }
   }, [productId]);
 
@@ -36,8 +41,16 @@ export default function ProductDetailPage() {
     }
   };
   
+  if (loading) {
+    return (
+        <div className="container mx-auto px-4 md:px-6 py-8 h-[60vh] flex items-center justify-center">
+            <Loader2 className="h-16 w-16 animate-spin text-muted-foreground" />
+        </div>
+    )
+  }
+  
   if (!product) {
-    return <div>Loading...</div>;
+    notFound();
   }
 
   return (

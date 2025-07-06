@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from "next/link";
@@ -7,10 +8,14 @@ import { NexusCartLogo } from "@/components/icons";
 import { Search, User, Menu, Languages } from "lucide-react";
 import { CartSheet } from "./cart-sheet";
 import { useTranslation } from "@/hooks/use-translation";
+import { useStoreContext } from "@/hooks/use-store";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-export function Header({ storeName }: { storeName: string }) {
+export function Header() {
   const { t, language, setLanguage } = useTranslation();
+  const { store } = useStoreContext();
+
+  const storeName = store?.name || 'NexusCart';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

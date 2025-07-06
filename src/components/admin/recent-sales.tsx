@@ -1,14 +1,51 @@
 
+'use client';
+
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
-import { orders as allOrders } from "@/lib/placeholder-data";
+import { getRecentOrders } from "@/lib/firebase-service";
+import type { Order } from "@/lib/types";
+import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+function RecentSalesSkeleton() {
+  return (
+    <div className="space-y-8">
+      {[...Array(3)].map((_, i) => (
+        <div className="flex items-center" key={i}>
+          <Skeleton className="h-9 w-9 rounded-full" />
+          <div className="ml-4 space-y-2">
+            <Skeleton className="h-4 w-[100px]" />
+            <Skeleton className="h-4 w-[150px]" />
+          </div>
+          <Skeleton className="ml-auto h-4 w-[50px]" />
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export function RecentSales({ storeId, noSalesMessage }: { storeId: string, noSalesMessage: string }) {
-  const storeOrders = allOrders.filter(o => o.storeId === storeId);
-  const recentOrders = storeOrders.slice(0, 5);
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchRecentOrders() {
+      setIsLoading(true);
+      const orders = await getRecentOrders(storeId, 5);
+      setRecentOrders(orders);
+      setIsLoading(false);
+    }
+    fetchRecentOrders();
+  }, [storeId]);
+
+
+  if (isLoading) {
+    return <RecentSalesSkeleton />;
+  }
 
   if (recentOrders.length === 0) {
     return (

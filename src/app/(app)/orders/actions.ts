@@ -1,7 +1,9 @@
+
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { orders as allOrders, type Order } from '@/lib/placeholder-data';
+import { updateOrder, getOrder } from '@/lib/firebase-service';
+import type { Order } from "@/lib/types";
 import { sendOrderUpdateNotifications } from '@/lib/order-service';
 
 export type UpdateOrderStatusResult = {
@@ -16,17 +18,16 @@ export async function updateOrderStatus(
   lang: 'en' | 'ne' = 'en'
 ): Promise<UpdateOrderStatusResult> {
   try {
-    const order = allOrders.find((o) => o.id === orderId);
+    const order = await getOrder(orderId);
 
     if (!order) {
       return { success: false, messageKey: 'orderNotFound' };
     }
 
-    // In a real app, this would update the database.
-    order.status = status;
+    await updateOrder(orderId, { status });
+    const updatedOrder = { ...order, status };
 
-    // Send notification on status change
-    await sendOrderUpdateNotifications(order, lang);
+    await sendOrderUpdateNotifications(updatedOrder, lang);
 
     revalidatePath('/orders');
     revalidatePath(`/orders/${orderId}`);

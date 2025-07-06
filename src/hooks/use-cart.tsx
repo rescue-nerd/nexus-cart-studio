@@ -1,9 +1,10 @@
+
 'use client';
 
-import type { Product } from '@/lib/placeholder-data';
+import type { Product } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { useTranslation } from './use-translation';
+import { useTranslation, TranslationContext } from './use-translation';
 
 export interface CartItem {
   product: Product;

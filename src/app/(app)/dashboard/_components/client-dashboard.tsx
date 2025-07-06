@@ -7,7 +7,7 @@ import { OverviewChart } from "@/components/admin/overview-chart";
 import { RecentSales } from "@/components/admin/recent-sales";
 import StatCard from "@/components/admin/stat-card";
 import { useTranslation } from "@/hooks/use-translation";
-import type { Store, Product, Order } from "@/lib/placeholder-data";
+import type { Store } from "@/lib/types";
 
 type Analytics = {
   totalSales: number;

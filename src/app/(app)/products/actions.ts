@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from 'next/navigation'
 import { revalidatePath } from "next/cache";
 import { uploadImage } from "@/lib/storage-service";
-import { products as allProducts } from "@/lib/placeholder-data";
+import { addProduct as addProductToDb, deleteProduct as deleteProductFromDb, getProduct, updateProduct as updateProductInDb } from "@/lib/firebase-service";
 import { generateProductDescription } from "@/ai/flows/product-description-generator";
 
 type ActionResponse = {
@@ -20,8 +20,6 @@ type DescriptionResponse = {
   description?: string;
 }
 
-// Zod schemas are now defined in the client components to access the translation hook.
-
 export async function addProduct(formData: FormData): Promise<ActionResponse> {
   const headersList = headers();
   const storeId = headersList.get('x-store-id');
@@ -35,7 +33,6 @@ export async function addProduct(formData: FormData): Promise<ActionResponse> {
   const price = parseFloat(formData.get("price") as string);
   const stock = parseInt(formData.get("stock") as string, 10);
 
-  // Basic server-side check for presence, detailed validation is on the client
   if (!name || !description || isNaN(price) || isNaN(stock)) {
       return { success: false, messageKey: "error.invalidFields" };
   }
@@ -49,17 +46,17 @@ export async function addProduct(formData: FormData): Promise<ActionResponse> {
     const { url: imageUrl } = await uploadImage(formData);
 
     const newProduct = {
-      id: `prod_${Math.random().toString(36).substr(2, 9)}`,
       storeId,
       name,
       description,
       price,
       stock,
       imageUrl,
-      category: "Uncategorized",
+      category: "Uncategorized", // TODO: Implement category selection
       sku: `SKU-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
     };
-    allProducts.unshift(newProduct);
+    
+    await addProductToDb(newProduct);
     
     revalidatePath("/products");
     
@@ -69,8 +66,6 @@ export async function addProduct(formData: FormData): Promise<ActionResponse> {
   }
   
   redirect('/products');
-  // This return is technically unreachable due to redirect, but satisfies TypeScript
-  return { success: true, messageKey: "products.toast.addSuccess" , productName: name }; 
 }
 
 
@@ -82,9 +77,8 @@ export async function updateProduct(productId: string, formData: FormData): Prom
     return { success: false, messageKey: "error.storeIdMissing" };
   }
   
-  const productIndex = allProducts.findIndex(p => p.id === productId && p.storeId === storeId);
-
-  if (productIndex === -1) {
+  const product = await getProduct(productId);
+  if (!product || product.storeId !== storeId) {
     return { success: false, messageKey: "error.productNotFound" };
   }
 
@@ -98,7 +92,7 @@ export async function updateProduct(productId: string, formData: FormData): Prom
   }
 
   try {
-    let imageUrl = allProducts[productIndex].imageUrl;
+    let imageUrl = product.imageUrl;
     const imageFile = formData.get('file') as File;
 
     if (imageFile && imageFile.size > 0) {
@@ -106,14 +100,15 @@ export async function updateProduct(productId: string, formData: FormData): Prom
       imageUrl = url;
     }
     
-    allProducts[productIndex] = {
-      ...allProducts[productIndex],
+    const updatedData = {
       name,
       description,
       price,
       stock,
       imageUrl,
     };
+
+    await updateProductInDb(productId, updatedData);
 
     revalidatePath("/products");
     revalidatePath(`/products/edit/${productId}`);
@@ -124,7 +119,6 @@ export async function updateProduct(productId: string, formData: FormData): Prom
   }
   
   redirect('/products');
-  return { success: true, messageKey: 'products.toast.updateSuccess' }; 
 }
 
 export async function deleteProduct(productId: string): Promise<ActionResponse> {
@@ -135,14 +129,13 @@ export async function deleteProduct(productId: string): Promise<ActionResponse> 
         return { success: false, messageKey: "error.storeIdMissing" };
     }
 
-    const productIndex = allProducts.findIndex(p => p.id === productId && p.storeId === storeId);
-
-    if (productIndex === -1) {
+    const product = await getProduct(productId);
+    if (!product || product.storeId !== storeId) {
         return { success: false, messageKey: 'error.productNotFound' };
     }
 
     try {
-        allProducts.splice(productIndex, 1);
+        await deleteProductFromDb(productId, storeId);
         revalidatePath("/products");
         return { success: true, messageKey: "productActions.toast.deletedSuccess" };
     } catch (error) {

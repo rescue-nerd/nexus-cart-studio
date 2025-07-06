@@ -1,26 +1,28 @@
+
 'use client';
 
-import Image from "next/image";
 import Link from "next/link";
-import { headers } from "next/headers";
 import { Button } from "@/components/ui/button";
-import { categories, products as allProducts, stores } from "@/lib/placeholder-data";
-import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/storefront/product-card";
 import { useTranslation } from "@/hooks/use-translation";
+import { useStoreContext } from "@/hooks/use-store";
+import { Loader2 } from "lucide-react";
 
 export default function StorePage() {
   const { t } = useTranslation();
-  // This is a client component, so we can't use headers().
-  // The store info will be fetched from context or props in a real app,
-  // but for now, we'll default to the first store.
-  const store = stores[0];
+  const { store, products, categories, loading } = useStoreContext();
   
-  if (!store) {
-    notFound();
+  if (loading) {
+    return (
+        <div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-16 w-16 animate-spin" />
+        </div>
+    )
   }
 
-  const products = allProducts.filter(p => p.storeId === store.id);
+  if (!store) {
+    return <div>Store not found.</div>;
+  }
 
   return (
     <>
@@ -52,7 +54,7 @@ export default function StorePage() {
                 key={category.id}
                 className="group block rounded-lg border bg-card text-card-foreground shadow-sm p-4 text-center transition-all hover:bg-accent hover:text-accent-foreground"
               >
-                <h3 className="font-semibold">{category.name}</h3>
+                <h3 className="font-semibold">{t(category.id)}</h3>
               </Link>
             ))}
           </div>

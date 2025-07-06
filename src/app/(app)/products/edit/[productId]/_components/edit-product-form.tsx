@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useTransition } from "react";
@@ -7,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, Sparkles } from "lucide-react";
 
-import type { Product } from "@/lib/placeholder-data";
+import type { Product } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -100,10 +101,6 @@ export function EditProductForm({ product }: { product: Product }) {
       }
 
       await updateProduct(product.id, formData);
-      // On success, the action redirects, so we don't need a success toast here.
-      // On failure, the action does not throw, so we don't show an error toast either,
-      // as the form fields will show the errors. In a real app, you might handle
-      // unexpected server errors from the action here.
     });
   };
 

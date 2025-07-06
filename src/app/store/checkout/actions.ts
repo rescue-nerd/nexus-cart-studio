@@ -1,14 +1,17 @@
+
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { z } from 'zod';
+import { headers } from 'next/headers';
 import { getT } from '@/lib/translation-server';
 
-import { orders as allOrders, storeConfig } from '@/lib/placeholder-data';
+import { addOrder } from '@/lib/firebase-service';
+import { storeConfig } from '@/lib/config';
 import type { CartItem } from '@/hooks/use-cart';
 import { sendOrderUpdateNotifications } from '@/lib/order-service';
+import type { OrderItem } from '@/lib/types';
 
-// The Zod schema is now defined in the client component to access translations
+
 export type CheckoutFormValues = {
   customerName: string;
   customerEmail: string;
@@ -20,7 +23,7 @@ export type CheckoutFormValues = {
 
 type PlaceOrderResult = {
   success: boolean;
-  messageKey?: 'checkout.invalidForm' | 'checkout.emptyCart';
+  messageKey?: 'checkout.invalidForm' | 'checkout.emptyCart' | 'error.storeNotFound';
   orderId?: string;
   whatsappUrl?: string;
   paymentMethod?: CheckoutFormValues['paymentMethod'];
@@ -31,8 +34,13 @@ export async function placeOrder(
   cartItems: CartItem[],
   lang: 'en' | 'ne' = 'en'
 ): Promise<PlaceOrderResult> {
-  // Since validation is now on the client, we trust the incoming values.
-  // In a real app, you would re-validate here without relying on translated messages.
+  const headersList = headers();
+  const storeId = headersList.get('x-store-id');
+
+  if (!storeId) {
+    return { success: false, messageKey: "error.storeNotFound" };
+  }
+
   if (cartItems.length === 0) {
     return { success: false, messageKey: 'checkout.emptyCart' };
   }
@@ -56,35 +64,37 @@ export async function placeOrder(
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${sellerPhone}?text=${encodedMessage}`;
     
-    // We don't create an order record for WhatsApp orders, as they are finalized in chat.
     return { success: true, paymentMethod: 'whatsapp', whatsappUrl };
   }
   
   // --- Handle Normal Orders (COD, eSewa) ---
-  const orderId = `ORD-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+  const orderItems: OrderItem[] = cartItems.map(item => ({
+    productId: item.product.id,
+    productName: item.product.name,
+    quantity: item.quantity,
+    price: item.product.price,
+  }));
   
-  const storeId = 'store_001'; 
-
-  const newOrder = {
-    id: orderId,
+  const newOrderData = {
     storeId: storeId,
     customerName,
     customerEmail,
     customerPhone,
     address,
     city,
-    paymentMethod: paymentMethod === 'cod' ? 'COD' : 'eSewa',
+    paymentMethod: paymentMethod === 'cod' ? 'COD' as const : 'eSewa' as const,
     date: new Date().toISOString(),
     status: 'Pending' as const,
     total: cartTotal,
+    items: orderItems,
   };
 
-  allOrders.unshift(newOrder);
+  const newOrder = await addOrder(newOrderData);
   
   await sendOrderUpdateNotifications(newOrder, lang);
 
   revalidatePath('/store');
   revalidatePath('/orders');
   
-  return { success: true, paymentMethod, orderId };
+  return { success: true, paymentMethod, orderId: newOrder.id };
 }

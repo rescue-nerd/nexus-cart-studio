@@ -1,8 +1,9 @@
 
+
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { MoreHorizontal, PlusCircle, Power, PowerOff, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,8 +40,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { stores, type Store } from "@/lib/placeholder-data";
-import { updateStoreStatus } from "./actions";
+import type { Store } from "@/lib/types";
+import { getAllStores, updateStoreStatus } from "./client-actions";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/use-translation";
 
@@ -51,6 +52,19 @@ export default function SuperAdminDashboard() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [targetStatus, setTargetStatus] = useState<'Active' | 'Inactive' | 'Suspended' | null>(null);
+  const [stores, setStores] = useState<Store[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchStores() {
+      setIsLoading(true);
+      const fetchedStores = await getAllStores();
+      setStores(fetchedStores);
+      setIsLoading(false);
+    }
+    fetchStores();
+  }, []);
+  
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -77,6 +91,8 @@ export default function SuperAdminDashboard() {
           title: t('superadmin.stores.toast.statusUpdatedTitle'),
           description: t(result.messageKey, { name: selectedStore.name, status: t(`superadmin.stores.status.${targetStatus.toLowerCase()}`) }),
         });
+        const fetchedStores = await getAllStores();
+        setStores(fetchedStores);
       } else {
         toast({
           variant: "destructive",
@@ -126,7 +142,13 @@ export default function SuperAdminDashboard() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {stores.map((store) => (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
+                  </TableCell>
+                </TableRow>
+              ) : stores.map((store) => (
                 <TableRow key={store.id}>
                   <TableCell className="font-medium">
                     <div>{store.name}</div>

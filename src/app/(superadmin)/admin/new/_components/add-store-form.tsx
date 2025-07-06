@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useTransition } from "react";
@@ -5,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +27,7 @@ export function AddStoreForm() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { user, loading } = useAuth();
 
   const formSchema = z.object({
     name: z.string().min(2, t('zod.superadmin.storeNameLength')),
@@ -46,25 +49,31 @@ export function AddStoreForm() {
   });
 
   const onSubmit = (values: FormValues) => {
+    if (!user) {
+        toast({ variant: "destructive", title: t('error.genericTitle'), description: "You must be logged in to create a store." });
+        return;
+    }
     startTransition(async () => {
       const formData = new FormData();
       formData.append("name", values.name);
       formData.append("ownerName", values.ownerName);
       formData.append("ownerEmail", values.ownerEmail);
       formData.append("domain", values.domain);
+      formData.append("userId", user.uid);
 
       const result = await addStore(formData);
 
-      if (!result.success) {
+      if (result && !result.success) {
         toast({
           variant: "destructive",
           title: t('error.genericTitle'),
           description: t(result.messageKey),
         });
       }
-      // On success, the action redirects, so no toast is needed.
     });
   };
+  
+  const isSubmitDisabled = isPending || loading;
 
   return (
     <Form {...form}>
@@ -128,7 +137,7 @@ export function AddStoreForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isSubmitDisabled}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {t('superadmin.newStore.form.create')}
         </Button>

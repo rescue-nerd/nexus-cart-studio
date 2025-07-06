@@ -1,11 +1,18 @@
+
 import { headers } from "next/headers";
-import { orders as allOrders } from "@/lib/placeholder-data";
+import { notFound } from "next/navigation";
+import { getOrdersByStore } from "@/lib/firebase-service";
 import { OrdersTable } from "@/components/admin/orders-table";
 
-export default function OrdersPage() {
+export default async function OrdersPage() {
   const headersList = headers();
   const storeId = headersList.get('x-store-id');
-  const orders = allOrders.filter(o => o.storeId === storeId);
+
+  if (!storeId) {
+    notFound();
+  }
+  
+  const orders = await getOrdersByStore(storeId);
 
   return <OrdersTable orders={orders} />;
 }

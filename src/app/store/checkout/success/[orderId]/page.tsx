@@ -1,18 +1,43 @@
-"use client";
+
+'use client';
 
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { CheckCircle2, Package } from 'lucide-react';
-import { orders as allOrders } from '@/lib/placeholder-data';
+import { CheckCircle2, Package, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useTranslation } from '@/hooks/use-translation';
+import { getOrder } from './actions';
+import { useEffect, useState } from 'react';
+import type { Order } from '@/lib/types';
+
 
 export default function OrderSuccessPage({ params }: { params: { orderId: string } }) {
   const { orderId } = params;
-  const order = allOrders.find(o => o.id === orderId);
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
   const { t } = useTranslation();
+  
+  useEffect(() => {
+    async function fetchOrder() {
+        const fetchedOrder = await getOrder(orderId);
+        if (fetchedOrder) {
+            setOrder(fetchedOrder);
+        }
+        setLoading(false);
+    }
+    fetchOrder();
+  }, [orderId]);
+
+
+  if (loading) {
+      return (
+          <div className="container mx-auto px-4 md:px-6 py-12 flex items-center justify-center h-[50vh]">
+              <Loader2 className="h-16 w-16 animate-spin text-muted-foreground" />
+          </div>
+      )
+  }
 
   if (!order) {
     notFound();

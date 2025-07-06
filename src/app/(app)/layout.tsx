@@ -1,9 +1,10 @@
 
 "use client";
 
-import { headers } from "next/headers";
 import Link from "next/link";
 import { PanelLeft, Shield } from "lucide-react";
+import { usePathname } from 'next/navigation';
+import { useStoreContext } from '@/hooks/use-store';
 
 import { NexusCartLogo } from "@/components/icons";
 import { SidebarNav } from "@/components/admin/sidebar-nav";
@@ -11,16 +12,22 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { UserNav } from "@/components/admin/user-nav";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { stores } from "@/lib/placeholder-data";
 import { useTranslation } from "@/hooks/use-translation";
+import { StoreProvider } from "@/hooks/use-store";
 
-// Note: This layout is a client component at the top-level because of the Sheet's state.
-// We are passing a placeholder store object for demonstration as headers() is not available here.
-// In a more complex app, this might be handled by a context provider populated by a server component.
-const store = stores[0];
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+function AppLayoutContent({ children }: { children: React.ReactNode }) {
+  const { store } = useStoreContext();
   const { t } = useTranslation();
+  const pathname = usePathname();
+
+  const navItems = [
+    { href: "/dashboard", label: t('nav.dashboard') },
+    { href: "/products", label: t('nav.products') },
+    { href: "/orders", label: t('nav.orders') },
+    { href: "/settings", label: t('nav.settings') },
+    { href: store ? `http://${store.domain}` : "/store", label: t('nav.viewStore'), target: "_blank" }
+  ];
 
   return (
     <TooltipProvider>
@@ -35,7 +42,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <span className="sr-only">{store?.name || 'Nexus Cart'}</span>
             </Link>
           </nav>
-          <SidebarNav store={store} />
+          <SidebarNav />
            <nav className="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
             <Link
                 href="/admin"
@@ -64,37 +71,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <NexusCartLogo className="h-5 w-5 transition-all group-hover:scale-110" />
                     <span className="sr-only">{store?.name || 'Nexus Cart'}</span>
                   </Link>
-                  <Link
-                    href="/dashboard"
-                    className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                  >
-                    {t('nav.dashboard')}
-                  </Link>
-                  <Link
-                    href="/products"
-                    className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                  >
-                    {t('nav.products')}
-                  </Link>
-                  <Link
-                    href="/orders"
-                    className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                  >
-                    {t('nav.orders')}
-                  </Link>
-                  <Link
-                    href="/settings"
-                    className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                  >
-                    {t('nav.settings')}
-                  </Link>
-                  <Link
-                    href={store ? `http://${store.domain}` : "/store"}
-                    target="_blank"
-                    className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                  >
-                    {t('nav.viewStore')}
-                  </Link>
+                  {navItems.map(item => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      target={item.target}
+                      className={`flex items-center gap-4 px-2.5 ${pathname.startsWith(item.href) && item.target !== '_blank' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
                 </nav>
               </SheetContent>
             </Sheet>
@@ -110,4 +96,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
     </TooltipProvider>
   );
+}
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <StoreProvider>
+      <AppLayoutContent>{children}</AppLayoutContent>
+    </StoreProvider>
+  )
 }

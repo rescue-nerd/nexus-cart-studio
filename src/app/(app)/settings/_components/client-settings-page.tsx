@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useTranslation } from "@/hooks/use-translation";
 import { SettingsForm } from "@/components/admin/settings-form";
-import type { Store, Plan } from "@/lib/placeholder-data";
+import type { Store, Plan } from "@/lib/types";
 
 interface ClientSettingsPageProps {
   store: Store;

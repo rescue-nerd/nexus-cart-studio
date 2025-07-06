@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from "next/image";
@@ -24,7 +25,7 @@ import {
 } from "@/components/ui/table";
 import { ProductActions } from "@/components/admin/product-actions";
 import { useTranslation } from "@/hooks/use-translation";
-import type { Product } from "@/lib/placeholder-data";
+import type { Product } from "@/lib/types";
 
 export function ClientProductsPage({ products }: { products: Product[] }) {
   const { t } = useTranslation();
@@ -101,7 +102,7 @@ export function ClientProductsPage({ products }: { products: Product[] }) {
       <CardFooter>
         <div className="text-xs text-muted-foreground">
           {t("products.footer", {
-            start: 1,
+            start: products.length > 0 ? 1 : 0,
             end: products.length,
             total: products.length,
           })}

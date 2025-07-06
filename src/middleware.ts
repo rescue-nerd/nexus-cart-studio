@@ -1,34 +1,34 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
-import { stores } from '@/lib/placeholder-data';
+import { getStoreByDomain } from '@/lib/firebase-service.server';
 
-export function middleware(request: NextRequest) {
+// This function needs to be separate because middleware runs in the Edge runtime.
+async function getStore(domain: string) {
+    return getStoreByDomain(domain);
+}
+
+export async function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
   const hostname = url.hostname;
 
-  // Find a store that matches the hostname.
-  let store = stores.find(s => s.domain === hostname);
-
-  const isStoreAppRoute = [
-    '/dashboard',
-    '/products',
-    '/orders',
-    '/settings',
-  ].some(path => url.pathname.startsWith(path));
-
-  // If no store is found by domain, BUT the user is trying to access a store-specific
-  // page (like /dashboard), default to the first store for preview/dev purposes.
-  if (!store && isStoreAppRoute) {
-    console.log(`No store found for hostname "${hostname}". Defaulting to first store for path "${url.pathname}".`);
-    store = stores[0]; 
+  // Let static files and API routes pass through
+  if (url.pathname.startsWith('/_next') || url.pathname.startsWith('/api')) {
+    return NextResponse.next();
   }
 
-  // If we have a store (either by domain or by fallback)
+  // Find a store that matches the hostname.
+  // NOTE: This makes a DB call on each request. Caching is needed for production.
+  const store = await getStore(hostname).catch(err => {
+    console.error("Middleware DB Error:", err);
+    return null;
+  });
+
+  const requestHeaders = new Headers(request.headers);
+
   if (store) {
-    const requestHeaders = new Headers(request.headers);
     requestHeaders.set('x-store-id', store.id);
 
-    // If accessing the root of a store's domain, show the storefront page.
+    // Rewrite to the /store path for the root domain
     if (url.pathname === '/') {
       url.pathname = `/store`;
     }
@@ -40,8 +40,18 @@ export function middleware(request: NextRequest) {
     });
   }
 
-  // If it's not a store domain and not a store-specific path, continue as normal.
-  // This allows access to /admin, /login, etc. on the main domain.
+  // For app routes on the main domain (e.g., localhost/dashboard)
+  const isAppRoute = ['/dashboard', '/products', '/orders', '/settings'].some(p => url.pathname.startsWith(p));
+  if (isAppRoute && !store) {
+    // On the main domain, we don't know which store to show.
+    // A real app would have a store selector or redirect to a default.
+    // For now, we deny access to prevent errors.
+    // A better approach would be to redirect to a page explaining to use the store's domain.
+    url.pathname = '/login'; // Redirect to login, a safe default
+    return NextResponse.redirect(url);
+  }
+  
+  // Allow access to /admin, /login, etc. on the main domain.
   return NextResponse.next();
 }
 
@@ -49,12 +59,12 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - manifest.json (pwa manifest)
      * - icons/ (pwa icons)
+     * - api/ (API routes)
      */
     '/((?!api|_next/static|_next/image|favicon.ico|manifest.json|icons).*)',
   ],

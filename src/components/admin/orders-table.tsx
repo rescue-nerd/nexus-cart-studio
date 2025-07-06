@@ -41,7 +41,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { type Order } from "@/lib/placeholder-data";
+import { type Order } from "@/lib/types";
 import { format } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
 import { updateOrderStatus } from "@/app/(app)/orders/actions";

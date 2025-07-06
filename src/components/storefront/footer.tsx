@@ -1,8 +1,10 @@
+
 "use client";
 
 import Link from "next/link";
 import { NexusCartLogo } from "@/components/icons";
 import { useTranslation } from "@/hooks/use-translation";
+import { useStoreContext } from "@/hooks/use-store";
 
 function SocialIcon({ children }: { children: React.ReactNode }) {
   return (
@@ -12,8 +14,11 @@ function SocialIcon({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function Footer({ storeName }: { storeName: string }) {
+export function Footer() {
   const { t } = useTranslation();
+  const { store } = useStoreContext();
+
+  const storeName = store?.name || 'NexusCart';
 
   return (
     <footer className="border-t">

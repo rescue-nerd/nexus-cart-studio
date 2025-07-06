@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/tabs"
 import { useTheme } from "@/hooks/use-theme.tsx"
 import { cn } from "@/lib/utils"
-import { type Store, type Plan } from "@/lib/placeholder-data"
+import { type Store, type Plan } from "@/lib/types"
 import { CheckCircle, Loader2, Sparkles } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { updateStorePlan, updateSeoSettings, suggestKeywordsAction, updateStoreProfile } from "@/app/(app)/settings/actions";
@@ -108,7 +108,7 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
       if (result.success) {
         toast({
           title: t('settings.billing.toast.successTitle'),
-          description: t(result.messageKey, { planName: result.newPlanName || '' }),
+          description: t(result.messageKey, { planName: t(`plans.${result.newPlanName}.name`) || result.newPlanName }),
         });
         router.refresh();
       } else {

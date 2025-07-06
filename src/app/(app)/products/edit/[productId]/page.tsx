@@ -1,7 +1,7 @@
-"use client";
 
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,17 +11,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { products as allProducts } from "@/lib/placeholder-data";
+import { getProduct } from "@/lib/firebase-service";
 import { EditProductForm } from "./_components/edit-product-form";
-import { useTranslation } from "@/hooks/use-translation";
+import { getT } from "@/lib/translation-server";
 
 
-export default function EditProductPage({ params }: { params: { productId: string } }) {
+export default async function EditProductPage({ params }: { params: { productId: string } }) {
   const { productId } = params;
-  const product = allProducts.find((p) => p.id === productId);
-  const { t } = useTranslation();
+  const product = await getProduct(productId);
+  const t = await getT();
 
-  if (!product) {
+  const headersList = headers();
+  const storeId = headersList.get('x-store-id');
+
+  if (!product || product.storeId !== storeId) {
     notFound();
   }
 

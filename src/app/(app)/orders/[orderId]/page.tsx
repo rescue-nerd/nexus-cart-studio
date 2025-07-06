@@ -1,27 +1,18 @@
-'use client';
 
 import Link from 'next/link';
-import { notFound, useParams } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { ChevronLeft, File, Package, UserCircle, Truck } from 'lucide-react';
-import { orders as allOrders, products as allProducts, stores } from '@/lib/placeholder-data';
+import { getOrder, getStore } from '@/lib/firebase-service';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
-import { useTranslation } from '@/hooks/use-translation';
-import { useEffect, useState } from 'react';
+import { getT } from '@/lib/translation-server';
+import type { Order } from '@/lib/types';
 
-// In a real app, you would fetch this from your database based on the order details
-const getOrderItems = (orderId: string) => {
-    if (orderId.endsWith('1')) return [{ product: allProducts.find(p => p.id === 'prod_002')!, quantity: 1 }];
-    if (orderId.endsWith('2')) return [{ product: allProducts.find(p => p.id === 'prod_001')!, quantity: 1 }];
-    if (orderId.endsWith('3')) return [{ product: allProducts.find(p => p.id === 'prod_003')!, quantity: 2 }];
-    if (orderId.endsWith('4')) return [{ product: allProducts.find(p => p.id === 'prod_004')!, quantity: 1 }];
-    return [{ product: allProducts.find(p => p.id === 'prod_005')!, quantity: 1 }];
-}
 
-const getStatusVariant = (status: string) => {
+const getStatusVariant = (status: Order['status']) => {
     switch (status) {
       case 'Delivered': return 'default';
       case 'Processing': case 'Shipped': return 'outline';
@@ -31,23 +22,18 @@ const getStatusVariant = (status: string) => {
     }
 };
 
-export default function OrderDetailsPage() {
-  const { t } = useTranslation();
-  const params = useParams();
+export default async function OrderDetailsPage({ params, searchParams }: { params: { orderId: string }, searchParams: { lang: 'en' | 'ne' } }) {
   const orderId = params.orderId as string;
+  const lang = searchParams.lang || 'en';
+  const t = await getT(lang);
 
-  // Since this is a client component, we'll manage state for order data
-  const [order, setOrder] = useState(allOrders.find(o => o.id === orderId));
-  const [store, setStore] = useState(order ? stores.find(s => s.id === order.storeId) : undefined);
-  
-  // Note: We're not using headers() here as it's a client component.
-  // The logic relies on the order data fetched.
+  const order = await getOrder(orderId);
   
   if (!order) {
     notFound();
   }
-
-  const orderItems = getOrderItems(order.id);
+  
+  const store = await getStore(order.storeId);
 
   return (
     <div className="mx-auto grid w-full max-w-4xl gap-4">
@@ -76,16 +62,16 @@ export default function OrderDetailsPage() {
                         <CardTitle className="flex items-center justify-between">
                             <span>{t('orderDetails.summaryTitle')}</span>
                              <Badge className="text-sm" variant={getStatusVariant(order.status)}>
-                                {order.status}
+                                {t(`orders.status.${order.status.toLowerCase()}`)}
                             </Badge>
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-2">
-                             {orderItems.map(({ product, quantity }) => (
-                                <div key={product.id} className="flex justify-between items-center">
-                                    <p>{product.name} <span className="text-muted-foreground">x {quantity}</span></p>
-                                    <p>Rs {(product.price * quantity).toFixed(2)}</p>
+                             {order.items.map((item) => (
+                                <div key={item.productId} className="flex justify-between items-center">
+                                    <p>{item.productName} <span className="text-muted-foreground">x {item.quantity}</span></p>
+                                    <p>Rs {(item.price * item.quantity).toFixed(2)}</p>
                                 </div>
                              ))}
                              <Separator />

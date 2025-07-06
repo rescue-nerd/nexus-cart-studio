@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -7,28 +8,29 @@ import {
   Package,
   ShoppingCart,
   Settings,
-  Store,
+  Store as StoreIcon,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import type { Store as StoreType } from "@/lib/placeholder-data";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useTranslation } from "@/hooks/use-translation";
+import { useStoreContext } from "@/hooks/use-store";
 
-export function SidebarNav({ store }: { store?: StoreType }) {
+export function SidebarNav() {
   const pathname = usePathname();
   const { t } = useTranslation();
+  const { store } = useStoreContext();
 
   const navItems = [
     { href: "/dashboard", icon: LayoutDashboard, label: t('nav.dashboard') },
     { href: "/products", icon: Package, label: t('nav.products') },
     { href: "/orders", icon: ShoppingCart, label: t('nav.orders') },
     { href: "/settings", icon: Settings, label: t('nav.settings') },
-    { href: store ? `http://${store.domain}` : '/store', icon: Store, label: t('nav.viewStore'), target: "_blank" },
+    { href: store ? `http://${store.domain}` : '/store', icon: StoreIcon, label: t('nav.viewStore'), target: "_blank" },
   ];
 
   return (

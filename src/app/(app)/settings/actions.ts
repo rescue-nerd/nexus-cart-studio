@@ -1,10 +1,10 @@
 
 "use server"
 
-import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import { stores, plans } from '@/lib/placeholder-data';
+import { updateStore, getStore } from '@/lib/firebase-service';
 import { suggestSeoKeywords } from '@/ai/flows/seo-keyword-suggestion';
+import { getPlans } from '@/lib/firebase-service';
 
 type ActionResponse = {
   success: boolean;
@@ -19,10 +19,8 @@ type KeywordsResponse = ActionResponse & {
   keywords?: string[];
 };
 
-// Zod schema now defined in client component
-
 export async function updateStoreProfile(storeId: string, formData: FormData): Promise<ActionResponse> {
-  const store = stores.find(s => s.id === storeId);
+  const store = await getStore(storeId);
   if (!store) {
     return { success: false, messageKey: 'error.storeNotFound' };
   }
@@ -34,19 +32,18 @@ export async function updateStoreProfile(storeId: string, formData: FormData): P
     return { success: false, messageKey: 'error.invalidFields' };
   }
   
-  // In a real app, you'd update the database
-  store.name = name;
-  store.description = description;
+  await updateStore(storeId, { name, description });
 
   revalidatePath('/settings');
-  revalidatePath('/dashboard'); // Name might be shown on dashboard
+  revalidatePath('/dashboard');
   
   return { success: true, messageKey: "settings.profile.toast.success" };
 }
 
 export async function updateStorePlan(storeId: string, newPlanId: string): Promise<PlanResponse> {
   try {
-    const store = stores.find(s => s.id === storeId);
+    const store = await getStore(storeId);
+    const plans = await getPlans();
     const newPlan = plans.find(p => p.id === newPlanId);
 
     if (!store) {
@@ -57,12 +54,11 @@ export async function updateStorePlan(storeId: string, newPlanId: string): Promi
         return { success: false, messageKey: 'settings.billing.toast.planNotFound' };
     }
 
-    // In a real app, you would update the database and handle billing here.
-    store.planId = newPlanId;
+    await updateStore(storeId, { planId: newPlanId });
     
     revalidatePath('/settings');
 
-    return { success: true, messageKey: "settings.billing.toast.success", newPlanName: newPlan.name };
+    return { success: true, messageKey: "settings.billing.toast.success", newPlanName: newPlan.id };
   } catch (error) {
     console.error("Failed to update store plan:", error);
     return { success: false, messageKey: 'error.unexpected' };
@@ -71,14 +67,16 @@ export async function updateStorePlan(storeId: string, newPlanId: string): Promi
 
 export async function updateSeoSettings(storeId: string, data: { title: string; description: string; keywords: string; }): Promise<ActionResponse> {
   try {
-    const store = stores.find(s => s.id === storeId);
+    const store = await getStore(storeId);
     if (!store) {
       return { success: false, messageKey: 'error.storeNotFound' };
     }
 
-    store.metaTitle = data.title;
-    store.metaDescription = data.description;
-    store.metaKeywords = data.keywords;
+    await updateStore(storeId, {
+        metaTitle: data.title,
+        metaDescription: data.description,
+        metaKeywords: data.keywords,
+    });
 
     revalidatePath('/store'); 
     revalidatePath('/settings');
