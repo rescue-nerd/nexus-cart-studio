@@ -50,7 +50,7 @@ export function Header({ storeName }: { storeName: string }) {
               className="md:hidden"
             >
               <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle Menu</span>
+              <span className="sr-only">{t('nav.toggleMenu')}</span>
             </Button>
           </SheetTrigger>
           <SheetContent side="left">
@@ -81,15 +81,15 @@ export function Header({ storeName }: { storeName: string }) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
                 <Languages className="h-5 w-5" />
-                <span className="sr-only">Change language</span>
+                <span className="sr-only">{t('userNav.language')}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => setLanguage('en')} disabled={language === 'en'}>
-                English
+                {t('userNav.english')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setLanguage('ne')} disabled={language === 'ne'}>
-                नेपाली
+                {t('userNav.nepali')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

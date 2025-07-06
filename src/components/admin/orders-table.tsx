@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from "next/link";
@@ -47,7 +48,7 @@ import { updateOrderStatus } from "@/app/(app)/orders/actions";
 import { useTranslation } from "@/hooks/use-translation";
 
 export function OrdersTable({ orders }: { orders: Order[] }) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -161,7 +162,7 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
                           <Truck className="mr-2 h-4 w-4" /> {t('orders.markAsShipped')}
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href={`/print/receipt/${order.id}`} target="_blank" rel="noopener noreferrer">
+                          <Link href={`/print/receipt/${order.id}?lang=${language}`} target="_blank" rel="noopener noreferrer">
                             <Printer className="mr-2 h-4 w-4" />
                             <span>{t('orders.printReceipt')}</span>
                           </Link>

@@ -7,7 +7,14 @@
     "settings": "Settings",
     "viewStore": "View Store",
     "categories": "Categories",
-    "about": "About"
+    "about": "About",
+    "toggleMenu": "Toggle Menu"
+  },
+  "home": {
+    "title": "Welcome to GrowNexus",
+    "subtitle": "The platform for building your e-commerce empire.",
+    "superadminButton": "Go to Superadmin",
+    "loginButton": "Login to your Store"
   },
   "login": {
     "title": "Login",
@@ -305,6 +312,7 @@
       "clearCart": "Clear Cart",
       "emptyTitle": "Your cart is empty.",
       "startShopping": "Start Shopping",
+      "openCart": "Open Shopping Cart",
       "toast": {
         "stockLimitTitle": "Stock Limit Reached",
         "stockLimitDesc": "You cannot add more than {stock} of this item.",
@@ -393,5 +401,15 @@
         "failDesc": "There was a problem with your request."
       }
     }
+  },
+  "print": {
+    "receiptForOrder": "Receipt for Order #{orderId}",
+    "customer": "Customer",
+    "item": "Item",
+    "qty": "Qty",
+    "price": "Price",
+    "currencySymbol": "Rs",
+    "total": "Total",
+    "thankYou": "Thank you for your purchase!"
   }
 }
