@@ -165,7 +165,10 @@ erDiagram
 
 ### Features 100% Complete
 - **User Authentication (Firebase)**: Fully functional login and signup using Firebase Auth. UI and backend logic are complete.
-- **Route Protection & Session Management**: The `middleware.ts` file protects all admin routes by checking for a secure, HTTP-only `session` cookie. This cookie is created via an API endpoint that validates the user's Firebase ID token with the Firebase Admin SDK and is destroyed on logout.
+- **Route Protection & Session Management**: The `middleware.ts` file provides robust, domain-aware route protection.
+  - **Authentication**: It checks for a secure, HTTP-only `session` cookie on all protected routes (`/dashboard`, `/admin`, etc.). Unauthenticated users are redirected to the login page.
+  - **Authorization**: It separates superadmin and store owner access based on the domain. The `/admin` routes are only accessible on the main platform domain, while store management routes (`/dashboard`, `/products`, etc.) are only accessible on a store's specific subdomain.
+  - **Session Management**: The session cookie itself is created via the `/api/auth/session` API route upon successful login. This API verifies the user's Firebase ID token using the Firebase Admin SDK and then sets the secure cookie.
 - **Database Persistence (Firestore)**: All application data (Stores, Products, Orders) is now persisted in Firebase Firestore. All Server Actions correctly interact with the database via the service layer in `src/lib/firebase-service.ts`.
 - **Theme/Color Selection**: Theming system is fully implemented with 7+ themes. Users can select a theme, and it's applied across the dashboard and storefront. State is persisted in `localStorage`.
 - **Multilingual Support**: The entire UI is translated into English and Nepali. A `useTranslation` hook and language files (`/src/locales`) manage all text. User preference is persisted.
@@ -256,7 +259,7 @@ The application uses **Next.js Server Actions** and **API Routes** for backend l
 
 ### Live & Production-Ready (Conceptually)
 - User Authentication (Login, Signup).
-- **Route Protection & Session Management**: All admin and dashboard routes are now protected by middleware that requires a valid server-side session cookie.
+- **Route Protection & Session Management**: All admin and dashboard routes are now protected by domain-aware middleware that requires a valid server-side session cookie.
 - The entire data layer and database persistence via Firebase Firestore.
 - The entire user interface, including multilingual support and theme selection.
 - All admin actions and forms, which are correctly wired to server actions that modify the database.
@@ -323,7 +326,7 @@ TWILIO_WHATSAPP_FROM_NUMBER=
 ### Security Measures
 - **Authentication**: Handled by Firebase Auth, which is robust and secure.
 - **Input Validation**: Client-side validation is performed with `zod` and `react-hook-form`. Basic server-side checks are present in most actions.
-- **Route Protection & Session Management**: Route protection is handled by `middleware.ts`, which checks for a secure, HTTP-only `session` cookie. This cookie is created via the `/api/auth/session` API route upon successful login. The API route verifies the user's Firebase ID token using the Firebase Admin SDK and then sets the cookie. This creates a secure bridge between client-side authentication and server-side route protection.
+- **Route Protection & Session Management**: Route protection is handled by `middleware.ts`. It provides domain-aware authentication (checking for a secure, HTTP-only `session` cookie) and authorization (ensuring admin routes are on the main domain and app routes are on subdomains). The session cookie is created via the `/api/auth/session` API route upon successful login, creating a secure bridge between client-side authentication and server-side route protection.
 - **CORS**: Handled by Next.js defaults.
 - **Password Storage**: Handled securely by Firebase.
 

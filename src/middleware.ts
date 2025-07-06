@@ -10,41 +10,54 @@ async function getStore(domain: string) {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hostname = request.nextUrl.hostname;
-
-  // This session cookie is the standard way to check for authentication in middleware.
-  // It would need to be set via a server endpoint after a successful Firebase login on the client.
   const sessionCookie = request.cookies.get('session')?.value;
 
-  // --- Authentication Logic ---
-  const protectedRoutes = ['/dashboard', '/products', '/orders', '/settings', '/admin'];
+  // Define route groups
+  const appRoutes = ['/dashboard', '/products', '/orders', '/settings'];
+  const adminRoutes = ['/admin'];
   const authRoutes = ['/login', '/signup'];
 
-  const isProtectedRoute = protectedRoutes.some(p => pathname.startsWith(p));
+  const isAppRoute = appRoutes.some(p => pathname.startsWith(p));
+  const isAdminRoute = adminRoutes.some(p => pathname.startsWith(p));
   const isAuthRoute = authRoutes.some(p => pathname.startsWith(p));
 
-  // If trying to access a protected route without a session, redirect to login
-  if (!sessionCookie && isProtectedRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    // Store the intended destination to redirect back to after login
-    url.searchParams.set('redirectedFrom', pathname);
-    return NextResponse.redirect(url);
-  }
-
-  // If logged in and trying to access login/signup page, redirect to dashboard
-  if (sessionCookie && isAuthRoute) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-
-
-  // --- Multi-tenancy & Rewriting Logic ---
-  const requestHeaders = new Headers(request.headers);
+  // Get store context based on domain
   const store = await getStore(hostname).catch(err => {
     console.error("Middleware DB Error:", err);
     return null;
   });
 
-  // Attach store ID to headers if a store domain is detected
+  // --- Authentication & Authorization Logic ---
+
+  // 1. If user is not logged in and tries to access a protected route (app or admin)
+  if (!sessionCookie && (isAppRoute || isAdminRoute)) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.searchParams.set('redirectedFrom', pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // 2. If user is logged in
+  if (sessionCookie) {
+    // 2a. And is trying to access an auth route (login/signup)
+    if (isAuthRoute) {
+      // Redirect them to the appropriate dashboard
+      return NextResponse.redirect(new URL(store ? '/dashboard' : '/admin', request.url));
+    }
+
+    // 2b. And is on a store domain but trying to access an admin route
+    if (store && isAdminRoute) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+
+    // 2c. And is on the main domain but trying to access an app route
+    if (!store && isAppRoute) {
+      return NextResponse.redirect(new URL('/admin', request.url));
+    }
+  }
+
+  // --- Multi-tenancy Rewriting Logic ---
+  const requestHeaders = new Headers(request.headers);
   if (store) {
     requestHeaders.set('x-store-id', store.id);
   }
