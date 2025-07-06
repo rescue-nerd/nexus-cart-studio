@@ -33,3 +33,4 @@ See HANDOFF.md for instructions.
 }
 
 export const adminAuth = admin.apps.length ? admin.auth() : null;
+export const adminDb = admin.apps.length ? admin.firestore() : null;
