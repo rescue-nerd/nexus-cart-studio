@@ -15,11 +15,11 @@ import {z} from 'genkit';
 
 const GenerateProductDescriptionInputSchema = z.object({
   productName: z.string().describe('The name of the product.'),
-  productCategory: z.string().describe('The category of the product (e.g., Electronics, Clothing).'),
-  keyFeatures: z.string().describe('A comma-separated list of key features of the product.'),
-  targetAudience: z.string().describe('The target audience for the product (e.g., Men, Women, Children).'),
-  stylePreferences: z.string().describe('Style and design preferences.'),
-  material: z.string().describe('Product material.'),
+  productCategory: z.string().optional().describe('The category of the product (e.g., Electronics, Clothing).'),
+  keyFeatures: z.string().optional().describe('A comma-separated list of key features of the product.'),
+  targetAudience: z.string().optional().describe('The target audience for the product (e.g., Men, Women, Children).'),
+  stylePreferences: z.string().optional().describe('Style and design preferences.'),
+  material: z.string().optional().describe('Product material.'),
 });
 export type GenerateProductDescriptionInput = z.infer<typeof GenerateProductDescriptionInputSchema>;
 
@@ -38,18 +38,19 @@ const prompt = ai.definePrompt({
   name: 'productDescriptionPrompt',
   input: {schema: GenerateProductDescriptionInputSchema},
   output: {schema: GenerateProductDescriptionOutputSchema},
-  prompt: `You are an expert copywriter specializing in creating engaging product descriptions.
+  prompt: `You are an expert copywriter specializing in creating engaging product descriptions for e-commerce stores.
 
-  Generate a compelling product description based on the following details:
+  Generate a compelling, concise, and marketable product description based on the following details. If a detail is not provided, use your expertise to create a suitable description based on the product name alone.
 
   Product Name: {{{productName}}}
-  Product Category: {{{productCategory}}}
-  Key Features: {{{keyFeatures}}}
-  Target Audience: {{{targetAudience}}}
-  Style Preferences: {{{stylePreferences}}}
-  Material: {{{material}}}
+  {{#if productCategory}}Product Category: {{{productCategory}}}{{/if}}
+  {{#if keyFeatures}}Key Features: {{{keyFeatures}}}{{/if}}
+  {{#if targetAudience}}Target Audience: {{{targetAudience}}}{{/if}}
+  {{#if stylePreferences}}Style Preferences: {{{stylePreferences}}}{{/if}}
+  {{#if material}}Material: {{{material}}}{{/if}}
 
-  Description:`, // Ensure "Description:" is the final line for clear output.
+  Write only the description text.
+  Description:`,
 });
 
 const generateProductDescriptionFlow = ai.defineFlow(

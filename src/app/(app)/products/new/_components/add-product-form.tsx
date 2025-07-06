@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { addProduct } from "@/app/(app)/products/actions";
+import { addProduct, generateDescriptionAction } from "@/app/(app)/products/actions";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
@@ -41,6 +41,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function AddProductForm() {
   const [isPending, startTransition] = useTransition();
+  const [isAiPending, startAiTransition] = useTransition();
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -53,6 +54,36 @@ export function AddProductForm() {
       image: new File([], ""),
     },
   });
+  
+  const handleGenerateDescription = () => {
+    startAiTransition(async () => {
+      const productName = form.getValues("name");
+      if (!productName) {
+        toast({
+          variant: "destructive",
+          title: "Product Name Required",
+          description: "Please enter a product name first to generate a description.",
+        });
+        return;
+      }
+      
+      const result = await generateDescriptionAction(productName);
+      
+      if (result.success && result.description) {
+        form.setValue("description", result.description, { shouldValidate: true });
+        toast({
+          title: "Description Generated!",
+          description: "The AI-powered description has been added.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Generation Failed",
+          description: result.message || "The AI could not generate a description.",
+        });
+      }
+    });
+  };
 
   const onSubmit = (values: FormValues) => {
     startTransition(async () => {
@@ -101,10 +132,22 @@ export function AddProductForm() {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <div className="flex items-center justify-between">
+                <FormLabel>Description</FormLabel>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  type="button" 
+                  onClick={handleGenerateDescription}
+                  disabled={isAiPending || !form.watch('name')}
+                >
+                  {isAiPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                  Generate with AI
+                </Button>
+              </div>
               <FormControl>
                 <Textarea
-                  placeholder="Tell us a little bit about the product"
+                  placeholder="Tell us a little bit about the product, or generate one with AI."
                   className="resize-none"
                   {...field}
                 />

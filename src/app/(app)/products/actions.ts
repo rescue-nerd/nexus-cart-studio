@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { uploadImage } from "@/lib/storage-service";
 import { products as allProducts } from "@/lib/placeholder-data";
+import { generateProductDescription } from "@/ai/flows/product-description-generator";
 
 const productSchema = z.object({
   name: z.string().min(2),
@@ -167,4 +168,26 @@ export async function deleteProduct(productId: string): Promise<{ success: boole
         console.error("Failed to delete product:", error);
         return { success: false, message: "An unexpected error occurred." };
     }
+}
+
+
+export async function generateDescriptionAction(
+  productName: string
+): Promise<{ success: boolean; description?: string; message?: string }> {
+  if (!productName) {
+    return { success: false, message: "Product name is required to generate a description." };
+  }
+
+  try {
+    const result = await generateProductDescription({ productName });
+    if (result.description) {
+      return { success: true, description: result.description };
+    } else {
+      return { success: false, message: "AI could not generate a description." };
+    }
+  } catch (error) {
+    console.error("AI Description Generation Error:", error);
+    const message = error instanceof Error ? error.message : "An unexpected error occurred.";
+    return { success: false, message };
+  }
 }
