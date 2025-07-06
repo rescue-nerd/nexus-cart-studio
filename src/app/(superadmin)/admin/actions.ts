@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
-import { z } from "zod";
 import { stores, type Store } from "@/lib/placeholder-data";
 
 type ActionResponse = {
@@ -10,29 +9,22 @@ type ActionResponse = {
   messageKey: string;
 };
 
-const addStoreSchema = z.object({
-  name: z.string().min(2, "Store name is required."),
-  ownerName: z.string().min(2, "Owner name is required."),
-  ownerEmail: z.string().email("A valid email is required."),
-  domain: z.string().min(3, "Domain is required.").regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Domain can only contain lowercase letters, numbers, and hyphens."),
-});
+// Zod schema now defined in client component
 
 export async function addStore(formData: FormData): Promise<ActionResponse> {
-  const validatedFields = addStoreSchema.safeParse({
-    name: formData.get("name"),
-    ownerName: formData.get("ownerName"),
-    ownerEmail: formData.get("ownerEmail"),
-    domain: formData.get("domain"),
-  });
+  const name = formData.get("name") as string;
+  const ownerName = formData.get("ownerName") as string;
+  const ownerEmail = formData.get("ownerEmail") as string;
+  const domain = formData.get("domain") as string;
 
-  if (!validatedFields.success) {
+  // Basic server-side validation
+  if (!name || !ownerName || !ownerEmail || !domain) {
     return {
       success: false,
       messageKey: "error.invalidFields",
     };
   }
-  
-  const { name, ownerName, ownerEmail, domain } = validatedFields.data;
+
   const fullDomain = `${domain}.nexuscart.com`;
 
   if (stores.some(s => s.domain === fullDomain)) {

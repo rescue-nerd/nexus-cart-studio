@@ -87,7 +87,7 @@ export default function SignupPage() {
               <Label htmlFor="full-name">{t('signup.fullNameLabel')}</Label>
               <Input 
                 id="full-name" 
-                placeholder="Store Owner" 
+                placeholder={t('signup.fullNamePlaceholder')}
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}

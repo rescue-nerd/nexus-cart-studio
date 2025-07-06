@@ -34,12 +34,19 @@
     "loginButton": "लग - इन",
     "loginWithGoogle": "Google बाट लगइन गर्नुहोस्",
     "noAccount": "खाता छैन?",
-    "signUpLink": "साइन अप गर्नुहोस्"
+    "signUpLink": "साइन अप गर्नुहोस्",
+    "firebaseNotConfiguredTitle": "Firebase कन्फिगर गरिएको छैन",
+    "firebaseNotConfiguredDesc": "कृपया आफ्नो .env फाइलमा आफ्नो Firebase प्रमाणहरू थप्नुहोस्।",
+    "successTitle": "लगइन सफल भयो",
+    "successDesc": "फेरि स्वागत छ!",
+    "errorTitle": "लगइन असफल भयो",
+    "errorDesc": "कृपया आफ्नो इमेल र पासवर्ड जाँच गरी फेरि प्रयास गर्नुहोस्।"
   },
   "signup": {
     "title": "साइन अप गर्नुहोस्",
     "description": "खाता बनाउनको लागि आफ्नो जानकारी प्रविष्ट गर्नुहोस्",
     "fullNameLabel": "पूरा नाम",
+    "fullNamePlaceholder": "स्टोर मालिक",
     "createAccountButton": "खाता बनाउनुहोस्",
     "signUpWithGoogle": "Google मार्फत साइन अप गर्नुहोस्",
     "haveAccount": "पहिले नै खाता छ?",
@@ -164,7 +171,9 @@
       "updatedTitle": "अर्डर अद्यावधिक भयो",
       "orderUpdateSuccess": "अर्डर स्थिति {status} मा अद्यावधिक गरिएको छ।",
       "cancelledTitle": "अर्डर रद्द भयो",
-      "orderUpdateFailed": "अर्डर स्थिति अद्यावधिक गर्न असफल भयो।"
+      "orderCancelSuccess": "अर्डर सफलतापूर्वक रद्द गरिएको छ।",
+      "orderUpdateFailed": "अर्डर स्थिति अद्यावधिक गर्न असफल भयो।",
+      "orderNotFound": "निर्दिष्ट अर्डर फेला पार्न सकिएन।"
     }
   },
   "orderDetails": {
@@ -318,7 +327,8 @@
       "placeholder": "हाम्रा उत्पादनहरूको बारेमा सोध्नुहोस्...",
       "thinking": "सोच्दै...",
       "send": "पठाउनुहोस्",
-      "openChat": "एआई च्याट खोल्नुहोस्"
+      "openChat": "एआई च्याट खोल्नुहोस्",
+      "error": "माफ गर्नुहोस्, मलाई अहिले केही समस्या भइरहेको छ। कृपया पछि फेरि प्रयास गर्नुहोस्।"
     },
     "cart": {
       "title": "सपिङ कार्ट ({count})",
@@ -433,5 +443,71 @@
     "currencySymbol": "रु",
     "total": "कुल",
     "thankYou": "तपाईंको खरिदको लागि धन्यवाद!"
+  },
+  "plans": {
+    "plan_basic": { "name": "आधारभूत" },
+    "plan_pro": { "name": "प्रो" },
+    "plan_enterprise": { "name": "इन्टरप्राइज" },
+    "features": {
+      "50_products": "५० उत्पादनहरू सम्म",
+      "basic_analytics": "आधारभूत एनालिटिक्स",
+      "community_support": "सामुदायिक समर्थन",
+      "500_products": "५०० उत्पादनहरू सम्म",
+      "advanced_analytics": "उन्नत एनालिटिक्स",
+      "whatsapp_notifications": "WhatsApp सूचनाहरू",
+      "email_support": "इमेल समर्थन",
+      "unlimited_products": "असीमित उत्पादनहरू",
+      "full_analytics": "पूर्ण एनालिटिक्स सुइट",
+      "custom_integrations": "कस्टम एकीकरण",
+      "dedicated_support": "समर्पित समर्थन"
+    }
+  },
+  "notifications": {
+    "dear": "प्रिय",
+    "orderUpdate": "{storeName} बाट तपाईंको अर्डर अद्यावधिक गरिएको छ।",
+    "status": "स्थिति",
+    "paymentMethod": "भुक्तानी विधि",
+    "total": "कुल",
+    "items": "वस्तुहरू",
+    "shippingAddress": "ढुवानी ठेगाना",
+    "thankYou": "तपाईंको खरिदको लागि धन्यवाद!",
+    "whatsapp": {
+      "greeting": "नमस्ते! म बाट एक अर्डर गर्न चाहन्छु",
+      "confirm": "कृपया मेरो अर्डर पुष्टि गर्नुहोस्।"
+    },
+    "seller": {
+      "title": "{storeName} को लागि नयाँ अर्डर अद्यावधिक!",
+      "orderId": "अर्डर",
+      "customer": "ग्राहक",
+      "shippingTo": "ढुवानी ठेगाना",
+      "contact": "सम्पर्क"
+    }
+  },
+  "zod": {
+    "products": {
+      "nameLength": "उत्पादनको नाम कम्तिमा २ अक्षरको हुनुपर्छ।",
+      "descriptionLength": "विवरण कम्तिमा १० अक्षरको हुनुपर्छ।",
+      "pricePositive": "मूल्य सकारात्मक संख्या हुनुपर्छ।",
+      "stockInteger": "स्टक सकारात्मक पूर्णांक हुनुपर्छ।",
+      "imageRequired": "एउटा छवि आवश्यक छ।"
+    },
+    "settings": {
+      "nameLength": "स्टोरको नाम कम्तिमा २ अक्षरको हुनुपर्छ।"
+    },
+    "superadmin": {
+      "storeNameLength": "स्टोरको नाम आवश्यक छ।",
+      "ownerNameLength": "मालिकको नाम आवश्यक छ।",
+      "ownerEmailInvalid": "एक मान्य इमेल आवश्यक छ।",
+      "domainLength": "उपडोमेन आवश्यक छ।",
+      "domainInvalid": "उपडोमेनमा केवल साना अक्षर, संख्या, र हाइफनहरू हुन सक्छन्।"
+    },
+    "checkout": {
+      "nameRequired": "पूरा नाम आवश्यक छ।",
+      "emailInvalid": "एक मान्य इमेल आवश्यक छ।",
+      "phoneInvalid": "एक मान्य फोन नम्बर आवश्यक छ।",
+      "addressRequired": "एक मान्य ठेगाना आवश्यक छ।",
+      "cityRequired": "शहर आवश्यक छ।",
+      "paymentRequired": "तपाईंले भुक्तानी विधि चयन गर्न आवश्यक छ।"
+    }
   }
 }

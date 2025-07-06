@@ -4,7 +4,6 @@
 import { headers } from "next/headers";
 import { redirect } from 'next/navigation'
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import { uploadImage } from "@/lib/storage-service";
 import { products as allProducts } from "@/lib/placeholder-data";
 import { generateProductDescription } from "@/ai/flows/product-description-generator";
@@ -21,16 +20,7 @@ type DescriptionResponse = {
   description?: string;
 }
 
-const productSchema = z.object({
-  name: z.string().min(2),
-  description: z.string().min(10),
-  price: z.coerce.number().min(0),
-  stock: z.coerce.number().int().min(0),
-});
-
-const productSchemaForUpdate = productSchema.extend({
-  image: z.instanceof(File).optional(),
-});
+// Zod schemas are now defined in the client components to access the translation hook.
 
 export async function addProduct(formData: FormData): Promise<ActionResponse> {
   const headersList = headers();
@@ -39,21 +29,17 @@ export async function addProduct(formData: FormData): Promise<ActionResponse> {
   if (!storeId) {
     return { success: false, messageKey: "error.storeIdMissing" };
   }
+  
+  const name = formData.get("name") as string;
+  const description = formData.get("description") as string;
+  const price = parseFloat(formData.get("price") as string);
+  const stock = parseInt(formData.get("stock") as string, 10);
 
-  const validatedFields = productSchema.safeParse({
-    name: formData.get("name"),
-    description: formData.get("description"),
-    price: formData.get("price"),
-    stock: formData.get("stock"),
-  });
-
-  if (!validatedFields.success) {
-    console.error(validatedFields.error.flatten().fieldErrors);
-    return { success: false, messageKey: "error.invalidFields" };
+  // Basic server-side check for presence, detailed validation is on the client
+  if (!name || !description || isNaN(price) || isNaN(stock)) {
+      return { success: false, messageKey: "error.invalidFields" };
   }
   
-  const { name, description, price, stock } = validatedFields.data;
-
   try {
     const imageFile = formData.get('file') as File;
     if (!imageFile || imageFile.size === 0) {
@@ -102,18 +88,14 @@ export async function updateProduct(productId: string, formData: FormData): Prom
     return { success: false, messageKey: "error.productNotFound" };
   }
 
-  const validatedFields = productSchemaForUpdate.safeParse({
-    name: formData.get("name"),
-    description: formData.get("description"),
-    price: formData.get("price"),
-    stock: formData.get("stock"),
-  });
+  const name = formData.get("name") as string;
+  const description = formData.get("description") as string;
+  const price = parseFloat(formData.get("price") as string);
+  const stock = parseInt(formData.get("stock") as string, 10);
 
-  if (!validatedFields.success) {
-    return { success: false, messageKey: "error.invalidFields" };
+  if (!name || !description || isNaN(price) || isNaN(stock)) {
+      return { success: false, messageKey: "error.invalidFields" };
   }
-
-  const { name, description, price, stock } = validatedFields.data;
 
   try {
     let imageUrl = allProducts[productIndex].imageUrl;

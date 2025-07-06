@@ -34,8 +34,8 @@ export default function LoginPage() {
     if (!auth) {
       toast({
           variant: "destructive",
-          title: "Firebase Not Configured",
-          description: "Please add your Firebase credentials to the .env file.",
+          title: t('login.firebaseNotConfiguredTitle'),
+          description: t('login.firebaseNotConfiguredDesc'),
       });
       return;
     }
@@ -43,18 +43,17 @@ export default function LoginPage() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       toast({
-        title: "Login Successful",
-        description: "Welcome back!",
+        title: t('login.successTitle'),
+        description: t('login.successDesc'),
       });
       router.push("/dashboard");
     } catch (error: any) {
       const errorCode = error.code || 'auth/unknown-error';
-      const errorMessage = error.message || 'An unexpected error occurred.';
-      console.error(`Login Error (${errorCode}):`, errorMessage);
+      console.error(`Login Error (${errorCode}):`, error.message);
       toast({
         variant: "destructive",
-        title: "Login Failed",
-        description: "Please check your email and password and try again.",
+        title: t('login.errorTitle'),
+        description: t('login.errorDesc'),
       });
     } finally {
       setIsLoading(false);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { useForm } from "hookform";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
@@ -21,20 +21,19 @@ import { useToast } from "@/hooks/use-toast";
 import { addStore } from "@/app/(superadmin)/admin/actions";
 import { useTranslation } from "@/hooks/use-translation";
 
-
-const formSchema = z.object({
-  name: z.string().min(2, "Store name is required."),
-  ownerName: z.string().min(2, "Owner name is required."),
-  ownerEmail: z.string().email("A valid email is required."),
-  domain: z.string().min(3, "Subdomain is required.").regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Subdomain can only contain lowercase letters, numbers, and hyphens."),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
 export function AddStoreForm() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const { t } = useTranslation();
+
+  const formSchema = z.object({
+    name: z.string().min(2, t('zod.superadmin.storeNameLength')),
+    ownerName: z.string().min(2, t('zod.superadmin.ownerNameLength')),
+    ownerEmail: z.string().email(t('zod.superadmin.ownerEmailInvalid')),
+    domain: z.string().min(3, t('zod.superadmin.domainLength')).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, t('zod.superadmin.domainInvalid')),
+  });
+
+  type FormValues = z.infer<typeof formSchema>;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -63,6 +62,7 @@ export function AddStoreForm() {
           description: t(result.messageKey),
         });
       }
+      // On success, the action redirects, so no toast is needed.
     });
   };
 

@@ -3,7 +3,6 @@
 
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import { z } from "zod";
 import { stores, plans } from '@/lib/placeholder-data';
 import { suggestSeoKeywords } from '@/ai/flows/seo-keyword-suggestion';
 
@@ -20,11 +19,7 @@ type KeywordsResponse = ActionResponse & {
   keywords?: string[];
 };
 
-const storeProfileSchema = z.object({
-  name: z.string().min(2, "Store name is required."),
-  description: z.string().optional(),
-});
-
+// Zod schema now defined in client component
 
 export async function updateStoreProfile(storeId: string, formData: FormData): Promise<ActionResponse> {
   const store = stores.find(s => s.id === storeId);
@@ -32,17 +27,13 @@ export async function updateStoreProfile(storeId: string, formData: FormData): P
     return { success: false, messageKey: 'error.storeNotFound' };
   }
   
-  const validatedFields = storeProfileSchema.safeParse({
-    name: formData.get("name"),
-    description: formData.get("description"),
-  });
+  const name = formData.get("name") as string;
+  const description = formData.get("description") as string;
 
-  if (!validatedFields.success) {
+  if (!name || name.length < 2) {
     return { success: false, messageKey: 'error.invalidFields' };
   }
   
-  const { name, description } = validatedFields.data;
-
   // In a real app, you'd update the database
   store.name = name;
   store.description = description;

@@ -34,12 +34,19 @@
     "loginButton": "Login",
     "loginWithGoogle": "Login with Google",
     "noAccount": "Don't have an account?",
-    "signUpLink": "Sign up"
+    "signUpLink": "Sign up",
+    "firebaseNotConfiguredTitle": "Firebase Not Configured",
+    "firebaseNotConfiguredDesc": "Please add your Firebase credentials to the .env file.",
+    "successTitle": "Login Successful",
+    "successDesc": "Welcome back!",
+    "errorTitle": "Login Failed",
+    "errorDesc": "Please check your email and password and try again."
   },
   "signup": {
     "title": "Sign Up",
     "description": "Enter your information to create an account",
     "fullNameLabel": "Full name",
+    "fullNamePlaceholder": "Store Owner",
     "createAccountButton": "Create an account",
     "signUpWithGoogle": "Sign up with Google",
     "haveAccount": "Already have an account?",
@@ -164,7 +171,9 @@
       "updatedTitle": "Order Updated",
       "orderUpdateSuccess": "Order status has been updated to {status}.",
       "cancelledTitle": "Order Cancelled",
-      "orderUpdateFailed": "Failed to update order status."
+      "orderCancelSuccess": "The order has been successfully cancelled.",
+      "orderUpdateFailed": "Failed to update order status.",
+      "orderNotFound": "Could not find the specified order."
     }
   },
   "orderDetails": {
@@ -318,7 +327,8 @@
       "placeholder": "Ask about our products...",
       "thinking": "Thinking...",
       "send": "Send",
-      "openChat": "Open AI Chat"
+      "openChat": "Open AI Chat",
+      "error": "Sorry, I am having some trouble right now. Please try again later."
     },
     "cart": {
       "title": "Shopping Cart ({count})",
@@ -433,5 +443,71 @@
     "currencySymbol": "Rs",
     "total": "Total",
     "thankYou": "Thank you for your purchase!"
+  },
+  "plans": {
+    "plan_basic": { "name": "Basic" },
+    "plan_pro": { "name": "Pro" },
+    "plan_enterprise": { "name": "Enterprise" },
+    "features": {
+      "50_products": "Up to 50 products",
+      "basic_analytics": "Basic Analytics",
+      "community_support": "Community Support",
+      "500_products": "Up to 500 products",
+      "advanced_analytics": "Advanced Analytics",
+      "whatsapp_notifications": "WhatsApp Notifications",
+      "email_support": "Email Support",
+      "unlimited_products": "Unlimited products",
+      "full_analytics": "Full Analytics Suite",
+      "custom_integrations": "Custom Integrations",
+      "dedicated_support": "Dedicated Support"
+    }
+  },
+  "notifications": {
+    "dear": "Dear",
+    "orderUpdate": "Your order from {storeName} has been updated.",
+    "status": "Status",
+    "paymentMethod": "Payment Method",
+    "total": "Total",
+    "items": "Items",
+    "shippingAddress": "Shipping Address",
+    "thankYou": "Thank you for your purchase!",
+    "whatsapp": {
+      "greeting": "Hello! I would like to place an order from",
+      "confirm": "Please confirm my order."
+    },
+    "seller": {
+      "title": "New Order Update for {storeName}!",
+      "orderId": "Order",
+      "customer": "Customer",
+      "shippingTo": "Shipping to",
+      "contact": "Contact"
+    }
+  },
+  "zod": {
+    "products": {
+      "nameLength": "Product name must be at least 2 characters.",
+      "descriptionLength": "Description must be at least 10 characters.",
+      "pricePositive": "Price must be a positive number.",
+      "stockInteger": "Stock must be a positive integer.",
+      "imageRequired": "An image is required."
+    },
+    "settings": {
+      "nameLength": "Store name must be at least 2 characters."
+    },
+    "superadmin": {
+      "storeNameLength": "Store name is required.",
+      "ownerNameLength": "Owner name is required.",
+      "ownerEmailInvalid": "A valid email is required.",
+      "domainLength": "Subdomain is required.",
+      "domainInvalid": "Subdomain can only contain lowercase letters, numbers, and hyphens."
+    },
+    "checkout": {
+      "nameRequired": "Full name is required.",
+      "emailInvalid": "A valid email is required.",
+      "phoneInvalid": "A valid phone number is required.",
+      "addressRequired": "A valid address is required.",
+      "cityRequired": "City is required.",
+      "paymentRequired": "You need to select a payment method."
+    }
   }
 }

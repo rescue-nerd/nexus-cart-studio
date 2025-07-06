@@ -1,7 +1,7 @@
 
 export type Plan = {
   id: string;
-  name: string;
+  // name: string; // Name is now in translation files
   price: number; // Monthly price in Rs
   features: string[];
 };
@@ -9,21 +9,18 @@ export type Plan = {
 export const plans: Plan[] = [
   {
     id: 'plan_basic',
-    name: 'Basic',
     price: 999,
-    features: ['Up to 50 products', 'Basic Analytics', 'Community Support'],
+    features: ['50_products', 'basic_analytics', 'community_support'],
   },
   {
     id: 'plan_pro',
-    name: 'Pro',
     price: 2499,
-    features: ['Up to 500 products', 'Advanced Analytics', 'WhatsApp Notifications', 'Email Support'],
+    features: ['500_products', 'advanced_analytics', 'whatsapp_notifications', 'email_support'],
   },
   {
     id: 'plan_enterprise',
-    name: 'Enterprise',
     price: 7999,
-    features: ['Unlimited products', 'Full Analytics Suite', 'Custom Integrations', 'Dedicated Support'],
+    features: ['unlimited_products', 'full_analytics', 'custom_integrations', 'dedicated_support'],
   },
 ];
 

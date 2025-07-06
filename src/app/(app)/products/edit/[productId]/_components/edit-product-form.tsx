@@ -24,29 +24,29 @@ import { updateProduct, generateDescriptionAction } from "@/app/(app)/products/a
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/use-translation";
 
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Product name must be at least 2 characters.",
-  }),
-  description: z.string().min(10, {
-    message: "Description must be at least 10 characters.",
-  }),
-  price: z.coerce.number().min(0, {
-    message: "Price must be a positive number.",
-  }),
-  stock: z.coerce.number().int().min(0, {
-    message: "Stock must be a positive integer.",
-  }),
-  image: z.instanceof(File).optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
 export function EditProductForm({ product }: { product: Product }) {
   const [isPending, startTransition] = useTransition();
   const [isAiPending, startAiTransition] = useTransition();
   const { toast } = useToast();
   const { t } = useTranslation();
+
+  const formSchema = z.object({
+    name: z.string().min(2, {
+      message: t('zod.products.nameLength'),
+    }),
+    description: z.string().min(10, {
+      message: t('zod.products.descriptionLength'),
+    }),
+    price: z.coerce.number().min(0, {
+      message: t('zod.products.pricePositive'),
+    }),
+    stock: z.coerce.number().int().min(0, {
+      message: t('zod.products.stockInteger'),
+    }),
+    image: z.instanceof(File).optional(),
+  });
+  
+  type FormValues = z.infer<typeof formSchema>;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -99,18 +99,11 @@ export function EditProductForm({ product }: { product: Product }) {
         formData.append("file", values.image);
       }
 
-      const result = await updateProduct(product.id, formData);
-
-      if (result.success) {
-        // The page redirects on success, so a toast isn't necessary here,
-        // but you could show one if you remove the redirect.
-      } else {
-        toast({
-          variant: "destructive",
-          title: t('error.genericTitle'),
-          description: t(result.messageKey),
-        });
-      }
+      await updateProduct(product.id, formData);
+      // On success, the action redirects, so we don't need a success toast here.
+      // On failure, the action does not throw, so we don't show an error toast either,
+      // as the form fields will show the errors. In a real app, you might handle
+      // unexpected server errors from the action here.
     });
   };
 

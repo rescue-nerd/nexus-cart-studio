@@ -6,13 +6,14 @@ import { sendOrderUpdateNotifications } from '@/lib/order-service';
 
 export type UpdateOrderStatusResult = {
     success: boolean;
-    messageKey: 'orderUpdateSuccess' | 'orderNotFound' | 'orderUpdateFailed';
+    messageKey: 'orderUpdateSuccess' | 'orderNotFound' | 'orderUpdateFailed' | 'orderCancelSuccess';
     status?: Order['status'];
 };
 
 export async function updateOrderStatus(
   orderId: string,
-  status: Order['status']
+  status: Order['status'],
+  lang: 'en' | 'ne' = 'en'
 ): Promise<UpdateOrderStatusResult> {
   try {
     const order = allOrders.find((o) => o.id === orderId);
@@ -25,12 +26,13 @@ export async function updateOrderStatus(
     order.status = status;
 
     // Send notification on status change
-    await sendOrderUpdateNotifications(order);
+    await sendOrderUpdateNotifications(order, lang);
 
     revalidatePath('/orders');
     revalidatePath(`/orders/${orderId}`);
 
-    return { success: true, messageKey: 'orderUpdateSuccess', status };
+    const messageKey = status === 'Cancelled' ? 'orderCancelSuccess' : 'orderUpdateSuccess';
+    return { success: true, messageKey, status };
   } catch (error) {
     console.error('Failed to update order status:', error);
     return { success: false, messageKey: 'orderUpdateFailed' };

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { useForm } from "hookform";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, Sparkles } from "lucide-react";
@@ -22,29 +22,29 @@ import { addProduct, generateDescriptionAction } from "@/app/(app)/products/acti
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/use-translation";
 
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Product name must be at least 2 characters.",
-  }),
-  description: z.string().min(10, {
-    message: "Description must be at least 10 characters.",
-  }),
-  price: z.coerce.number().min(0, {
-    message: "Price must be a positive number.",
-  }),
-  stock: z.coerce.number().int().min(0, {
-    message: "Stock must be a positive integer.",
-  }),
-  image: z.instanceof(File).refine((file) => file.size > 0, "An image is required."),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
 export function AddProductForm() {
   const [isPending, startTransition] = useTransition();
   const [isAiPending, startAiTransition] = useTransition();
   const { toast } = useToast();
   const { t } = useTranslation();
+
+  const formSchema = z.object({
+    name: z.string().min(2, {
+      message: t('zod.products.nameLength'),
+    }),
+    description: z.string().min(10, {
+      message: t('zod.products.descriptionLength'),
+    }),
+    price: z.coerce.number().min(0, {
+      message: t('zod.products.pricePositive'),
+    }),
+    stock: z.coerce.number().int().min(0, {
+      message: t('zod.products.stockInteger'),
+    }),
+    image: z.instanceof(File).refine((file) => file.size > 0, t('zod.products.imageRequired')),
+  });
+  
+  type FormValues = z.infer<typeof formSchema>;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -96,20 +96,8 @@ export function AddProductForm() {
       formData.append("stock", String(values.stock));
       formData.append("file", values.image);
 
-      const result = await addProduct(formData);
-
-      if (result.success && result.productName) {
-         toast({
-          title: t('products.toast.addSuccessTitle'),
-          description: t(result.messageKey, { name: result.productName }),
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: t('error.genericTitle'),
-          description: t(result.messageKey),
-        });
-      }
+      await addProduct(formData);
+      // On success, the action redirects, so we don't need a success toast here.
     });
   };
 

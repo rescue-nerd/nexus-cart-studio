@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { z } from 'zod';
+import { z } from 'zod';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -16,20 +16,32 @@ import { Loader2, ShoppingCart, MessageSquare, CreditCard, Truck } from 'lucide-
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { placeOrder, checkoutFormSchema } from './actions';
+import { placeOrder } from './actions';
+import type { CheckoutFormValues } from './actions';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useTranslation } from '@/hooks/use-translation';
-
-type CheckoutFormValues = z.infer<typeof checkoutFormSchema>;
 
 export default function CheckoutPage() {
   const { cartItems, cartTotal, cartCount, clearCart } = useCart();
   const router = useRouter();
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [isPending, startTransition] = React.useTransition();
 
-  const form = useForm<CheckoutFormValues>({
+  const checkoutFormSchema = z.object({
+    customerName: z.string().min(2, t('zod.checkout.nameRequired')),
+    customerEmail: z.string().email(t('zod.checkout.emailInvalid')),
+    customerPhone: z.string().min(10, t('zod.checkout.phoneInvalid')),
+    address: z.string().min(5, t('zod.checkout.addressRequired')),
+    city: z.string().min(2, t('zod.checkout.cityRequired')),
+    paymentMethod: z.enum(['whatsapp', 'cod', 'esewa'], {
+      required_error: t('zod.checkout.paymentRequired'),
+    }),
+  });
+  
+  type FormValues = z.infer<typeof checkoutFormSchema>;
+
+  const form = useForm<FormValues>({
     resolver: zodResolver(checkoutFormSchema),
     defaultValues: {
       customerName: '',
@@ -41,12 +53,14 @@ export default function CheckoutPage() {
     },
   });
 
-  const onSubmit = (values: CheckoutFormValues) => {
+  const onSubmit = (values: FormValues) => {
     startTransition(async () => {
-      const result = await placeOrder(values, cartItems);
+      const result = await placeOrder(values, cartItems, language);
 
       if (result.success) {
-        clearCart();
+        if (result.paymentMethod !== 'whatsapp') {
+            clearCart();
+        }
         if (result.paymentMethod === 'whatsapp' && result.whatsappUrl) {
             toast({
                 title: t('storefront.checkout.toast.redirectingToWhatsapp'),

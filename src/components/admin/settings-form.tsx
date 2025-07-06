@@ -40,19 +40,11 @@ import { useToast } from "@/hooks/use-toast";
 import { updateStorePlan, updateSeoSettings, suggestKeywordsAction, updateStoreProfile } from "@/app/(app)/settings/actions";
 import { useTranslation } from "@/hooks/use-translation";
 
-
 interface SettingsFormProps {
     store: Store;
     currentPlan?: Plan;
     allPlans: Plan[];
 }
-
-const profileFormSchema = z.object({
-  name: z.string().min(2, "Store name must be at least 2 characters."),
-  description: z.string().optional(),
-});
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
-
 
 export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps) {
   const { t } = useTranslation();
@@ -69,6 +61,12 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
   const [metaTitle, setMetaTitle] = useState(store.metaTitle || '');
   const [metaDescription, setMetaDescription] = useState(store.metaDescription || '');
   const [metaKeywords, setMetaKeywords] = useState(store.metaKeywords || '');
+
+  const profileFormSchema = z.object({
+    name: z.string().min(2, t('zod.settings.nameLength')),
+    description: z.string().optional(),
+  });
+  type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -239,7 +237,7 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
                                 {currentPlan.features.map(feature => (
                                     <li key={feature} className="flex items-center">
                                         <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                                        <span>{feature}</span>
+                                        <span>{t(`plans.features.${feature}`)}</span>
                                     </li>
                                 ))}
                            </ul>
@@ -249,7 +247,7 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
                         {allPlans.map(plan => (
                             <Card key={plan.id} className={cn("flex flex-col", plan.id === currentPlan?.id && "border-primary ring-2 ring-primary")}>
                                 <CardHeader>
-                                    <CardTitle>{plan.name}</CardTitle>
+                                    <CardTitle>{t(`plans.${plan.id}.name`)}</CardTitle>
                                     <CardDescription>Rs {plan.price}<span className="text-xs text-muted-foreground">/{t('settings.billing.month')}</span></CardDescription>
                                 </CardHeader>
                                 <CardContent className="flex-grow">
@@ -257,7 +255,7 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
                                         {plan.features.map(feature => (
                                             <li key={feature} className="flex items-center">
                                                 <CheckCircle className="h-4 w-4 mr-2" />
-                                                <span>{feature}</span>
+                                                <span>{t(`plans.features.${feature}`)}</span>
                                             </li>
                                         ))}
                                     </ul>
@@ -269,7 +267,7 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
                                         onClick={() => handlePlanChange(plan.id)}
                                     >
                                         {isPlanPending && pendingPlanId === plan.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                        {plan.id === currentPlan?.id ? t('settings.billing.currentPlanButton') : t('settings.billing.switchTo', { planName: plan.name })}
+                                        {plan.id === currentPlan?.id ? t('settings.billing.currentPlanButton') : t('settings.billing.switchTo', { planName: t(`plans.${plan.id}.name`) })}
                                     </Button>
                                 </CardFooter>
                             </Card>

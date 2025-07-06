@@ -51,7 +51,11 @@ export function AIChat() {
 
     startTransition(async () => {
       const result = await getAiChatResponse(undefined, input);
-      setMessages([...newMessages, { role: "assistant", content: result.response }]);
+      if (result.error) {
+        setMessages([...newMessages, { role: "assistant", content: t(result.error) }]);
+      } else {
+        setMessages([...newMessages, { role: "assistant", content: result.response }]);
+      }
     });
   };
 

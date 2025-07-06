@@ -66,9 +66,9 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
 
   const handleMarkAsShipped = (orderId: string) => {
     startTransition(async () => {
-        const result = await updateOrderStatus(orderId, 'Shipped');
-        if (result.success) {
-            toast({ title: t('orders.toast.updatedTitle'), description: t(result.messageKey, { status: t('orders.status.shipped') }) });
+        const result = await updateOrderStatus(orderId, 'Shipped', language);
+        if (result.success && result.status) {
+            toast({ title: t('orders.toast.updatedTitle'), description: t(result.messageKey, { status: t(`orders.status.${result.status.toLowerCase()}`) }) });
         } else {
             toast({ variant: "destructive", title: t('error.genericTitle'), description: t(result.messageKey) });
         }
@@ -83,9 +83,9 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
   const handleConfirmCancel = () => {
     if (!selectedOrder) return;
     startTransition(async () => {
-        const result = await updateOrderStatus(selectedOrder.id, 'Cancelled');
+        const result = await updateOrderStatus(selectedOrder.id, 'Cancelled', language);
         if (result.success) {
-            toast({ title: t('orders.toast.cancelledTitle'), description: t(result.messageKey, { status: t('orders.status.cancelled') }) });
+            toast({ title: t('orders.toast.cancelledTitle'), description: t(result.messageKey) });
         } else {
             toast({ variant: "destructive", title: t('error.genericTitle'), description: t(result.messageKey) });
         }
@@ -119,7 +119,7 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
             <TableHeader>
               <TableRow>
                 <TableHead>{t('orders.customer')}</TableHead>
-                <TableHead className="hidden sm:table-cell">{t('orders.status')}</TableHead>
+                <TableHead className="hidden sm:table-cell">{t('orders.status.title')}</TableHead>
                 <TableHead className="hidden md:table-cell">{t('orders.date')}</TableHead>
                 <TableHead className="text-right">{t('orders.amount')}</TableHead>
                 <TableHead>
