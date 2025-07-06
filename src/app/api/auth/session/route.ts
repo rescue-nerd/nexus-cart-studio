@@ -19,13 +19,16 @@ export async function POST(request: NextRequest) {
         const expiresIn = SESSION_DURATION_DAYS;
         const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
 
+        const isSecure = request.nextUrl.protocol === 'https';
+
         const options = {
             name: SESSION_COOKIE_NAME,
             value: sessionCookie,
             maxAge: expiresIn,
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            path: '/', // Explicitly set path to root
+            secure: isSecure,
+            path: '/',
+            sameSite: 'lax' as const,
         };
         
         const response = NextResponse.json({ status: 'success' });
@@ -39,12 +42,16 @@ export async function POST(request: NextRequest) {
     }
 }
 
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
+    const isSecure = request.nextUrl.protocol === 'https';
+    
     const options = {
         name: SESSION_COOKIE_NAME,
         value: '',
         maxAge: -1,
-        path: '/', // Explicitly set path to root
+        path: '/',
+        secure: isSecure,
+        sameSite: 'lax' as const,
     };
     
     const response = NextResponse.json({ status: 'success' });
