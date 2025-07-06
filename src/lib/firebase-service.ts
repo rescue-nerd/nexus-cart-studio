@@ -131,7 +131,7 @@ export async function deleteProduct(productId: string, storeId: string): Promise
 
 export async function getOrder(orderId: string, isPidx: boolean = false): Promise<Order | null> {
     if (isPidx) {
-        const q = query(ordersCollection, where("id", "==", orderId), limit(1));
+        const q = query(ordersCollection, where("paymentDetails.pidx", "==", orderId), limit(1));
         const querySnapshot = await getDocs(q);
         if (querySnapshot.empty) {
             return null;
@@ -141,6 +141,15 @@ export async function getOrder(orderId: string, isPidx: boolean = false): Promis
     const docRef = doc(db, 'orders', orderId);
     const docSnap = await getDoc(docRef);
     return docSnap.exists() ? docToType<Order>(docSnap) : null;
+}
+
+export async function getOrderByTransactionUUID(uuid: string): Promise<Order | null> {
+    const q = query(ordersCollection, where("paymentDetails.transaction_uuid", "==", uuid), limit(1));
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) {
+        return null;
+    }
+    return docToType<Order>(querySnapshot.docs[0]);
 }
 
 export async function getOrdersByStore(storeId: string): Promise<Order[]> {

@@ -4,8 +4,10 @@
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { getT } from '@/lib/translation-server';
+import crypto from 'crypto';
+import { randomUUID } from 'crypto';
 
-import { addOrder, getStore, updateOrder } from '@/lib/firebase-service';
+import { addOrder, getStore, updateOrder, getOrderByTransactionUUID } from '@/lib/firebase-service';
 import type { CartItem } from '@/hooks/use-cart';
 import { sendOrderUpdateNotifications } from '@/lib/order-service';
 import type { OrderItem, Order } from '@/lib/types';
@@ -17,7 +19,7 @@ export type CheckoutFormValues = {
   customerPhone: string;
   address: string;
   city: string;
-  paymentMethod: 'cod' | 'qr' | 'bank' | 'khalti';
+  paymentMethod: 'cod' | 'qr' | 'bank' | 'khalti' | 'esewa';
 };
 
 type ManualPlaceOrderResult = {
@@ -33,6 +35,25 @@ type KhaltiInitiateResult = {
     paymentUrl?: string;
 };
 
+export type ESewaFormData = {
+  amount: string;
+  tax_amount: string;
+  total_amount: string;
+  transaction_uuid: string;
+  product_code: string;
+  product_service_charge: string;
+  product_delivery_charge: string;
+  success_url: string;
+  failure_url: string;
+  signed_field_names: string;
+  signature: string;
+};
+
+type ESewaInitiateResult = {
+    success: boolean;
+    messageKey?: 'checkout.eSewaNotConfigured' | 'checkout.eSewaError' | 'error.storeNotFound';
+    formData?: ESewaFormData;
+};
 
 export async function placeManualOrder(
   values: CheckoutFormValues,
@@ -191,4 +212,77 @@ export async function initiateKhaltiPayment(
         await updateOrder(newOrder.id, { status: 'Failed' });
         return { success: false, messageKey: 'checkout.khaltiError' };
     }
+}
+
+
+export async function initiateESewaPayment(
+    values: CheckoutFormValues,
+    cartItems: CartItem[]
+): Promise<ESewaInitiateResult> {
+  const headersList = headers();
+  const storeId = headersList.get('x-store-id');
+  const domain = headersList.get('host') || 'localhost:9002';
+  const protocol = domain.startsWith('localhost') ? 'http' : 'https';
+
+  if (!storeId) {
+    return { success: false, messageKey: 'error.storeNotFound' };
+  }
+
+  const store = await getStore(storeId);
+  if (!store?.paymentSettings?.eSewaMerchantCode || !store?.paymentSettings?.eSewaSecretKey) {
+    return { success: false, messageKey: 'checkout.eSewaNotConfigured' };
+  }
+  
+  const cartTotal = cartItems.reduce((total, item) => total + item.product.price * item.quantity, 0);
+  const transaction_uuid = randomUUID();
+  
+  // Create preliminary order
+  const orderItems: OrderItem[] = cartItems.map(item => ({
+    productId: item.product.id,
+    productName: item.product.name,
+    quantity: item.quantity,
+    price: item.product.price,
+  }));
+  
+  const preliminaryOrderData = {
+    storeId,
+    customerName: values.customerName,
+    customerEmail: values.customerEmail,
+    customerPhone: values.customerPhone,
+    address: values.address,
+    city: values.city,
+    paymentMethod: 'eSewa' as const,
+    date: new Date().toISOString(),
+    status: 'Pending' as const,
+    total: cartTotal,
+    items: orderItems,
+    paymentDetails: { transaction_uuid }
+  };
+  
+  await addOrder(preliminaryOrderData);
+
+  // Generate eSewa signature
+  const signed_field_names = "total_amount,transaction_uuid,product_code";
+  const message = `total_amount=${cartTotal},transaction_uuid=${transaction_uuid},product_code=${store.paymentSettings.eSewaMerchantCode}`;
+  
+  const signature = crypto
+    .createHmac('sha256', store.paymentSettings.eSewaSecretKey)
+    .update(message)
+    .digest('base64');
+  
+  const formData: ESewaFormData = {
+    amount: cartTotal.toString(),
+    tax_amount: "0",
+    total_amount: cartTotal.toString(),
+    transaction_uuid,
+    product_code: store.paymentSettings.eSewaMerchantCode,
+    product_service_charge: "0",
+    product_delivery_charge: "0",
+    success_url: `${protocol}://${domain}/store/checkout/esewa/callback`,
+    failure_url: `${protocol}://${domain}/store/checkout/esewa/callback`,
+    signed_field_names,
+    signature,
+  };
+
+  return { success: true, formData };
 }

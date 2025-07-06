@@ -94,6 +94,9 @@ export async function updatePaymentSettings(storeId: string, formData: FormData)
             },
             khaltiSecretKey: formData.get('khaltiSecretKey') as string,
             khaltiTestMode: formData.get('khaltiTestMode') === 'on',
+            eSewaMerchantCode: formData.get('eSewaMerchantCode') as string,
+            eSewaSecretKey: formData.get('eSewaSecretKey') as string,
+            eSewaTestMode: formData.get('eSewaTestMode') === 'on',
         };
 
         await updateStore(storeId, { paymentSettings });

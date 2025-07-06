@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -17,8 +17,8 @@ import { Loader2, ShoppingCart, Banknote, QrCode, Truck, Copy } from 'lucide-rea
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { placeManualOrder, initiateKhaltiPayment } from './actions';
-import type { CheckoutFormValues } from './actions';
+import { placeManualOrder, initiateKhaltiPayment, initiateESewaPayment } from './actions';
+import type { CheckoutFormValues, ESewaFormData } from './actions';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useTranslation } from '@/hooks/use-translation';
 import { useStoreContext } from '@/hooks/use-store';
@@ -50,6 +50,31 @@ function BankDetailRow({ label, value }: { label: string, value: string | undefi
   );
 }
 
+function ESewaRedirectForm({ formData, esewaEndpoint }: { formData: ESewaFormData; esewaEndpoint: string }) {
+  const formRef = useRef<HTMLFormElement>(null);
+  
+  useEffect(() => {
+    if (formRef.current) {
+      formRef.current.submit();
+    }
+  }, []);
+
+  return (
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        <p className="text-lg font-semibold">{t('storefront.checkout.redirectingToESewa')}</p>
+        <p className="text-muted-foreground">{t('storefront.checkout.pleaseWait')}</p>
+        <form ref={formRef} action={esewaEndpoint} method="POST">
+          {Object.entries(formData).map(([key, value]) => (
+            <input key={key} type="hidden" name={key} value={value} />
+          ))}
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function CheckoutPage() {
   const { cartItems, cartTotal, cartCount, clearCart } = useCart();
   const { store } = useStoreContext();
@@ -57,6 +82,7 @@ export default function CheckoutPage() {
   const { toast } = useToast();
   const { t, language } = useTranslation();
   const [isPending, startTransition] = React.useTransition();
+  const [esewaFormData, setEsewaFormData] = React.useState<ESewaFormData | null>(null);
 
   const checkoutFormSchema = z.object({
     customerName: z.string().min(2, t('zod.checkout.nameRequired')),
@@ -64,7 +90,7 @@ export default function CheckoutPage() {
     customerPhone: z.string().min(10, t('zod.checkout.phoneInvalid')),
     address: z.string().min(5, t('zod.checkout.addressRequired')),
     city: z.string().min(2, t('zod.checkout.cityRequired')),
-    paymentMethod: z.enum(['cod', 'qr', 'bank', 'khalti'], {
+    paymentMethod: z.enum(['cod', 'qr', 'bank', 'khalti', 'esewa'], {
       required_error: t('zod.checkout.paymentRequired'),
     }),
   });
@@ -96,9 +122,21 @@ export default function CheckoutPage() {
               toast({
                   variant: "destructive",
                   title: t('error.genericTitle'),
-                  description: result.messageKey ? t(`storefront.${result.messageKey}`) : t('error.unexpected'),
+                  description: result.messageKey ? t(`storefront.checkout.${result.messageKey}`) : t('error.unexpected'),
               });
           }
+      } else if (values.paymentMethod === 'esewa') {
+        const result = await initiateESewaPayment(values, cartItems);
+        if (result.success && result.formData) {
+            clearCart();
+            setEsewaFormData(result.formData);
+        } else {
+            toast({
+                variant: "destructive",
+                title: t('error.genericTitle'),
+                description: result.messageKey ? t(`storefront.checkout.${result.messageKey}`) : t('error.unexpected'),
+            });
+        }
       } else {
           const result = await placeManualOrder(values, cartItems, language);
           if (result.success) {
@@ -108,7 +146,7 @@ export default function CheckoutPage() {
             toast({
               variant: "destructive",
               title: t('error.genericTitle'),
-              description: result.messageKey ? t(`storefront.${result.messageKey}`) : t('error.unexpected'),
+              description: result.messageKey ? t(`storefront.checkout.${result.messageKey}`) : t('error.unexpected'),
             });
           }
       }
@@ -126,6 +164,13 @@ export default function CheckoutPage() {
             </Button>
         </div>
     )
+  }
+
+  if (esewaFormData && store?.paymentSettings?.eSewaTestMode !== undefined) {
+    const esewaEndpoint = store.paymentSettings.eSewaTestMode
+      ? "https://rc-epay.esewa.com.np/api/epay/main/v2/form"
+      : "https://epay.esewa.com.np/api/epay/main/v2/form";
+    return <ESewaRedirectForm formData={esewaFormData} esewaEndpoint={esewaEndpoint} />;
   }
 
   return (
@@ -165,6 +210,16 @@ export default function CheckoutPage() {
                         <FormItem>
                             <FormControl>
                                 <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="grid gap-4">
+                                     {store?.paymentSettings?.eSewaMerchantCode && (
+                                         <Label htmlFor="esewa" className="flex items-center gap-4 rounded-md border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:ring-1 has-[[data-state=checked]]:ring-primary">
+                                            <RadioGroupItem value="esewa" id="esewa" />
+                                            <svg role="img" viewBox="0 0 24 24" className="h-6 w-6"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-1.39 5.5h2.78v1h-2.78v-1zm4.17 10.15c0 .413-.337.75-.75.75H9.97c-.413 0-.75-.337-.75-.75V8.35c0-.413.337-.75.75-.75h1.39V6.5h-1.39c-1.023 0-1.85.827-1.85 1.85v7.3c0 1.023.827 1.85 1.85 1.85h4.06c1.023 0 1.85-.827 1.85-1.85V14.5h-1.1v1.15zM12 9.5c.276 0 .5.224.5.5v1c0 .276-.224.5-.5.5s-.5-.224-.5-.5v-1c0-.276.224-.5.5-.5zm2.78-3h1.39c.413 0 .75.337.75.75v5.4c0 .413-.337.75-.75.75h-1.39v1h1.39c1.023 0 1.85-.827 1.85-1.85V7.25c0-1.023-.827-1.85-1.85-1.85h-1.39v1z" fill="#60BC47"/></svg>
+                                            <div className="grid gap-1.5">
+                                                <p className="font-semibold">{t('storefront.checkout.eSewa')}</p>
+                                                <p className="text-sm text-muted-foreground">{t('storefront.checkout.eSewaDesc')}</p>
+                                            </div>
+                                        </Label>
+                                    )}
                                     {store?.paymentSettings?.khaltiSecretKey && (
                                          <Label htmlFor="khalti" className="flex items-center gap-4 rounded-md border p-4 cursor-pointer hover:bg-accent has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:ring-1 has-[[data-state=checked]]:ring-primary">
                                             <RadioGroupItem value="khalti" id="khalti" />
@@ -273,7 +328,7 @@ export default function CheckoutPage() {
             </Card>
              <Button type="submit" size="lg" className="w-full" disabled={isPending}>
                 {isPending && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                {selectedPaymentMethod === 'khalti' ? t('storefront.checkout.proceedToKhalti') : t('storefront.checkout.placeOrder')}
+                {selectedPaymentMethod === 'khalti' ? t('storefront.checkout.proceedToKhalti') : selectedPaymentMethod === 'esewa' ? t('storefront.checkout.proceedToESewa') : t('storefront.checkout.placeOrder')}
             </Button>
           </div>
         </form>

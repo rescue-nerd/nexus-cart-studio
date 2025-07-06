@@ -20,6 +20,9 @@ export type PaymentSettings = {
   };
   khaltiSecretKey?: string;
   khaltiTestMode?: boolean;
+  eSewaMerchantCode?: string;
+  eSewaSecretKey?: string;
+  eSewaTestMode?: boolean;
 };
 
 export type Store = {
@@ -68,13 +71,17 @@ export type Order = {
   customerPhone: string;
   address: string;
   city: string;
-  paymentMethod: 'COD' | 'QR' | 'Bank Transfer' | 'Khalti';
+  paymentMethod: 'COD' | 'QR' | 'Bank Transfer' | 'Khalti' | 'eSewa';
   date: string; // Should be ISO string
   status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | 'Failed' | 'Refunded';
   total: number;
   items: OrderItem[];
   paymentDetails?: {
+    // Khalti
     pidx?: string;
     transactionId?: string;
+    // eSewa
+    transaction_uuid?: string;
+    ref_id?: string;
   }
 };
