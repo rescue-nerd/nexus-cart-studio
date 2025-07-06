@@ -67,7 +67,14 @@ export default function LoginPage() {
           } catch (e) {
             // Ignore if response is not JSON and use the default message.
           }
-          throw new Error(errorMessage);
+          
+          toast({
+            variant: "destructive",
+            title: t('login.errorTitle'),
+            description: errorMessage,
+          });
+          setIsLoading(false);
+          return;
       }
 
       toast({
@@ -87,7 +94,6 @@ export default function LoginPage() {
         title: t('login.errorTitle'),
         description: error.message || t('login.errorDesc'),
       });
-    } finally {
       setIsLoading(false);
     }
   };
