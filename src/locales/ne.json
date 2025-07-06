@@ -1,3 +1,4 @@
+
 {
   "nav": {
     "dashboard": "ड्यासबोर्ड",
@@ -18,6 +19,172 @@
     "loginWithGoogle": "Google बाट लगइन गर्नुहोस्",
     "noAccount": "खाता छैन?",
     "signUpLink": "साइन अप गर्नुहोस्"
+  },
+  "signup": {
+    "title": "साइन अप गर्नुहोस्",
+    "description": "खाता बनाउनको लागि आफ्नो जानकारी प्रविष्ट गर्नुहोस्",
+    "fullNameLabel": "पूरा नाम",
+    "createAccountButton": "खाता बनाउनुहोस्",
+    "signUpWithGoogle": "Google मार्फत साइन अप गर्नुहोस्",
+    "haveAccount": "पहिले नै खाता छ?",
+    "firebaseNotConfiguredTitle": "Firebase कन्फिगर गरिएको छैन",
+    "firebaseNotConfiguredDesc": "कृपया आफ्नो .env फाइलमा आफ्नो Firebase प्रमाणहरू थप्नुहोस्।",
+    "successTitle": "खाता सिर्जना भयो!",
+    "successDesc": "तपाईं अब आफ्नो नयाँ खाताबाट लग इन गर्न सक्नुहुन्छ।",
+    "errorTitle": "साइनअप असफल भयो",
+    "errorDefault": "एउटा अप्रत्याशित त्रुटि भयो। कृपया फेरि प्रयास गर्नुहोस्।",
+    "errorEmailInUse": "यो इमेल पहिले नै प्रयोगमा छ। कृपया अर्को इमेल प्रयास गर्नुहोस् वा लग इन गर्नुहोस्।",
+    "errorWeakPassword": "पासवर्ड धेरै कमजोर छ। कृपया बलियो पासवर्ड छान्नुहोस्।"
+  },
+  "dashboard": {
+    "title": "{storeName} को लागि ड्यासबोर्ड",
+    "description": "यहाँ तपाईंको स्टोरको प्रदर्शनको एक सिंहावलोकन छ।",
+    "totalSales": "कुल बिक्री",
+    "totalSalesDesc": "सबै बिक्रीबाट कुल राजस्व",
+    "totalOrders": "कुल अर्डरहरू",
+    "totalOrdersDesc": "राखिएको अर्डरहरूको कुल संख्या",
+    "totalProducts": "कुल उत्पादनहरू",
+    "totalProductsDesc": "सक्रिय उत्पादनहरूको कुल संख्या",
+    "overview": "सिंहावलोकन",
+    "recentSales": "हालको बिक्री"
+  },
+  "products": {
+    "title": "उत्पादनहरू",
+    "description": "आफ्ना उत्पादनहरू प्रबन्ध गर्नुहोस् र तिनीहरूको बिक्री प्रदर्शन हेर्नुहोस्।",
+    "addProduct": "उत्पादन थप्नुहोस्",
+    "image": "छवि",
+    "name": "नाम",
+    "status": "स्थिति",
+    "price": "मूल्य",
+    "stock": "स्टक",
+    "actions": "कार्यहरू",
+    "inStock": "स्टकमा छ",
+    "outOfStock": "स्टक बाहिर",
+    "footer": "<strong>{total}</strong> उत्पादनहरू मध्ये <strong>{start}-{end}</strong> देखाउँदै"
+  },
+  "productActions": {
+    "actions": "कार्यहरू",
+    "edit": "सम्पादन गर्नुहोस्",
+    "delete": "मेटाउनुहोस्",
+    "confirmTitle": "के तपाई पक्का हुनुहुन्छ?",
+    "confirmDescription": "यो कार्य उल्टाउन सकिदैन। यसले यो उत्पादनलाई स्थायी रूपमा मेटाउनेछ र हाम्रो सर्भरबाट यसको डाटा हटाउनेछ।",
+    "cancel": "रद्द गर्नुहोस्",
+    "continue": "जारी राख्नुहोस्",
+    "toast": {
+      "deletedTitle": "उत्पादन मेटाइयो",
+      "deletedDesc": "उत्पादन सफलतापूर्वक हटाइएको छ।",
+      "deleteFailedTitle": "मेटाउन असफल",
+      "deleteFailedDesc": "उत्पादन मेटाउन सकिएन।"
+    }
+  },
+  "orders": {
+    "description": "आफ्नो अर्डरहरू प्रबन्ध गर्नुहोस् र तिनीहरूको विवरणहरू हेर्नुहोस्।",
+    "export": "निर्यात गर्नुहोस्",
+    "customer": "ग्राहक",
+    "status": "स्थिति",
+    "date": "मिति",
+    "amount": "रकम",
+    "actions": "कार्यहरू",
+    "toggleMenu": "मेनु टगल गर्नुहोस्",
+    "viewDetails": "विवरण हेर्नुहोस्",
+    "markAsShipped": "पठाइएको रूपमा चिन्ह लगाउनुहोस्",
+    "printReceipt": "रसिद छाप्नुहोस्",
+    "cancelOrder": "अर्डर रद्द गर्नुहोस्",
+    "footer": "<strong>{total}</strong> अर्डरहरू मध्ये <strong>{start}-{end}</strong> देखाउँदै",
+    "cancelDialog": {
+      "title": "के तपाईं यो अर्डर रद्द गर्न निश्चित हुनुहुन्छ?",
+      "description": "यो कार्य उल्टाउन सकिदैन। यसले स्थायी रूपमा अर्डर #{orderId} लाई रद्दको रूपमा चिन्ह लगाउनेछ।",
+      "cancel": "बन्द गर्नुहोस्",
+      "confirm": "हो, अर्डर रद्द गर्नुहोस्"
+    },
+    "toast": {
+      "updatedTitle": "अर्डर अद्यावधिक भयो",
+      "cancelledTitle": "अर्डर रद्द भयो",
+      "updateFailedTitle": "अद्यावधिक गर्न असफल"
+    }
+  },
+  "orderDetails": {
+    "title": "अर्डर विवरणहरू",
+    "back": "अर्डरहरूमा फर्कनुहोस्",
+    "orderId": "अर्डर ID: {orderId}",
+    "invoice": "इनभ्वाइस",
+    "summaryTitle": "अर्डर सारांश",
+    "total": "कुल",
+    "shippingTitle": "ढुवानी ठेगाना",
+    "customerTitle": "ग्राहक",
+    "paymentTitle": "भुक्तानी विवरण",
+    "paymentMethod": "विधि",
+    "paymentDate": "मिति"
+  },
+  "settings": {
+    "saveButton": "परिवर्तनहरू बचत गर्नुहोस्",
+    "toast": {
+      "failTitle": "अद्यावधिक गर्न असफल",
+      "failDesc": "एउटा अप्रत्याशित त्रुटि भयो।"
+    },
+    "tabs": {
+      "profile": "स्टोर प्रोफाइल",
+      "billing": "बिलिङ र योजना",
+      "payments": "भुक्तानीहरू",
+      "seo": "SEO",
+      "appearance": "रूप"
+    },
+    "profile": {
+      "title": "स्टोर प्रोफाइल",
+      "description": "आफ्नो स्टोरको सार्वजनिक विवरणहरू अद्यावधिक गर्नुहोस्।",
+      "storeNameLabel": "स्टोरको नाम",
+      "storeDescLabel": "स्टोर विवरण",
+      "toast": {
+        "successTitle": "प्रोफाइल अद्यावधिक भयो!",
+        "successDesc": "तपाईंको स्टोर विवरणहरू बचत गरिएको छ।"
+      }
+    },
+    "billing": {
+      "title": "बिलिङ र योजना",
+      "description": "आफ्नो सदस्यता व्यवस्थापन गर्नुहोस् र उपलब्ध योजनाहरू हेर्नुहोस्।",
+      "currentPlan": "हालको योजना",
+      "renews": "तपाईंको योजना अर्को महिना नवीकरण हुन्छ।",
+      "month": "महिना",
+      "currentPlanButton": "हालको योजना",
+      "switchTo": "{planName} मा स्विच गर्नुहोस्",
+      "toast": {
+        "successTitle": "योजना अद्यावधिक भयो!",
+        "successDesc": "तपाईंको स्टोर अब {planName} योजनामा छ।"
+      }
+    },
+    "payments": {
+      "title": "भुक्तानी गेटवेहरू",
+      "description": "आफ्नो भुक्तानी प्रदायकहरू जडान गर्नुहोस्।",
+      "notConnected": "जडान गरिएको छैन",
+      "connectButton": "जडान गर्नुहोस्"
+    },
+    "seo": {
+      "title": "SEO सेटिङहरू",
+      "description": "खोज इन्जिनहरूमा आफ्नो स्टोरको दृश्यता सुधार गर्नुहोस्।",
+      "metaTitleLabel": "मेटा शीर्षक",
+      "metaDescLabel": "मेटा विवरण",
+      "metaKeywordsLabel": "मेटा किवर्डहरू",
+      "suggestWithAI": "AI मार्फत सुझाव दिनुहोस्",
+      "toast": {
+        "successTitle": "SEO सेटिङहरू बचत गरियो",
+        "successDesc": "तपाईंको स्टोरफ्रन्ट अद्यावधिक गरिएको छ।",
+        "failDesc": "SEO सेटिङहरू बचत गर्न सकिएन।",
+        "aiSuccessTitle": "कीवर्डहरू सुझाव गरियो",
+        "aiSuccessDesc": "AI ले तपाईंको स्टोर विवरणको आधारमा नयाँ कीवर्डहरू उत्पन्न गरेको छ।",
+        "aiFailTitle": "सुझाव असफल",
+        "aiFailDesc": "AI सुझावहरू प्राप्त गर्न सकिएन।"
+      }
+    },
+    "appearance": {
+      "title": "रूप",
+      "description": "आफ्नो स्टोर र ड्यासबोर्डको रूप र अनुभव अनुकूलित गर्नुहोस्।",
+      "themes": {
+        "default": "पूर्वनिर्धारित",
+        "forest": "वन",
+        "ruby": "रुबी",
+        "amethyst": "एमेथिस्ट"
+      }
+    }
   },
   "storefront": {
     "heroTitle": "{storeName} मा नेपालको आत्मा पत्ता लगाउनुहोस्",

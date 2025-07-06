@@ -44,8 +44,10 @@ import { type Order } from "@/lib/placeholder-data";
 import { format } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
 import { updateOrderStatus } from "@/app/(app)/orders/actions";
+import { useTranslation } from "@/hooks/use-translation";
 
 export function OrdersTable({ orders }: { orders: Order[] }) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -65,9 +67,9 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
     startTransition(async () => {
         const result = await updateOrderStatus(orderId, 'Shipped');
         if (result.success) {
-            toast({ title: "Order Updated", description: result.message });
+            toast({ title: t('orders.toast.updatedTitle'), description: result.message });
         } else {
-            toast({ variant: "destructive", title: "Update Failed", description: result.message });
+            toast({ variant: "destructive", title: t('orders.toast.updateFailedTitle'), description: result.message });
         }
     });
   }
@@ -82,9 +84,9 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
     startTransition(async () => {
         const result = await updateOrderStatus(selectedOrder.id, 'Cancelled');
         if (result.success) {
-            toast({ title: "Order Cancelled", description: result.message });
+            toast({ title: t('orders.toast.cancelledTitle'), description: result.message });
         } else {
-            toast({ variant: "destructive", title: "Update Failed", description: result.message });
+            toast({ variant: "destructive", title: t('orders.toast.updateFailedTitle'), description: result.message });
         }
         setDialogOpen(false);
         setSelectedOrder(null);
@@ -98,15 +100,15 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Orders</CardTitle>
+              <CardTitle>{t('nav.orders')}</CardTitle>
               <CardDescription>
-                Manage your orders and view their details.
+                {t('orders.description')}
               </CardDescription>
             </div>
             <Button size="sm" variant="outline" className="h-8 gap-1">
               <File className="h-3.5 w-3.5" />
               <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Export
+                {t('orders.export')}
               </span>
             </Button>
           </div>
@@ -115,12 +117,12 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Customer</TableHead>
-                <TableHead className="hidden sm:table-cell">Status</TableHead>
-                <TableHead className="hidden md:table-cell">Date</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>{t('orders.customer')}</TableHead>
+                <TableHead className="hidden sm:table-cell">{t('orders.status')}</TableHead>
+                <TableHead className="hidden md:table-cell">{t('orders.date')}</TableHead>
+                <TableHead className="text-right">{t('orders.amount')}</TableHead>
                 <TableHead>
-                  <span className="sr-only">Actions</span>
+                  <span className="sr-only">{t('orders.actions')}</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -147,26 +149,26 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
                       <DropdownMenuTrigger asChild>
                         <Button aria-haspopup="true" size="icon" variant="ghost" disabled={isPending}>
                           <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
+                          <span className="sr-only">{t('orders.toggleMenu')}</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuLabel>{t('orders.actions')}</DropdownMenuLabel>
                         <DropdownMenuItem asChild>
-                          <Link href={`/orders/${order.id}`}>View Details</Link>
+                          <Link href={`/orders/${order.id}`}>{t('orders.viewDetails')}</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleMarkAsShipped(order.id)}>
-                          <Truck className="mr-2 h-4 w-4" /> Mark as Shipped
+                          <Truck className="mr-2 h-4 w-4" /> {t('orders.markAsShipped')}
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link href={`/print/receipt/${order.id}`} target="_blank" rel="noopener noreferrer">
                             <Printer className="mr-2 h-4 w-4" />
-                            <span>Print Receipt</span>
+                            <span>{t('orders.printReceipt')}</span>
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => handleCancelClick(order)}>
-                          <XCircle className="mr-2 h-4 w-4" /> Cancel Order
+                          <XCircle className="mr-2 h-4 w-4" /> {t('orders.cancelOrder')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -178,7 +180,7 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">
-            Showing <strong>1-{orders.length}</strong> of <strong>{orders.length}</strong> orders
+            {t('orders.footer', {start: 1, end: orders.length, total: orders.length})}
           </div>
         </CardFooter>
       </Card>
@@ -186,16 +188,16 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to cancel this order?</AlertDialogTitle>
+            <AlertDialogTitle>{t('orders.cancelDialog.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently mark order #{selectedOrder?.id} as cancelled.
+              {t('orders.cancelDialog.description', { orderId: selectedOrder?.id || '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Close</AlertDialogCancel>
+            <AlertDialogCancel>{t('orders.cancelDialog.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmCancel} className="bg-destructive hover:bg-destructive/90" disabled={isPending}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Yes, cancel order
+              {t('orders.cancelDialog.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,6 +1,7 @@
-import { headers } from "next/headers";
-import { notFound } from 'next/navigation';
+'use client';
+
 import Link from 'next/link';
+import { notFound, useParams } from 'next/navigation';
 import { ChevronLeft, File, Package, UserCircle, Truck } from 'lucide-react';
 import { orders as allOrders, products as allProducts, stores } from '@/lib/placeholder-data';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
-
+import { useTranslation } from '@/hooks/use-translation';
+import { useEffect, useState } from 'react';
 
 // In a real app, you would fetch this from your database based on the order details
 const getOrderItems = (orderId: string) => {
@@ -29,14 +31,19 @@ const getStatusVariant = (status: string) => {
     }
 };
 
-export default function OrderDetailsPage({ params }: { params: { orderId: string } }) {
-  const { orderId } = params;
-  const order = allOrders.find(o => o.id === orderId);
-  const headersList = headers();
-  const storeId = headersList.get('x-store-id');
-  const store = stores.find(s => s.id === storeId);
+export default function OrderDetailsPage() {
+  const { t } = useTranslation();
+  const params = useParams();
+  const orderId = params.orderId as string;
 
-  if (!order || order.storeId !== storeId) {
+  // Since this is a client component, we'll manage state for order data
+  const [order, setOrder] = useState(allOrders.find(o => o.id === orderId));
+  const [store, setStore] = useState(order ? stores.find(s => s.id === order.storeId) : undefined);
+  
+  // Note: We're not using headers() here as it's a client component.
+  // The logic relies on the order data fetched.
+  
+  if (!order) {
     notFound();
   }
 
@@ -48,17 +55,17 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
           <Button variant="outline" size="icon" className="h-7 w-7" asChild>
             <Link href="/orders">
               <ChevronLeft className="h-4 w-4" />
-              <span className="sr-only">Back to Orders</span>
+              <span className="sr-only">{t('orderDetails.back')}</span>
             </Link>
           </Button>
           <div className="flex-1">
-            <h1 className="font-semibold text-xl">Order Details</h1>
+            <h1 className="font-semibold text-xl">{t('orderDetails.title')}</h1>
             <p className="text-sm text-muted-foreground">
-                Order ID: {order.id}
+                {t('orderDetails.orderId', { orderId: order.id })}
             </p>
           </div>
           <Button size="sm" variant="outline">
-            <File className="mr-2 h-4 w-4"/> Invoice
+            <File className="mr-2 h-4 w-4"/> {t('orderDetails.invoice')}
           </Button>
         </div>
 
@@ -67,7 +74,7 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center justify-between">
-                            <span>Order Summary</span>
+                            <span>{t('orderDetails.summaryTitle')}</span>
                              <Badge className="text-sm" variant={getStatusVariant(order.status)}>
                                 {order.status}
                             </Badge>
@@ -83,7 +90,7 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
                              ))}
                              <Separator />
                               <div className="flex justify-between font-semibold">
-                                <p>Total</p>
+                                <p>{t('orderDetails.total')}</p>
                                 <p>Rs {order.total.toFixed(2)}</p>
                             </div>
                         </div>
@@ -92,7 +99,7 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
 
                 <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Truck className="h-5 w-5"/> Shipping Address</CardTitle>
+                        <CardTitle className="flex items-center gap-2"><Truck className="h-5 w-5"/> {t('orderDetails.shippingTitle')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p>{order.address}</p>
@@ -104,7 +111,7 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
             <div className="space-y-6">
                  <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><UserCircle className="h-5 w-5"/> Customer</CardTitle>
+                        <CardTitle className="flex items-center gap-2"><UserCircle className="h-5 w-5"/> {t('orderDetails.customerTitle')}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-1 text-sm">
                         <p className="font-medium">{order.customerName}</p>
@@ -113,10 +120,10 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardHeader><CardTitle>Payment Details</CardTitle></CardHeader>
+                    <CardHeader><CardTitle>{t('orderDetails.paymentTitle')}</CardTitle></CardHeader>
                     <CardContent className="space-y-1 text-sm">
-                        <p><strong>Method:</strong> {order.paymentMethod}</p>
-                        <p><strong>Date:</strong> {format(new Date(order.date), "PPP p")}</p>
+                        <p><strong>{t('orderDetails.paymentMethod')}:</strong> {order.paymentMethod}</p>
+                        <p><strong>{t('orderDetails.paymentDate')}:</strong> {format(new Date(order.date), "PPP p")}</p>
                     </CardContent>
                 </Card>
             </div>

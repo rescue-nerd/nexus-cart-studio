@@ -38,6 +38,7 @@ import { type Store, type Plan } from "@/lib/placeholder-data"
 import { CheckCircle, Loader2, Sparkles } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { updateStorePlan, updateSeoSettings, suggestKeywordsAction, updateStoreProfile } from "@/app/(app)/settings/actions";
+import { useTranslation } from "@/hooks/use-translation";
 
 
 interface SettingsFormProps {
@@ -54,6 +55,7 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 
 export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps) {
+  const { t } = useTranslation();
   const { theme, setTheme } = useTheme()
   const { toast } = useToast();
   const router = useRouter();
@@ -84,18 +86,18 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
       
       const result = await updateStoreProfile(store.id, formData);
       if (result.success) {
-        toast({ title: "Profile Updated!", description: "Your store details have been saved." });
+        toast({ title: t('settings.profile.toast.successTitle'), description: t('settings.profile.toast.successDesc') });
       } else {
-        toast({ variant: "destructive", title: "Update Failed", description: result.message });
+        toast({ variant: "destructive", title: t('settings.toast.failTitle'), description: result.message });
       }
     });
   };
 
   const themes = [
-    { name: 'default', label: 'Default', colors: ['#619bc9', '#f6f8fa'] },
-    { name: 'forest', label: 'Forest', colors: ['#1a9a52', '#f9fafb'] },
-    { name: 'ruby', label: 'Ruby', colors: ['#d62558', '#fafafa'] },
-    { name: 'amethyst', label: 'Amethyst', colors: ['#8a42e2', '#f9f5ff'] },
+    { name: 'default', label: t('settings.appearance.themes.default'), colors: ['#619bc9', '#f6f8fa'] },
+    { name: 'forest', label: t('settings.appearance.themes.forest'), colors: ['#1a9a52', '#f9fafb'] },
+    { name: 'ruby', label: t('settings.appearance.themes.ruby'), colors: ['#d62558', '#fafafa'] },
+    { name: 'amethyst', label: t('settings.appearance.themes.amethyst'), colors: ['#8a42e2', '#f9f5ff'] },
   ];
 
   const handlePlanChange = (newPlanId: string) => {
@@ -104,15 +106,15 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
       const result = await updateStorePlan(store.id, newPlanId);
       if (result.success) {
         toast({
-          title: "Plan Updated!",
-          description: `Your store is now on the ${result.newPlanName} plan.`,
+          title: t('settings.billing.toast.successTitle'),
+          description: t('settings.billing.toast.successDesc', { planName: result.newPlanName || '' }),
         });
         router.refresh();
       } else {
         toast({
           variant: "destructive",
-          title: "Update Failed",
-          description: result.message || "An unknown error occurred.",
+          title: t('settings.toast.failTitle'),
+          description: result.message || t('settings.toast.failDesc'),
         });
       }
       setPendingPlanId(null);
@@ -129,14 +131,14 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
 
       if (result.success) {
         toast({
-          title: "SEO Settings Saved",
-          description: "Your storefront has been updated.",
+          title: t('settings.seo.toast.successTitle'),
+          description: t('settings.seo.toast.successDesc'),
         });
       } else {
         toast({
           variant: "destructive",
-          title: "Save Failed",
-          description: result.message || "Could not save SEO settings.",
+          title: t('settings.toast.failTitle'),
+          description: result.message || t('settings.seo.toast.failDesc'),
         });
       }
     });
@@ -151,14 +153,14 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
       if (result.success && result.keywords) {
         setMetaKeywords(result.keywords.join(', '));
         toast({
-          title: "Keywords Suggested",
-          description: "AI has generated new keywords based on your store description.",
+          title: t('settings.seo.toast.aiSuccessTitle'),
+          description: t('settings.seo.toast.aiSuccessDesc'),
         });
       } else {
         toast({
           variant: "destructive",
-          title: "Suggestion Failed",
-          description: result.message || "Could not get AI suggestions.",
+          title: t('settings.seo.toast.aiFailTitle'),
+          description: result.message || t('settings.seo.toast.aiFailDesc'),
         });
       }
     });
@@ -167,20 +169,20 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
   return (
     <Tabs defaultValue="profile">
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="profile">Store Profile</TabsTrigger>
-          <TabsTrigger value="billing">Billing &amp; Plan</TabsTrigger>
-          <TabsTrigger value="payments">Payments</TabsTrigger>
-          <TabsTrigger value="seo">SEO</TabsTrigger>
-          <TabsTrigger value="appearance">Appearance</TabsTrigger>
+          <TabsTrigger value="profile">{t('settings.tabs.profile')}</TabsTrigger>
+          <TabsTrigger value="billing">{t('settings.tabs.billing')}</TabsTrigger>
+          <TabsTrigger value="payments">{t('settings.tabs.payments')}</TabsTrigger>
+          <TabsTrigger value="seo">{t('settings.tabs.seo')}</TabsTrigger>
+          <TabsTrigger value="appearance">{t('settings.tabs.appearance')}</TabsTrigger>
         </TabsList>
         <TabsContent value="profile">
           <Form {...profileForm}>
             <form onSubmit={profileForm.handleSubmit(onProfileSubmit)}>
               <Card>
                 <CardHeader>
-                  <CardTitle>Store Profile</CardTitle>
+                  <CardTitle>{t('settings.profile.title')}</CardTitle>
                   <CardDescription>
-                    Update your store's public details.
+                    {t('settings.profile.description')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -189,7 +191,7 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Store Name</FormLabel>
+                        <FormLabel>{t('settings.profile.storeNameLabel')}</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -202,7 +204,7 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Store Description</FormLabel>
+                        <FormLabel>{t('settings.profile.storeDescLabel')}</FormLabel>
                          <FormControl>
                           <Textarea {...field} />
                         </FormControl>
@@ -214,7 +216,7 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
                 <CardFooter>
                   <Button type="submit" disabled={isProfilePending}>
                     {isProfilePending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save changes
+                    {t('settings.saveButton')}
                   </Button>
                 </CardFooter>
               </Card>
@@ -224,16 +226,16 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
         <TabsContent value="billing">
             <Card>
                 <CardHeader>
-                    <CardTitle>Billing &amp; Plan</CardTitle>
+                    <CardTitle>{t('settings.billing.title')}</CardTitle>
                     <CardDescription>
-                        Manage your subscription and view available plans.
+                        {t('settings.billing.description')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     {currentPlan && (
                         <div className="rounded-lg border bg-card text-card-foreground p-6">
-                           <h3 className="text-lg font-semibold mb-2">Current Plan: {currentPlan.name}</h3>
-                           <p className="text-muted-foreground mb-4">Your plan renews next month. Price: Rs {currentPlan.price}/month.</p>
+                           <h3 className="text-lg font-semibold mb-2">{t('settings.billing.currentPlan')}: {currentPlan.name}</h3>
+                           <p className="text-muted-foreground mb-4">{t('settings.billing.renews')}</p>
                            <ul className="space-y-2 text-sm">
                                 {currentPlan.features.map(feature => (
                                     <li key={feature} className="flex items-center">
@@ -249,7 +251,7 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
                             <Card key={plan.id} className={cn("flex flex-col", plan.id === currentPlan?.id && "border-primary ring-2 ring-primary")}>
                                 <CardHeader>
                                     <CardTitle>{plan.name}</CardTitle>
-                                    <CardDescription>Rs {plan.price}<span className="text-xs text-muted-foreground">/month</span></CardDescription>
+                                    <CardDescription>Rs {plan.price}<span className="text-xs text-muted-foreground">/{t('settings.billing.month')}</span></CardDescription>
                                 </CardHeader>
                                 <CardContent className="flex-grow">
                                     <ul className="space-y-2 text-sm text-muted-foreground">
@@ -268,7 +270,7 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
                                         onClick={() => handlePlanChange(plan.id)}
                                     >
                                         {isPlanPending && pendingPlanId === plan.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                        {plan.id === currentPlan?.id ? 'Current Plan' : 'Switch to ' + plan.name}
+                                        {plan.id === currentPlan?.id ? t('settings.billing.currentPlanButton') : t('settings.billing.switchTo', { planName: plan.name })}
                                     </Button>
                                 </CardFooter>
                             </Card>
@@ -280,63 +282,63 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
         <TabsContent value="payments">
           <Card>
             <CardHeader>
-              <CardTitle>Payment Gateways</CardTitle>
+              <CardTitle>{t('settings.payments.title')}</CardTitle>
               <CardDescription>
-                Connect your payment providers.
+                {t('settings.payments.description')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div>
                   <h3 className="font-medium">eSewa</h3>
-                  <p className="text-sm text-muted-foreground">Not Connected</p>
+                  <p className="text-sm text-muted-foreground">{t('settings.payments.notConnected')}</p>
                 </div>
-                <Button variant="outline">Connect</Button>
+                <Button variant="outline">{t('settings.payments.connectButton')}</Button>
               </div>
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div>
                   <h3 className="font-medium">Khalti</h3>
-                  <p className="text-sm text-muted-foreground">Not Connected</p>
+                  <p className="text-sm text-muted-foreground">{t('settings.payments.notConnected')}</p>
                 </div>
-                <Button variant="outline">Connect</Button>
+                <Button variant="outline">{t('settings.payments.connectButton')}</Button>
               </div>
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div>
                   <h3 className="font-medium">IME Pay</h3>
-                  <p className="text-sm text-muted-foreground">Not Connected</p>
+                  <p className="text-sm text-muted-foreground">{t('settings.payments.notConnected')}</p>
                 </div>
-                <Button variant="outline">Connect</Button>
+                <Button variant="outline">{t('settings.payments.connectButton')}</Button>
               </div>
             </CardContent>
             <CardFooter>
-              <Button>Save changes</Button>
+              <Button>{t('settings.saveButton')}</Button>
             </CardFooter>
           </Card>
         </TabsContent>
         <TabsContent value="seo">
           <Card>
             <CardHeader>
-              <CardTitle>SEO Settings</CardTitle>
+              <CardTitle>{t('settings.seo.title')}</CardTitle>
               <CardDescription>
-                Improve your store's visibility on search engines.
+                {t('settings.seo.description')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1">
-                <FormLabel htmlFor="meta-title">Meta Title</FormLabel>
+                <FormLabel htmlFor="meta-title">{t('settings.seo.metaTitleLabel')}</FormLabel>
                 <Input id="meta-title" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} />
               </div>
               <div className="space-y-1">
-                <FormLabel htmlFor="meta-description">Meta Description</FormLabel>
+                <FormLabel htmlFor="meta-description">{t('settings.seo.metaDescLabel')}</FormLabel>
                 <Textarea id="meta-description" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} />
               </div>
               <div className="space-y-1">
-                <FormLabel htmlFor="meta-keywords">Meta Keywords</FormLabel>
+                <FormLabel htmlFor="meta-keywords">{t('settings.seo.metaKeywordsLabel')}</FormLabel>
                 <div className="flex items-center gap-2">
                   <Input id="meta-keywords" value={metaKeywords} onChange={(e) => setMetaKeywords(e.target.value)} className="flex-grow"/>
                   <Button variant="outline" size="sm" onClick={handleSuggestKeywords} disabled={isAiPending}>
                     {isAiPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                     Suggest with AI
+                     {t('settings.seo.suggestWithAI')}
                   </Button>
                 </div>
               </div>
@@ -344,7 +346,7 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
             <CardFooter>
               <Button onClick={handleSeoSave} disabled={isSeoPending}>
                 {isSeoPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save changes
+                {t('settings.saveButton')}
               </Button>
             </CardFooter>
           </Card>
@@ -352,9 +354,9 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
         <TabsContent value="appearance">
           <Card>
             <CardHeader>
-              <CardTitle>Appearance</CardTitle>
+              <CardTitle>{t('settings.appearance.title')}</CardTitle>
               <CardDescription>
-                Customize the look and feel of your store and dashboard.
+                {t('settings.appearance.description')}
               </CardDescription>
             </CardHeader>
             <CardContent>

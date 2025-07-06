@@ -19,11 +19,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NexusCartLogo } from "@/components/icons";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/use-translation";
 
 
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,8 +36,8 @@ export default function SignupPage() {
     if (!auth) {
       toast({
           variant: "destructive",
-          title: "Firebase Not Configured",
-          description: "Please add your Firebase credentials to the .env file.",
+          title: t('signup.firebaseNotConfiguredTitle'),
+          description: t('signup.firebaseNotConfiguredDesc'),
       });
       return;
     }
@@ -43,23 +45,23 @@ export default function SignupPage() {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       toast({
-        title: "Account Created!",
-        description: "You can now log in with your new account.",
+        title: t('signup.successTitle'),
+        description: t('signup.successDesc'),
       });
       router.push("/login");
     } catch (error: any) {
       const errorCode = error.code || 'auth/unknown-error';
       const errorMessage = error.message || 'An unexpected error occurred.';
       console.error(`Signup Error (${errorCode}):`, errorMessage);
-      let description = "An unexpected error occurred. Please try again.";
+      let description = t('signup.errorDefault');
       if (errorCode === 'auth/email-already-in-use') {
-        description = "This email is already in use. Please try another email or log in.";
+        description = t('signup.errorEmailInUse');
       } else if (errorCode === 'auth/weak-password') {
-        description = "The password is too weak. Please choose a stronger password.";
+        description = t('signup.errorWeakPassword');
       }
       toast({
         variant: "destructive",
-        title: "Signup Failed",
+        title: t('signup.errorTitle'),
         description: description,
       });
     } finally {
@@ -74,15 +76,15 @@ export default function SignupPage() {
           <div className="flex justify-center mb-4">
             <NexusCartLogo className="w-12 h-12 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Sign Up</CardTitle>
+          <CardTitle className="text-2xl">{t('signup.title')}</CardTitle>
           <CardDescription>
-            Enter your information to create an account
+            {t('signup.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignup} className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="full-name">Full name</Label>
+              <Label htmlFor="full-name">{t('signup.fullNameLabel')}</Label>
               <Input 
                 id="full-name" 
                 placeholder="Store Owner" 
@@ -93,7 +95,7 @@ export default function SignupPage() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('login.emailLabel')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -105,7 +107,7 @@ export default function SignupPage() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('login.passwordLabel')}</Label>
               <Input 
                 id="password" 
                 type="password"
@@ -117,16 +119,16 @@ export default function SignupPage() {
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create an account
+              {t('signup.createAccountButton')}
             </Button>
             <Button variant="outline" className="w-full" disabled={isLoading}>
-              Sign up with Google
+              {t('signup.signUpWithGoogle')}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
-            Already have an account?{" "}
+            {t('signup.haveAccount')}{" "}
             <Link href="/login" className="underline">
-              Login
+              {t('login.loginButton')}
             </Link>
           </div>
         </CardContent>

@@ -1,3 +1,4 @@
+
 {
   "nav": {
     "dashboard": "Dashboard",
@@ -18,6 +19,172 @@
     "loginWithGoogle": "Login with Google",
     "noAccount": "Don't have an account?",
     "signUpLink": "Sign up"
+  },
+  "signup": {
+    "title": "Sign Up",
+    "description": "Enter your information to create an account",
+    "fullNameLabel": "Full name",
+    "createAccountButton": "Create an account",
+    "signUpWithGoogle": "Sign up with Google",
+    "haveAccount": "Already have an account?",
+    "firebaseNotConfiguredTitle": "Firebase Not Configured",
+    "firebaseNotConfiguredDesc": "Please add your Firebase credentials to the .env file.",
+    "successTitle": "Account Created!",
+    "successDesc": "You can now log in with your new account.",
+    "errorTitle": "Signup Failed",
+    "errorDefault": "An unexpected error occurred. Please try again.",
+    "errorEmailInUse": "This email is already in use. Please try another email or log in.",
+    "errorWeakPassword": "The password is too weak. Please choose a stronger password."
+  },
+  "dashboard": {
+    "title": "Dashboard for {storeName}",
+    "description": "Here's an overview of your store's performance.",
+    "totalSales": "Total Sales",
+    "totalSalesDesc": "Total revenue from all sales",
+    "totalOrders": "Total Orders",
+    "totalOrdersDesc": "Total number of orders placed",
+    "totalProducts": "Total Products",
+    "totalProductsDesc": "Total number of active products",
+    "overview": "Overview",
+    "recentSales": "Recent Sales"
+  },
+  "products": {
+    "title": "Products",
+    "description": "Manage your products and view their sales performance.",
+    "addProduct": "Add Product",
+    "image": "Image",
+    "name": "Name",
+    "status": "Status",
+    "price": "Price",
+    "stock": "Stock",
+    "actions": "Actions",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "footer": "Showing <strong>{start}-{end}</strong> of <strong>{total}</strong> products"
+  },
+  "productActions": {
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmTitle": "Are you absolutely sure?",
+    "confirmDescription": "This action cannot be undone. This will permanently delete this product and remove its data from our servers.",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "toast": {
+      "deletedTitle": "Product Deleted",
+      "deletedDesc": "The product has been successfully removed.",
+      "deleteFailedTitle": "Deletion Failed",
+      "deleteFailedDesc": "Could not delete the product."
+    }
+  },
+  "orders": {
+    "description": "Manage your orders and view their details.",
+    "export": "Export",
+    "customer": "Customer",
+    "status": "Status",
+    "date": "Date",
+    "amount": "Amount",
+    "actions": "Actions",
+    "toggleMenu": "Toggle menu",
+    "viewDetails": "View Details",
+    "markAsShipped": "Mark as Shipped",
+    "printReceipt": "Print Receipt",
+    "cancelOrder": "Cancel Order",
+    "footer": "Showing <strong>{start}-{end}</strong> of <strong>{total}</strong> orders",
+    "cancelDialog": {
+      "title": "Are you sure you want to cancel this order?",
+      "description": "This action cannot be undone. This will permanently mark order #{orderId} as cancelled.",
+      "cancel": "Close",
+      "confirm": "Yes, cancel order"
+    },
+    "toast": {
+      "updatedTitle": "Order Updated",
+      "cancelledTitle": "Order Cancelled",
+      "updateFailedTitle": "Update Failed"
+    }
+  },
+  "orderDetails": {
+    "title": "Order Details",
+    "back": "Back to Orders",
+    "orderId": "Order ID: {orderId}",
+    "invoice": "Invoice",
+    "summaryTitle": "Order Summary",
+    "total": "Total",
+    "shippingTitle": "Shipping Address",
+    "customerTitle": "Customer",
+    "paymentTitle": "Payment Details",
+    "paymentMethod": "Method",
+    "paymentDate": "Date"
+  },
+  "settings": {
+    "saveButton": "Save changes",
+    "toast": {
+      "failTitle": "Update Failed",
+      "failDesc": "An unknown error occurred."
+    },
+    "tabs": {
+      "profile": "Store Profile",
+      "billing": "Billing & Plan",
+      "payments": "Payments",
+      "seo": "SEO",
+      "appearance": "Appearance"
+    },
+    "profile": {
+      "title": "Store Profile",
+      "description": "Update your store's public details.",
+      "storeNameLabel": "Store Name",
+      "storeDescLabel": "Store Description",
+      "toast": {
+        "successTitle": "Profile Updated!",
+        "successDesc": "Your store details have been saved."
+      }
+    },
+    "billing": {
+      "title": "Billing & Plan",
+      "description": "Manage your subscription and view available plans.",
+      "currentPlan": "Current Plan",
+      "renews": "Your plan renews next month.",
+      "month": "month",
+      "currentPlanButton": "Current Plan",
+      "switchTo": "Switch to {planName}",
+      "toast": {
+        "successTitle": "Plan Updated!",
+        "successDesc": "Your store is now on the {planName} plan."
+      }
+    },
+    "payments": {
+      "title": "Payment Gateways",
+      "description": "Connect your payment providers.",
+      "notConnected": "Not Connected",
+      "connectButton": "Connect"
+    },
+    "seo": {
+      "title": "SEO Settings",
+      "description": "Improve your store's visibility on search engines.",
+      "metaTitleLabel": "Meta Title",
+      "metaDescLabel": "Meta Description",
+      "metaKeywordsLabel": "Meta Keywords",
+      "suggestWithAI": "Suggest with AI",
+      "toast": {
+        "successTitle": "SEO Settings Saved",
+        "successDesc": "Your storefront has been updated.",
+        "failDesc": "Could not save SEO settings.",
+        "aiSuccessTitle": "Keywords Suggested",
+        "aiSuccessDesc": "AI has generated new keywords based on your store description.",
+        "aiFailTitle": "Suggestion Failed",
+        "aiFailDesc": "Could not get AI suggestions."
+      }
+    },
+    "appearance": {
+      "title": "Appearance",
+      "description": "Customize the look and feel of your store and dashboard.",
+      "themes": {
+        "default": "Default",
+        "forest": "Forest",
+        "ruby": "Ruby",
+        "amethyst": "Amethyst"
+      }
+    }
   },
   "storefront": {
     "heroTitle": "Discover the Soul of Nepal at {storeName}",

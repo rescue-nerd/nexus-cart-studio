@@ -24,8 +24,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { deleteProduct } from "@/app/(app)/products/actions";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/use-translation";
 
 export function ProductActions({ productId }: { productId: string }) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
@@ -35,15 +37,15 @@ export function ProductActions({ productId }: { productId: string }) {
       const result = await deleteProduct(productId);
       if (result.success) {
         toast({
-          title: "Product Deleted",
-          description: "The product has been successfully removed.",
+          title: t('productActions.toast.deletedTitle'),
+          description: t('productActions.toast.deletedDesc'),
         });
         setIsAlertOpen(false);
       } else {
         toast({
           variant: "destructive",
-          title: "Deletion Failed",
-          description: result.message || "Could not delete the product.",
+          title: t('productActions.toast.deleteFailedTitle'),
+          description: result.message || t('productActions.toast.deleteFailedDesc'),
         });
       }
     });
@@ -54,17 +56,16 @@ export function ProductActions({ productId }: { productId: string }) {
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('productActions.confirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete this
-              product and remove its data from our servers.
+              {t('productActions.confirmDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isPending}>{t('productActions.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} disabled={isPending} className="bg-destructive hover:bg-destructive/90">
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Continue
+                {t('productActions.continue')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -78,15 +79,15 @@ export function ProductActions({ productId }: { productId: string }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>{t('productActions.actions')}</DropdownMenuLabel>
           <DropdownMenuItem asChild>
-            <Link href={`/products/edit/${productId}`}>Edit</Link>
+            <Link href={`/products/edit/${productId}`}>{t('productActions.edit')}</Link>
           </DropdownMenuItem>
           <DropdownMenuItem
             className="text-destructive focus:bg-destructive/10 focus:text-destructive"
             onClick={() => setIsAlertOpen(true)}
           >
-            Delete
+            {t('productActions.delete')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
