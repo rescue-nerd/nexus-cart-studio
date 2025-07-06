@@ -8,63 +8,72 @@ async function getStore(domain: string) {
 }
 
 export async function middleware(request: NextRequest) {
-  const url = request.nextUrl.clone();
-  const hostname = url.hostname;
+  const { pathname } = request.nextUrl;
+  const hostname = request.nextUrl.hostname;
 
-  // Let static files and API routes pass through
-  if (url.pathname.startsWith('/_next') || url.pathname.startsWith('/api')) {
-    return NextResponse.next();
+  // This session cookie is the standard way to check for authentication in middleware.
+  // It would need to be set via a server endpoint after a successful Firebase login on the client.
+  const sessionCookie = request.cookies.get('session')?.value;
+
+  // --- Authentication Logic ---
+  const protectedRoutes = ['/dashboard', '/products', '/orders', '/settings', '/admin'];
+  const authRoutes = ['/login', '/signup'];
+
+  const isProtectedRoute = protectedRoutes.some(p => pathname.startsWith(p));
+  const isAuthRoute = authRoutes.some(p => pathname.startsWith(p));
+
+  // If trying to access a protected route without a session, redirect to login
+  if (!sessionCookie && isProtectedRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    // Store the intended destination to redirect back to after login
+    url.searchParams.set('redirectedFrom', pathname);
+    return NextResponse.redirect(url);
   }
 
-  // Find a store that matches the hostname.
-  // NOTE: This makes a DB call on each request. Caching is needed for production.
+  // If logged in and trying to access login/signup page, redirect to dashboard
+  if (sessionCookie && isAuthRoute) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+
+  // --- Multi-tenancy & Rewriting Logic ---
+  const requestHeaders = new Headers(request.headers);
   const store = await getStore(hostname).catch(err => {
     console.error("Middleware DB Error:", err);
     return null;
   });
 
-  const requestHeaders = new Headers(request.headers);
-
+  // Attach store ID to headers if a store domain is detected
   if (store) {
     requestHeaders.set('x-store-id', store.id);
-
-    // Rewrite to the /store path for the root domain
-    if (url.pathname === '/') {
-      url.pathname = `/store`;
-    }
-    
-    return NextResponse.rewrite(url, {
-      request: {
-        headers: requestHeaders,
-      },
-    });
   }
 
-  // For app routes on the main domain (e.g., localhost/dashboard)
-  const isAppRoute = ['/dashboard', '/products', '/orders', '/settings'].some(p => url.pathname.startsWith(p));
-  if (isAppRoute && !store) {
-    // On the main domain, we don't know which store to show.
-    // A real app would have a store selector or redirect to a default.
-    // For now, we deny access to prevent errors.
-    // A better approach would be to redirect to a page explaining to use the store's domain.
-    url.pathname = '/login'; // Redirect to login, a safe default
-    return NextResponse.redirect(url);
+  // Rewrite the root of a store domain to the /store path
+  if (store && pathname === '/') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/store';
+      return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
   }
-  
-  // Allow access to /admin, /login, etc. on the main domain.
-  return NextResponse.next();
+
+  // For all other requests, just continue with the appropriate headers
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 }
 
 export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
+     * - api/ (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - manifest.json (pwa manifest)
      * - icons/ (pwa icons)
-     * - api/ (API routes)
      */
     '/((?!api|_next/static|_next/image|favicon.ico|manifest.json|icons).*)',
   ],

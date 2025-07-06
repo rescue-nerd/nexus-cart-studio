@@ -165,6 +165,7 @@ erDiagram
 
 ### Features 100% Complete
 - **User Authentication (Firebase)**: Fully functional login and signup using Firebase Auth. UI and backend logic are complete.
+- **Route Protection**: The `middleware.ts` file now protects all admin routes (e.g., `/dashboard`, `/settings`, `/admin`) by checking for a session cookie and redirecting unauthenticated users to the login page.
 - **Database Persistence (Firestore)**: All application data (Stores, Products, Orders) is now persisted in Firebase Firestore. All Server Actions correctly interact with the database via the service layer in `src/lib/firebase-service.ts`.
 - **Theme/Color Selection**: Theming system is fully implemented with 7+ themes. Users can select a theme, and it's applied across the dashboard and storefront. State is persisted in `localStorage`.
 - **Multilingual Support**: The entire UI is translated into English and Nepali. A `useTranslation` hook and language files (`/src/locales`) manage all text. User preference is persisted.
@@ -250,6 +251,7 @@ The application uses **Next.js Server Actions** instead of a traditional API. Al
 
 ### Live & Production-Ready (Conceptually)
 - User Authentication (Login, Signup).
+- **Route Protection**: All admin and dashboard routes are now protected by middleware.
 - The entire data layer and database persistence via Firebase Firestore.
 - The entire user interface, including multilingual support and theme selection.
 - All admin actions and forms, which are correctly wired to server actions that modify the database.
@@ -265,9 +267,10 @@ The application uses **Next.js Server Actions** instead of a traditional API. Al
 
 ### Not Started
 - eSewa Refunds (API not provided).
-- Activity logging and auditing.
+- Activity logs and auditing.
 - Email sending infrastructure.
 - Database backups, migrations, and seeding strategy.
+- **Client-side Session Cookie**: The middleware requires a `session` cookie to be set for authentication, but the logic to create this cookie on the client after login is not yet implemented.
 
 ---
 
@@ -310,12 +313,12 @@ TWILIO_WHATSAPP_FROM_NUMBER=
 ### Security Measures
 - **Authentication**: Handled by Firebase Auth, which is robust and secure.
 - **Input Validation**: Client-side validation is performed with `zod` and `react-hook-form`. Basic server-side checks are present in most actions.
-- **Route Protection**: The `middleware.ts` file routes traffic based on hostname and sets a `x-store-id` header. It does not currently protect routes based on user authentication status or role; this should be added.
+- **Route Protection**: The `middleware.ts` file now protects all admin and dashboard routes (`/dashboard`, `/settings`, etc.). It checks for a server-side session cookie and redirects unauthenticated users to the login page.
 - **CORS**: Handled by Next.js defaults.
 - **Password Storage**: Handled securely by Firebase.
 
 ### Recommendations
-- **Add Authentication to Middleware**: The middleware should be updated to protect admin routes (`/dashboard`, `/settings`, etc.) and superadmin routes (`/admin`) by validating the user's Firebase session via cookies or tokens.
+- **Implement Session Cookie on Login**: The middleware is now configured to protect routes based on a `session` cookie. The client-side authentication logic must be updated to create this cookie (e.g., via a serverless function that validates the Firebase ID token) after a user successfully logs in.
 - **Implement Firestore Security Rules**: Add robust security rules to your Firestore database to prevent unauthorized data access directly from the client.
 - **Implement Role-Based Access Control (RBAC)**: Enforce user roles (e.g., 'store_owner', 'super_admin') in server actions to prevent unauthorized data access.
 
@@ -328,10 +331,9 @@ TWILIO_WHATSAPP_FROM_NUMBER=
 2.  **Analytics Data**: The dashboard analytics are currently randomized. A real implementation should aggregate data from the `orders` collection.
 
 ### Best Practices & Next Steps
-1.  **Implement a Real Payment Gateway**: Integrate a provider like Stripe, Khalti, or eSewa for automated payments. This will involve handling webhooks for payment confirmation.
-2.  **Set Up Logging and Monitoring**: Integrate a service like Sentry or Logtail for error tracking and application monitoring.
-3.  **Define Firestore Security Rules**: This is crucial for securing your database before going to production.
-4.  **Create a CI/CD Pipeline**: Automate testing and deployment using GitHub Actions or a similar service.
+1.  **Set Up Logging and Monitoring**: Integrate a service like Sentry or Logtail for error tracking and application monitoring.
+2.  **Define Firestore Security Rules**: This is crucial for securing your database before going to production.
+3.  **Create a CI/CD Pipeline**: Automate testing and deployment using GitHub Actions or a similar service.
 
 ### Blockers
 - **External Service Credentials**: Full real-time payment functionality is blocked pending the acquisition and configuration of API keys for a payment gateway.
