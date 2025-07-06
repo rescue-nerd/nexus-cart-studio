@@ -253,7 +253,10 @@
         "default": "Default",
         "forest": "Forest",
         "ruby": "Ruby",
-        "amethyst": "Amethyst"
+        "amethyst": "Amethyst",
+        "sapphire": "Sapphire",
+        "sunset": "Sunset",
+        "jade": "Jade"
       }
     }
   },

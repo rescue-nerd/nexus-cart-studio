@@ -92,10 +92,13 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
   };
 
   const themes = [
-    { name: 'default', label: t('settings.appearance.themes.default'), colors: ['#619bc9', '#f6f8fa'] },
-    { name: 'forest', label: t('settings.appearance.themes.forest'), colors: ['#1a9a52', '#f9fafb'] },
-    { name: 'ruby', label: t('settings.appearance.themes.ruby'), colors: ['#d62558', '#fafafa'] },
-    { name: 'amethyst', label: t('settings.appearance.themes.amethyst'), colors: ['#8a42e2', '#f9f5ff'] },
+    { name: 'default', label: t('settings.appearance.themes.default'), colors: ['#60A9CA', '#F0F4F8'] },
+    { name: 'forest', label: t('settings.appearance.themes.forest'), colors: ['#228B22', '#F5F5DC'] },
+    { name: 'ruby', label: t('settings.appearance.themes.ruby'), colors: ['#E0115F', '#FDEEF4'] },
+    { name: 'amethyst', label: t('settings.appearance.themes.amethyst'), colors: ['#9966CC', '#F3F0F9'] },
+    { name: 'sapphire', label: t('settings.appearance.themes.sapphire'), colors: ['#0F52BA', '#F0F8FF'] },
+    { name: 'sunset', label: t('settings.appearance.themes.sunset'), colors: ['#FD5E53', '#FFF0E5'] },
+    { name: 'jade', label: t('settings.appearance.themes.jade'), colors: ['#00A86B', '#F0FFF0'] },
   ];
 
   const handlePlanChange = (newPlanId: string) => {
@@ -231,7 +234,7 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
                 <CardContent className="space-y-6">
                     {currentPlan && (
                         <div className="rounded-lg border bg-card text-card-foreground p-6">
-                           <h3 className="text-lg font-semibold mb-2">{t('settings.billing.currentPlan')}: {currentPlan.name}</h3>
+                           <h3 className="text-lg font-semibold mb-2">{t('settings.billing.currentPlan')}: {t(`plans.${currentPlan.id}.name`)}</h3>
                            <p className="text-muted-foreground mb-4">{t('settings.billing.renews')}</p>
                            <ul className="space-y-2 text-sm">
                                 {currentPlan.features.map(feature => (
@@ -357,7 +360,7 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
                 {themes.map((themeOption) => (
                   <div key={themeOption.name}>
                     <Button
