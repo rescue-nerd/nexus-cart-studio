@@ -42,7 +42,10 @@ const nextConfig: NextConfig = {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         stream: require.resolve('stream-browserify'),
+        'node:stream': require.resolve('stream-browserify'),
         crypto: require.resolve('crypto-browserify'),
+        process: require.resolve('process/browser'),
+        'node:process': require.resolve('process/browser'),
       };
     }
 
