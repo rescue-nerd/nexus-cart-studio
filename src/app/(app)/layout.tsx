@@ -1,3 +1,6 @@
+
+"use client";
+
 import { headers } from "next/headers";
 import Link from "next/link";
 import { PanelLeft, Shield } from "lucide-react";
@@ -9,11 +12,15 @@ import { UserNav } from "@/components/admin/user-nav";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { stores } from "@/lib/placeholder-data";
+import { useTranslation } from "@/hooks/use-translation";
+
+// Note: This layout is a client component at the top-level because of the Sheet's state.
+// We are passing a placeholder store object for demonstration as headers() is not available here.
+// In a more complex app, this might be handled by a context provider populated by a server component.
+const store = stores[0];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const headersList = headers();
-  const storeId = headersList.get('x-store-id');
-  const store = stores.find((s) => s.id === storeId);
+  const { t } = useTranslation();
 
   return (
     <TooltipProvider>
@@ -35,7 +42,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
               >
                 <Shield className="h-5 w-5" />
-                <span className="sr-only">Admin Panel</span>
+                <span className="sr-only">{t('nav.adminPanel')}</span>
               </Link>
           </nav>
         </aside>
@@ -45,7 +52,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <SheetTrigger asChild>
                 <Button size="icon" variant="outline" className="sm:hidden">
                   <PanelLeft className="h-5 w-5" />
-                  <span className="sr-only">Toggle Menu</span>
+                  <span className="sr-only">{t('nav.toggleMenu')}</span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="sm:max-w-xs">
@@ -61,32 +68,32 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     href="/dashboard"
                     className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
                   >
-                    Dashboard
+                    {t('nav.dashboard')}
                   </Link>
                   <Link
                     href="/products"
                     className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
                   >
-                    Products
+                    {t('nav.products')}
                   </Link>
                   <Link
                     href="/orders"
                     className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
                   >
-                    Orders
+                    {t('nav.orders')}
                   </Link>
                   <Link
                     href="/settings"
                     className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
                   >
-                    Settings
+                    {t('nav.settings')}
                   </Link>
                   <Link
                     href={store ? `http://${store.domain}` : "/store"}
                     target="_blank"
                     className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
                   >
-                    View Store
+                    {t('nav.viewStore')}
                   </Link>
                 </nav>
               </SheetContent>

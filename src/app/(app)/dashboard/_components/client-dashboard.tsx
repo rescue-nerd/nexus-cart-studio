@@ -1,3 +1,4 @@
+
 "use client";
 
 import { DollarSign, Package, ShoppingCart } from "lucide-react";
@@ -67,7 +68,7 @@ export function ClientDashboard({ store, analytics }: ClientDashboardProps) {
             <CardTitle>{t("dashboard.recentSales")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <RecentSales storeId={store.id} />
+            <RecentSales storeId={store.id} noSalesMessage={t('dashboard.noRecentSales')} />
           </CardContent>
         </Card>
       </div>

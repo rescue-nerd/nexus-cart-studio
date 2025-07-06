@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useTransition, useRef, useEffect } from "react";
@@ -63,7 +64,7 @@ export function AIChat() {
             size="icon"
           >
             <Bot className="h-8 w-8" />
-            <span className="sr-only">Open AI Chat</span>
+            <span className="sr-only">{t('storefront.aiChat.openChat')}</span>
           </Button>
         </SheetTrigger>
         <SheetContent className="flex flex-col">

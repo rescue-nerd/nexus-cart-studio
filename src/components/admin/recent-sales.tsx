@@ -1,3 +1,4 @@
+
 import {
   Avatar,
   AvatarFallback,
@@ -5,14 +6,14 @@ import {
 } from "@/components/ui/avatar";
 import { orders as allOrders } from "@/lib/placeholder-data";
 
-export function RecentSales({ storeId }: { storeId: string }) {
+export function RecentSales({ storeId, noSalesMessage }: { storeId: string, noSalesMessage: string }) {
   const storeOrders = allOrders.filter(o => o.storeId === storeId);
   const recentOrders = storeOrders.slice(0, 5);
 
   if (recentOrders.length === 0) {
     return (
       <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-        No recent sales for this store.
+        {noSalesMessage}
       </div>
     );
   }
