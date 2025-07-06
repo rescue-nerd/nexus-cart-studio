@@ -2,7 +2,7 @@
 # NexusCart Technical Handoff & System Overview
 
 **Date:** {current_date}
-**Version:** 1.1 - Post-Firestore Migration
+**Version:** 1.2 - Post-Manual-Payments Implementation
 
 This document provides a comprehensive overview of the NexusCart application's architecture, database schema, feature status, and deployment requirements. It is intended for developers, project managers, and new team members.
 
@@ -36,6 +36,7 @@ erDiagram
         string plan_id FK
         string theme
         string language
+        json payment_settings
         datetime created_at
     }
 
@@ -84,6 +85,7 @@ erDiagram
         string user_id FK "nullable"
         string status
         decimal total_amount
+        string payment_method
         text shipping_address
         string customer_name
         string customer_email
@@ -170,15 +172,17 @@ erDiagram
 - **Multilingual Support**: The entire UI is translated into English and Nepali. A `useTranslation` hook and language files (`/src/locales`) manage all text. User preference is persisted.
 - **AI Product Description (UI/Backend)**: The "Generate with AI" buttons on the Add/Edit Product pages are fully functional, calling a Genkit flow to populate the description field.
 - **PWA Support**: The application is configured as a Progressive Web App with a manifest file and service worker registration.
+- **Manual Payment Gateway Configuration**: Store owners can configure their own payment details for "Cash on Delivery," "QR Code Payments," and "Bank Transfers" via the settings dashboard. This includes QR code image uploads and structured bank account details.
+- **Manual Checkout Flow**: The storefront checkout process is fully implemented for COD, QR, and Bank Transfer methods. It dynamically displays the store-specific payment information to the customer and creates orders in Firestore with a "Processing" status for manual verification by the seller.
 - **Admin Actions (UI & Logic)**:
     - Products: "Add", "Edit", and "Delete" are fully functional, persisting to Firestore.
     - Orders: "View Details," "Mark as Shipped," and "Cancel Order" are functional, persisting to Firestore.
-    - Settings: Saving "Store Profile," "SEO," and "Plan" changes works, persisting to Firestore.
+    - Settings: Saving "Store Profile," "SEO," and "Payments" changes works, persisting to Firestore.
     - Superadmin: "Add New Store" and store status changes are fully implemented, persisting to Firestore.
 
 ### UI/Foundation Only (Backend Logic is Mocked or Incomplete)
-- **Cloud Storage/Image Upload**: A `storage-service` exists and is integrated. It correctly uploads to a real Google Cloud Storage bucket if credentials are provided in `.env`, but falls back to placeholder images otherwise.
-- **Payment Gateway Integration**: UI for COD, eSewa, and WhatsApp is complete. The Server Action `placeOrder` creates real orders in Firestore. It does **not** connect to any real payment gateway API for processing money.
+- **Cloud Storage/Image Upload**: The `storage-service` is fully implemented and integrated with Google Cloud Storage. Image uploads work if credentials are provided.
+- **Automated Payment Gateway Integration**: The system does **not** yet connect to any real-time payment gateway API (like Stripe, Khalti, or eSewa) for processing money automatically.
 - **Plan Management & Subscription Logic**: UI for changing plans is complete. The backend action updates the store's `planId` in Firestore but does not handle billing, payments, or subscription lifecycle events (e.g., renewals, cancellations).
 - **Product Category Management**: UI does not exist for dynamic category management. Categories are currently static and defined in a config file.
 - **Notification Flows (WhatsApp)**: The `sendWhatsAppNotification` flow is implemented. It will send real messages via Twilio if credentials are provided, but falls back to `console.log` otherwise. There is no persistent logging of sent notifications to a database.
@@ -207,13 +211,15 @@ The application uses **Next.js Server Actions** instead of a traditional API. Al
 ### Module: Settings (`/app/(app)/settings/actions.ts`)
 - `updateStoreProfile(storeId, formData)`: Updates a store document's name and description in Firestore.
 - `updateStorePlan(storeId, newPlanId)`: Updates a store document's planId in Firestore.
+- `updatePaymentSettings(storeId, formData)`: Updates a store's payment details, including QR code image upload and bank info.
 - `updateSeoSettings(storeId, data)`: Updates a store document's meta fields in Firestore.
 - `suggestKeywordsAction(description)`: Calls Genkit flow to suggest SEO keywords.
 
 ### Module: Checkout (`/app/store/checkout/actions.ts`)
 - `placeOrder(values, cartItems, lang)`: The main checkout handler.
-    - If payment method is 'whatsapp', it constructs a `wa.me` link.
-    - If 'cod' or 'esewa', it creates a new document in the `orders` collection in Firestore and triggers notifications.
+    - If payment method is 'cod', creates an order with 'Pending' status.
+    - If 'qr' or 'bank', it creates an order with 'Processing' status for manual seller verification.
+    - It triggers notifications for the new order.
 
 ### Module: AI & Notifications
 - **AI Flows (`/src/ai/flows/*.ts`):** Genkit flows for product description generation, SEO keyword suggestion, and a chat assistant. They are self-contained and called by Server Actions.
@@ -223,7 +229,7 @@ The application uses **Next.js Server Actions** instead of a traditional API. Al
 - **Firebase**: For user authentication and database (Firestore). Fully implemented.
 - **Genkit (Google AI)**: For all AI features. Fully implemented.
 - **Twilio**: For WhatsApp messages. Implemented with a "simulation" mode if keys are not present.
-- **Google Cloud Storage**: For image uploads. Implemented with a placeholder fallback if not configured.
+- **Google Cloud Storage**: For image uploads. Implemented and fully functional.
 
 ---
 
@@ -236,10 +242,11 @@ The application uses **Next.js Server Actions** instead of a traditional API. Al
 - All admin actions and forms, which are correctly wired to server actions that modify the database.
 - AI features for content generation.
 - PWA configuration.
+- Manual payment configuration (QR, Bank, COD) by store owners.
 
 ### UI Only / Mocked Backend
-- **Payment processing**. The app does not connect to eSewa or any other gateway.
-- **Subscription billing**. The app does not handle recurring payments or subscription lifecycle management.
+- **Automated Payment Processing**: The app does not connect to a real-time gateway like eSewa. All non-COD payments require manual verification by the store owner.
+- **Subscription Billing**: The app does not handle recurring payments or subscription lifecycle management.
 - **Real-time Analytics**: The dashboard uses randomized data, not real aggregates from the database.
 
 ### Not Started
@@ -279,7 +286,7 @@ GCS_BUCKET_NAME=
 # The full JSON key file content as a single-line string
 GOOGLE_APPLICATION_CREDENTIALS_JSON=
 
-# Twilio (Required for real WhatsApp notifications)
+# Twilio (Optional, for real WhatsApp notifications)
 TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
 TWILIO_WHATSAPP_FROM_NUMBER=
@@ -306,10 +313,11 @@ TWILIO_WHATSAPP_FROM_NUMBER=
 2.  **Analytics Data**: The dashboard analytics are currently randomized. A real implementation should aggregate data from the `orders` collection.
 
 ### Best Practices & Next Steps
-1.  **Implement a Real Payment Gateway**: Integrate a provider like Stripe, Khalti, or eSewa. This will involve handling webhooks for payment confirmation.
+1.  **Implement a Real Payment Gateway**: Integrate a provider like Stripe, Khalti, or eSewa for automated payments. This will involve handling webhooks for payment confirmation.
 2.  **Set Up Logging and Monitoring**: Integrate a service like Sentry or Logtail for error tracking and application monitoring.
 3.  **Define Firestore Security Rules**: This is crucial for securing your database before going to production.
 4.  **Create a CI/CD Pipeline**: Automate testing and deployment using GitHub Actions or a similar service.
 
 ### Blockers
-- **External Service Credentials**: Full payment and notification functionality is blocked pending the acquisition and configuration of API keys for Twilio and a payment gateway.
+- **External Service Credentials**: Full real-time payment functionality is blocked pending the acquisition and configuration of API keys for a payment gateway.
+
