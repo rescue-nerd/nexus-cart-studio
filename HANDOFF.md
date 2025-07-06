@@ -292,7 +292,15 @@ The application uses **Next.js Server Actions** and **API Routes** for backend l
 The following variables must be set in a `.env` file for full functionality. **Missing variables will cause features to run in a simulated/degraded mode.**
 
 ```env
+# ------------------
 # Firebase Client SDK (Required for client-side Auth & DB)
+# ------------------
+# To get these values:
+# 1. Go to your Firebase Console.
+# 2. Click the Gear icon > Project settings.
+# 3. In the "General" tab, scroll down to the "Your apps" section.
+# 4. Find your Web App and click on the "SDK setup and configuration" button.
+# 5. Select "Config" and copy the values into the variables below.
 NEXT_PUBLIC_FIREBASE_API_KEY=
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=
@@ -300,14 +308,18 @@ NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
 
+# ------------------
 # Firebase Admin SDK (Required for server-side session management & route protection)
+# ------------------
 # To get this:
 # 1. Go to your Firebase Console > Project Settings > Service accounts.
 # 2. Click "Generate new private key" and download the JSON file.
 # 3. Open the file, copy its entire contents, and paste it here as a single-line string.
 FIREBASE_ADMIN_SDK_JSON=
 
+# ------------------
 # Google Cloud Storage (Required for real image uploads)
+# ------------------
 GCS_PROJECT_ID=
 GCS_BUCKET_NAME=
 # The full JSON key file content as a single-line string
@@ -340,4 +352,5 @@ GOOGLE_APPLICATION_CREDENTIALS_JSON=
 
 ### Blockers
 - **External Service Credentials**: Full functionality for certain features (GCS, Firebase Admin) is blocked pending the acquisition and configuration of API keys and credentials.
+
 

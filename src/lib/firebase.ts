@@ -15,8 +15,9 @@ const firebaseConfig: FirebaseOptions = {
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 
-// Only initialize if the API key is provided, preventing crashes
-if (firebaseConfig.apiKey) {
+const isConfigured = firebaseConfig.apiKey && firebaseConfig.projectId;
+
+if (isConfigured) {
   try {
     app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
     auth = getAuth(app);
@@ -27,12 +28,22 @@ if (firebaseConfig.apiKey) {
     auth = null;
   }
 } else {
-    // Log a warning if Firebase is not configured.
+    // Log a more detailed warning if Firebase is not configured.
     console.warn(`
 ----------------------------------------------------------------
-NOTICE: Firebase is not configured. 
-Authentication features will not work.
-To enable authentication, add your Firebase project credentials to your .env file.
+NOTICE: Client-side Firebase is not configured. 
+Authentication and client-side database features will not work.
+To enable them, add your Firebase project's web app credentials to your .env file.
+
+The following variables are required:
+- NEXT_PUBLIC_FIREBASE_API_KEY
+- NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+- NEXT_PUBLIC_FIREBASE_PROJECT_ID
+- NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+- NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+- NEXT_PUBLIC_FIREBASE_APP_ID
+
+See HANDOFF.md for instructions on where to find these values in your Firebase console.
 ----------------------------------------------------------------
 `);
 }
