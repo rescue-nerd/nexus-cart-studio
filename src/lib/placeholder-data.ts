@@ -123,7 +123,10 @@ export type Order = {
   storeId: string;
   customerName: string;
   customerEmail: string;
-  customerPhone?: string;
+  customerPhone: string;
+  address: string;
+  city: string;
+  paymentMethod: 'WhatsApp' | 'COD' | 'eSewa';
   date: string;
   status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
   total: number;
@@ -228,11 +231,11 @@ export const products: Product[] = [
 ];
 
 export const orders: Order[] = [
-  { id: 'ORD-001', storeId: 'store_001', customerName: 'Rohan Shrestha', customerEmail: 'rohan.s@example.com', customerPhone: '+9779800000001', date: '2023-10-26', status: 'Delivered', total: 85.00 },
-  { id: 'ORD-002', storeId: 'store_002', customerName: 'Anjali Lama', customerEmail: 'anjali.l@example.com', customerPhone: '+9779800000002', date: '2023-10-25', status: 'Delivered', total: 150.00 },
-  { id: 'ORD-003', storeId: 'store_001', customerName: 'Bikram Thapa', customerEmail: 'bikram.t@example.com', customerPhone: '+9779800000003', date: '2023-10-25', status: 'Shipped', total: 25.00 },
-  { id: 'ORD-004', storeId: 'store_002', customerName: 'Sunita Gurung', customerEmail: 'sunita.g@example.com', customerPhone: '+9779800000004', date: '2023-10-24', status: 'Processing', total: 60.00 },
-  { id: 'ORD-005', storeId: 'store_001', customerName: 'Karma Sherpa', customerEmail: 'karma.s@example.com', customerPhone: '+9779800000005', date: '2023-10-23', status: 'Pending', total: 95.00 },
+  { id: 'ORD-001', storeId: 'store_001', customerName: 'Rohan Shrestha', customerEmail: 'rohan.s@example.com', customerPhone: '+9779800000001', address: '123 Kumaripati', city: 'Lalitpur', paymentMethod: 'eSewa', date: '2023-10-26', status: 'Delivered', total: 85.00 },
+  { id: 'ORD-002', storeId: 'store_002', customerName: 'Anjali Lama', customerEmail: 'anjali.l@example.com', customerPhone: '+9779800000002', address: '456 Thamel', city: 'Kathmandu', paymentMethod: 'COD', date: '2023-10-25', status: 'Delivered', total: 150.00 },
+  { id: 'ORD-003', storeId: 'store_001', customerName: 'Bikram Thapa', customerEmail: 'bikram.t@example.com', customerPhone: '+9779800000003', address: '789 Boudha', city: 'Kathmandu', paymentMethod: 'eSewa', date: '2023-10-25', status: 'Shipped', total: 25.00 },
+  { id: 'ORD-004', storeId: 'store_002', customerName: 'Sunita Gurung', customerEmail: 'sunita.g@example.com', customerPhone: '+9779800000004', address: '101 Lakeside', city: 'Pokhara', paymentMethod: 'COD', date: '2023-10-24', status: 'Processing', total: 60.00 },
+  { id: 'ORD-005', storeId: 'store_001', customerName: 'Karma Sherpa', customerEmail: 'karma.s@example.com', customerPhone: '+9779800000005', address: '212 Namche Bazaar', city: 'Solukhumbu', paymentMethod: 'WhatsApp', date: '2023-10-23', status: 'Pending', total: 95.00 },
 ];
 
 export const storeConfig = {

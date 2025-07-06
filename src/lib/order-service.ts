@@ -27,8 +27,10 @@ function formatBuyerMessage(order: Order): string {
 Your order #${order.id} from ${storeConfig.name} has been updated.
 
 Status: *${order.status}*
+Payment Method: ${order.paymentMethod}
 Total: Rs ${order.total.toFixed(2)}
 Items: ${productDetails}
+Shipping Address: ${order.address}, ${order.city}
 
 Thank you for your purchase!`;
 }
@@ -46,8 +48,10 @@ function formatSellerMessage(order: Order): string {
 Order #${order.id}
 Customer: ${order.customerName}
 Status: *${order.status}*
+Payment Method: ${order.paymentMethod}
 Total: Rs ${order.total.toFixed(2)}
 Items: ${productDetails}
+Shipping to: ${order.address}, ${order.city}
 
 Contact: ${order.customerEmail} / ${order.customerPhone}`;
 }
