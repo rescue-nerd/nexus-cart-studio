@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -55,7 +56,18 @@ export default function LoginPage() {
       });
 
       if (!res.ok) {
-          throw new Error('Failed to create session');
+          let errorMessage = 'Failed to create session. Please try again.';
+          try {
+            const errorBody = await res.json();
+            if (errorBody.error === 'Firebase Admin not configured') {
+              errorMessage = 'Server is not configured for sessions. Please check server logs or contact support.';
+            } else if (errorBody.error) {
+              errorMessage = errorBody.error;
+            }
+          } catch (e) {
+            // Ignore if response is not JSON and use the default message.
+          }
+          throw new Error(errorMessage);
       }
 
       toast({
@@ -73,7 +85,7 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: t('login.errorTitle'),
-        description: t('login.errorDesc'),
+        description: error.message || t('login.errorDesc'),
       });
     } finally {
       setIsLoading(false);
