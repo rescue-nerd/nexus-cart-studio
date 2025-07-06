@@ -1,6 +1,5 @@
 import type {NextConfig} from 'next';
 import withPWAInit from '@ducanh2912/next-pwa';
-import path from 'path';
 
 const withPWA = withPWAInit({
   dest: 'public',
@@ -10,41 +9,6 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
-  webpack: (config, { isServer }) => {
-    // Only apply these polyfills for client-side bundles
-    if (!isServer) {
-      // Polyfill Node.js modules for client-side
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-        child_process: false,
-        'node:process': false,
-        'node:stream': false,
-        'node:buffer': false,
-        'node:util': false,
-        'node:url': false,
-        'node:http': false,
-        'node:https': false,
-        'node:zlib': false,
-        'node:path': false,
-        'node:crypto': false,
-        process: false,
-        stream: false,
-        buffer: false,
-        util: false,
-        url: false,
-        http: false,
-        https: false,
-        zlib: false,
-        path: false,
-        crypto: false,
-      };
-    }
-    
-    return config;
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -76,11 +40,30 @@ const nextConfig: NextConfig = {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        stream: require.resolve('stream-browserify'),
-        'node:stream': require.resolve('stream-browserify'),
-        crypto: require.resolve('crypto-browserify'),
-        process: require.resolve('process/browser'),
+        fs: false,
+        net: false,
+        tls: false,
+        child_process: false,
         'node:process': require.resolve('process/browser'),
+        'node:stream': require.resolve('stream-browserify'),
+        'node:buffer': false,
+        'node:util': false,
+        'node:url': false,
+        'node:http': false,
+        'node:https': false,
+        'node:zlib': false,
+        'node:path': false,
+        'node:crypto': require.resolve('crypto-browserify'),
+        process: require.resolve('process/browser'),
+        stream: require.resolve('stream-browserify'),
+        buffer: false,
+        util: false,
+        url: false,
+        http: false,
+        https: false,
+        zlib: false,
+        path: false,
+        crypto: require.resolve('crypto-browserify'),
       };
     }
 
