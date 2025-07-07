@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useTransition } from "react"
@@ -65,6 +64,14 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
   const [metaDescription, setMetaDescription] = useState(store.metaDescription || '');
   const [metaKeywords, setMetaKeywords] = useState(store.metaKeywords || '');
 
+  const seoForm = useForm({
+    defaultValues: {
+      metaTitle: metaTitle || "",
+      metaDescription: metaDescription || "",
+      metaKeywords: metaKeywords || "",
+    },
+  });
+
   const profileFormSchema = z.object({
     name: z.string().min(2, t('zod.settings.nameLength')),
     description: z.string().optional(),
@@ -110,7 +117,6 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
     }
   });
 
-
   const onProfileSubmit = (values: ProfileFormValues) => {
     startProfileTransition(async () => {
       const formData = new FormData();
@@ -148,6 +154,29 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
         } else {
             toast({ variant: "destructive", title: t('error.genericTitle'), description: t(result.messageKey) });
         }
+    });
+  };
+
+  const onSeoSubmit = (values: { metaTitle: string; metaDescription: string; metaKeywords: string }) => {
+    startSeoTransition(async () => {
+      const result = await updateSeoSettings(store.id, {
+        title: values.metaTitle,
+        description: values.metaDescription,
+        keywords: values.metaKeywords,
+      });
+
+      if (result.success) {
+        toast({
+          title: t('settings.seo.toast.successTitle'),
+          description: t(result.messageKey),
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: t('error.genericTitle'),
+          description: t(result.messageKey),
+        });
+      }
     });
   };
 
@@ -529,40 +558,44 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
           </Form>
         </TabsContent>
         <TabsContent value="seo">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('settings.seo.title')}</CardTitle>
-              <CardDescription>
-                {t('settings.seo.description')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-1">
-                <FormLabel htmlFor="meta-title">{t('settings.seo.metaTitleLabel')}</FormLabel>
-                <Input id="meta-title" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} />
-              </div>
-              <div className="space-y-1">
-                <FormLabel htmlFor="meta-description">{t('settings.seo.metaDescLabel')}</FormLabel>
-                <Textarea id="meta-description" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} />
-              </div>
-              <div className="space-y-1">
-                <FormLabel htmlFor="meta-keywords">{t('settings.seo.metaKeywordsLabel')}</FormLabel>
-                <div className="flex items-center gap-2">
-                  <Input id="meta-keywords" value={metaKeywords} onChange={(e) => setMetaKeywords(e.target.value)} className="flex-grow"/>
-                  <Button variant="outline" size="sm" onClick={handleSuggestKeywords} disabled={isAiPending}>
-                    {isAiPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                     {t('settings.seo.suggestWithAI')}
+          <Form {...seoForm}>
+            <form onSubmit={seoForm.handleSubmit(onSeoSubmit)}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t('settings.seo.title')}</CardTitle>
+                  <CardDescription>
+                    {t('settings.seo.description')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-1">
+                    <FormLabel htmlFor="meta-title">{t('settings.seo.metaTitleLabel')}</FormLabel>
+                    <Input id="meta-title" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} />
+                  </div>
+                  <div className="space-y-1">
+                    <FormLabel htmlFor="meta-description">{t('settings.seo.metaDescLabel')}</FormLabel>
+                    <Textarea id="meta-description" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} />
+                  </div>
+                  <div className="space-y-1">
+                    <FormLabel htmlFor="meta-keywords">{t('settings.seo.metaKeywordsLabel')}</FormLabel>
+                    <div className="flex items-center gap-2">
+                      <Input id="meta-keywords" value={metaKeywords} onChange={(e) => setMetaKeywords(e.target.value)} className="flex-grow"/>
+                      <Button variant="outline" size="sm" onClick={handleSuggestKeywords} disabled={isAiPending}>
+                        {isAiPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                         {t('settings.seo.suggestWithAI')}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button onClick={handleSeoSave} disabled={isSeoPending}>
+                    {isSeoPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {t('settings.saveButton')}
                   </Button>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button onClick={handleSeoSave} disabled={isSeoPending}>
-                {isSeoPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {t('settings.saveButton')}
-              </Button>
-            </CardFooter>
-          </Card>
+                </CardFooter>
+              </Card>
+            </form>
+          </Form>
         </TabsContent>
         <TabsContent value="appearance">
           <Card>

@@ -57,6 +57,13 @@ export async function getStoreByDomain(domain: string): Promise<Store | null> {
     return docToType<Store>(querySnapshot.docs[0]);
 }
 
+export async function getAllStores(): Promise<Store[]> {
+    if (!db) return [];
+    const storesCollection = collection(db, 'stores');
+    const querySnapshot = await getDocs(storesCollection);
+    return querySnapshot.docs.map(doc => docToType<Store>(doc));
+}
+
 // --- Product Functions ---
 export async function getProduct(productId: string): Promise<Product | null> {
     if (!db) return null;

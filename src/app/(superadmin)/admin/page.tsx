@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import Link from "next/link";
@@ -133,7 +131,7 @@ export default function SuperAdminDashboard() {
               <TableRow>
                 <TableHead>{t('superadmin.stores.name')}</TableHead>
                 <TableHead>{t('superadmin.stores.owner')}</TableHead>
-                <TableHead>{t('superadmin.stores.status')}</TableHead>
+                <TableHead>{t('superadmin.stores.status.title')}</TableHead>
                 <TableHead className="hidden md:table-cell">{t('superadmin.stores.products')}</TableHead>
                 <TableHead className="hidden md:table-cell">{t('superadmin.stores.orders')}</TableHead>
                 <TableHead>
@@ -163,8 +161,8 @@ export default function SuperAdminDashboard() {
                       {t(`superadmin.stores.status.${store.status.toLowerCase()}`)}
                     </Badge>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">{store.productCount}</TableCell>
-                  <TableCell className="hidden md:table-cell">{store.orderCount}</TableCell>
+                  <TableCell className="hidden md:table-cell">{typeof store.productCount === 'object' ? JSON.stringify(store.productCount) : store.productCount}</TableCell>
+                  <TableCell className="hidden md:table-cell">{typeof store.orderCount === 'object' ? JSON.stringify(store.orderCount) : store.orderCount}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

@@ -8,7 +8,6 @@ export default async function DashboardPage() {
   const storeId = headersList.get('x-store-id');
 
   if (!storeId) {
-    // This should ideally not happen if middleware is correct
     notFound();
   }
   

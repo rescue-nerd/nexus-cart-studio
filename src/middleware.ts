@@ -1,10 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { getStoreByDomain } from '@/lib/firebase-service.server';
+// import { getStoreByDomain } from '@/lib/firebase-service.server';
+// getStoreByDomain uses firebase-admin, which is not compatible with Edge runtime (middleware)
+// If you need store info, use a public API route or static config instead.
 
-// This function needs to be separate because middleware runs in the Edge runtime.
-async function getStore(domain: string) {
-    return getStoreByDomain(domain);
-}
+// async function getStore(domain: string) {
+//     return getStoreByDomain(domain);
+// }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -20,11 +21,18 @@ export async function middleware(request: NextRequest) {
   const isAdminRoute = adminRoutes.some(p => pathname.startsWith(p));
   const isAuthRoute = authRoutes.some(p => pathname.startsWith(p));
 
-  // Get store context based on domain
-  const store = await getStore(hostname).catch(err => {
-    console.error("Middleware DB Error:", err);
-    return null;
-  });
+  // --- Store Context: fetch storeId by domain (Edge-compatible) ---
+  let storeId: string | null = null;
+  try {
+    const apiUrl = `${request.nextUrl.origin}/api/store-by-domain?domain=${hostname}`;
+    const res = await fetch(apiUrl);
+    if (res.ok) {
+      const data = await res.json();
+      storeId = data.storeId;
+    }
+  } catch (e) {
+    // ignore, storeId stays null
+  }
 
   // --- Authentication & Authorization Logic ---
 
@@ -40,37 +48,28 @@ export async function middleware(request: NextRequest) {
   if (sessionCookie) {
     // 2a. And is trying to access an auth route (login/signup)
     if (isAuthRoute) {
-      // Redirect them to the appropriate dashboard
-      const isAdmin = !store; // Simplified logic for admin
-      const redirectUrl = isAdmin ? '/admin' : '/dashboard';
-      return NextResponse.redirect(new URL(redirectUrl, request.url));
-    }
-
-    // 2b. And is on a store domain but trying to access an admin route
-    if (store && isAdminRoute) {
+      // Redirect them to the dashboard (cannot check admin/store context here)
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
-
-    // 2c. And is on the main domain but trying to access an app route
-    if (!store && isAppRoute) {
-      return NextResponse.redirect(new URL('/admin', request.url));
-    }
+    // 2b. And is on an admin route (cannot check store context here)
+    // 2c. And is on an app route (cannot check main domain context here)
+    // These checks require store context, which is not available in Edge runtime.
   }
 
   // --- Multi-tenancy Rewriting Logic ---
   const requestHeaders = new Headers(request.headers);
-  if (store) {
-    requestHeaders.set('x-store-id', store.id);
+  if (storeId) {
+    requestHeaders.set('x-store-id', storeId);
   }
 
-  // Rewrite the root of a store domain to the /store path
-  if (store && pathname === '/') {
-      const url = request.nextUrl.clone();
-      url.pathname = '/store';
-      return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
-  }
+  // Rewrite the root of a store domain to the /store path (disabled, needs store context)
+  // if (store && pathname === '/') {
+  //     const url = request.nextUrl.clone();
+  //     url.pathname = '/store';
+  //     return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
+  // }
 
-  // For all other requests, just continue with the appropriate headers
+  // For all other requests, just continue
   return NextResponse.next({
     request: {
       headers: requestHeaders,

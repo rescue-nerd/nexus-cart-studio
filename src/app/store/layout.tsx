@@ -1,4 +1,3 @@
-
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getStoreByDomain } from "@/lib/firebase-service";
@@ -8,6 +7,7 @@ import { Footer } from "@/components/storefront/footer";
 import { CartProvider } from "@/hooks/use-cart";
 import { StoreProvider } from "@/hooks/use-store";
 import type { Metadata, ResolvingMetadata } from 'next'
+import { LanguageProvider } from '@/hooks/use-translation';
 
 type Props = {
   children: React.ReactNode;
@@ -54,17 +54,19 @@ export default async function StoreLayout({ children }: Props) {
   }
   
   return (
-    <StoreProvider storeId={storeId}>
+    <LanguageProvider>
+      <StoreProvider storeId={storeId}>
         <CartProvider>
-        <div className="flex flex-col min-h-screen bg-background">
+          <div className="flex flex-col min-h-screen bg-background">
             <Header />
             <main className="flex-1">
-            {children}
+              {children}
             </main>
             <Footer />
             <AIChat />
-        </div>
+          </div>
         </CartProvider>
-    </StoreProvider>
+      </StoreProvider>
+    </LanguageProvider>
   );
 }

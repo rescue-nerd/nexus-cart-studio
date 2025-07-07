@@ -1,6 +1,3 @@
-
-import 'server-only';
-
 import { app } from '@/lib/firebase';
 import { 
     getFirestore,
