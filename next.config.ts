@@ -1,4 +1,4 @@
-import type {NextConfig} from 'next';
+import type { NextConfig } from 'next';
 import withPWAInit from '@ducanh2912/next-pwa';
 
 const withPWA = withPWAInit({
@@ -25,30 +25,24 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ['firebase', 'firebase-admin'],
-  },
-  webpack: (config, { isServer }) => {
-    // Enable WebAssembly support
+  serverExternalPackages: ['firebase', 'firebase-admin'],
+  webpack: (config, { isServer, webpack }) => {
     config.experiments = {
       ...config.experiments,
       asyncWebAssembly: true,
       layers: true,
     };
 
-    // Add fallbacks for Node.js built-in modules in client-side bundles
-    if (!isServer) {
-      // Add plugin to handle node: prefixed imports
-      config.plugins = [
-        ...(config.plugins || []),
-        new config.webpack.NormalModuleReplacementPlugin(
-          /^node:/,
-          (resource) => {
-            resource.request = resource.request.replace(/^node:/, '');
-          }
-        ),
-      ];
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(
+        /^node:/,
+        (resource: { request: string }) => {
+          resource.request = resource.request.replace(/^node:/, '');
+        }
+      )
+    );
 
+    if (!isServer) {
       config.externals = [
         ...(config.externals || []),
         'firebase-admin',

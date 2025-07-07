@@ -1,4 +1,3 @@
-
 import { NextResponse, type NextRequest } from 'next/server';
 import { getStoreByDomain } from '@/lib/firebase-service.server';
 
@@ -42,7 +41,9 @@ export async function middleware(request: NextRequest) {
     // 2a. And is trying to access an auth route (login/signup)
     if (isAuthRoute) {
       // Redirect them to the appropriate dashboard
-      return NextResponse.redirect(new URL(store ? '/dashboard' : '/admin', request.url));
+      const isAdmin = !store; // Simplified logic for admin
+      const redirectUrl = isAdmin ? '/admin' : '/dashboard';
+      return NextResponse.redirect(new URL(redirectUrl, request.url));
     }
 
     // 2b. And is on a store domain but trying to access an admin route
