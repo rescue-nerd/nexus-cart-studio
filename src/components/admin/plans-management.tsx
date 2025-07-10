@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
@@ -23,64 +22,57 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { Category, CategoryInput } from "@/lib/types";
+import type { Plan, PlanInput } from "@/lib/types";
 
-interface CategoriesManagementProps {
-  storeId?: string;
-}
-
-export function CategoriesManagement({ storeId }: CategoriesManagementProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
+export function PlansManagement() {
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  const [formData, setFormData] = useState<CategoryInput>({
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [formData, setFormData] = useState<PlanInput>({
     name: "",
-    description: "",
-    parentCategoryId: null,
-    imageUrl: "",
+    price: 0,
+    billingCycle: "monthly",
+    features: [],
+    limits: {
+      maxProducts: 0,
+      maxOrders: 0,
+      maxStorage: 0,
+      customDomain: false,
+      aiFeatures: false,
+      advancedAnalytics: false,
+      prioritySupport: false,
+    },
     isActive: true,
     displayOrder: 1,
-    storeId: storeId || null,
   });
   const { toast } = useToast();
 
-  // Fetch categories
-  const fetchCategories = async () => {
+  // Fetch plans
+  const fetchPlans = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/categories?includeCounts=true&storeId=${storeId || ''}`);
+      const response = await fetch("/api/plans");
       const result = await response.json();
       
       if (result.success) {
-        setCategories(result.data);
+        setPlans(result.data);
       } else {
         toast({
           title: "Error",
-          description: result.error || "Failed to fetch categories",
+          description: result.error || "Failed to fetch plans",
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to fetch categories",
+        description: "Failed to fetch plans",
         variant: "destructive",
       });
     } finally {
@@ -89,13 +81,13 @@ export function CategoriesManagement({ storeId }: CategoriesManagementProps) {
   };
 
   useEffect(() => {
-    fetchCategories();
-  }, [storeId]);
+    fetchPlans();
+  }, []);
 
-  // Create category
-  const handleCreateCategory = async () => {
+  // Create plan
+  const handleCreatePlan = async () => {
     try {
-      const response = await fetch("/api/categories", {
+      const response = await fetch("/api/plans", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -108,41 +100,33 @@ export function CategoriesManagement({ storeId }: CategoriesManagementProps) {
       if (result.success) {
         toast({
           title: "Success",
-          description: "Category created successfully",
+          description: "Plan created successfully",
         });
         setIsCreateDialogOpen(false);
-        setFormData({
-          name: "",
-          description: "",
-          parentCategoryId: null,
-          imageUrl: "",
-          isActive: true,
-          displayOrder: 1,
-          storeId: storeId || null,
-        });
-        fetchCategories();
+        resetForm();
+        fetchPlans();
       } else {
         toast({
           title: "Error",
-          description: result.error || "Failed to create category",
+          description: result.error || "Failed to create plan",
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create category",
+        description: "Failed to create plan",
         variant: "destructive",
       });
     }
   };
 
-  // Update category
-  const handleUpdateCategory = async () => {
-    if (!selectedCategory) return;
+  // Update plan
+  const handleUpdatePlan = async () => {
+    if (!selectedPlan) return;
 
     try {
-      const response = await fetch(`/api/categories/${selectedCategory.id}`, {
+      const response = await fetch(`/api/plans/${selectedPlan.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -155,40 +139,32 @@ export function CategoriesManagement({ storeId }: CategoriesManagementProps) {
       if (result.success) {
         toast({
           title: "Success",
-          description: "Category updated successfully",
+          description: "Plan updated successfully",
         });
         setIsEditDialogOpen(false);
-        setSelectedCategory(null);
-        setFormData({
-          name: "",
-          description: "",
-          parentCategoryId: null,
-          imageUrl: "",
-          isActive: true,
-          displayOrder: 1,
-          storeId: storeId || null,
-        });
-        fetchCategories();
+        setSelectedPlan(null);
+        resetForm();
+        fetchPlans();
       } else {
         toast({
           title: "Error",
-          description: result.error || "Failed to update category",
+          description: result.error || "Failed to update plan",
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update category",
+        description: "Failed to update plan",
         variant: "destructive",
       });
     }
   };
 
-  // Delete category
-  const handleDeleteCategory = async (categoryId: string) => {
+  // Delete plan
+  const handleDeletePlan = async (planId: string) => {
     try {
-      const response = await fetch(`/api/categories/${categoryId}`, {
+      const response = await fetch(`/api/plans/${planId}`, {
         method: "DELETE",
       });
 
@@ -197,36 +173,36 @@ export function CategoriesManagement({ storeId }: CategoriesManagementProps) {
       if (result.success) {
         toast({
           title: "Success",
-          description: "Category deleted successfully",
+          description: "Plan deleted successfully",
         });
-        fetchCategories();
+        fetchPlans();
       } else {
         toast({
           title: "Error",
-          description: result.error || "Failed to delete category",
+          description: result.error || "Failed to delete plan",
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to delete category",
+        description: "Failed to delete plan",
         variant: "destructive",
       });
     }
   };
 
   // Open edit dialog
-  const openEditDialog = (category: Category) => {
-    setSelectedCategory(category);
+  const openEditDialog = (plan: Plan) => {
+    setSelectedPlan(plan);
     setFormData({
-      name: category.name,
-      description: category.description || "",
-      parentCategoryId: category.parentCategoryId || null,
-      imageUrl: category.imageUrl || "",
-      isActive: category.isActive,
-      displayOrder: category.displayOrder,
-      storeId: category.storeId || storeId || null,
+      name: plan.name,
+      price: plan.price,
+      billingCycle: plan.billingCycle,
+      features: plan.features,
+      limits: plan.limits,
+      isActive: plan.isActive,
+      displayOrder: plan.displayOrder,
     });
     setIsEditDialogOpen(true);
   };
@@ -235,12 +211,20 @@ export function CategoriesManagement({ storeId }: CategoriesManagementProps) {
   const resetForm = () => {
     setFormData({
       name: "",
-      description: "",
-      parentCategoryId: null,
-      imageUrl: "",
+      price: 0,
+      billingCycle: "monthly",
+      features: [],
+      limits: {
+        maxProducts: 0,
+        maxOrders: 0,
+        maxStorage: 0,
+        customDomain: false,
+        aiFeatures: false,
+        advancedAnalytics: false,
+        prioritySupport: false,
+      },
       isActive: true,
       displayOrder: 1,
-      storeId: storeId || null,
     });
   };
 
@@ -248,8 +232,8 @@ export function CategoriesManagement({ storeId }: CategoriesManagementProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Categories</CardTitle>
-          <CardDescription>Loading categories...</CardDescription>
+          <CardTitle>Subscription Plans</CardTitle>
+          <CardDescription>Loading plans...</CardDescription>
         </CardHeader>
       </Card>
     );
@@ -260,23 +244,23 @@ export function CategoriesManagement({ storeId }: CategoriesManagementProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Categories</CardTitle>
+            <CardTitle>Subscription Plans</CardTitle>
             <CardDescription>
-              Manage product categories for your store
+              Manage subscription plans for your platform
             </CardDescription>
           </div>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={resetForm}>
                 <Plus className="mr-2 h-4 w-4" />
-                Add Category
+                Add Plan
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>Create Category</DialogTitle>
+                <DialogTitle>Create Plan</DialogTitle>
                 <DialogDescription>
-                  Add a new product category to your store.
+                  Add a new subscription plan to your platform.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
@@ -288,30 +272,34 @@ export function CategoriesManagement({ storeId }: CategoriesManagementProps) {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    placeholder="Enter category name"
+                    placeholder="Enter plan name"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    placeholder="Enter category description"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="imageUrl">Image URL</Label>
+                  <Label htmlFor="price">Price (Rs.) *</Label>
                   <Input
-                    id="imageUrl"
-                    value={formData.imageUrl}
+                    id="price"
+                    type="number"
+                    value={formData.price}
                     onChange={(e) =>
-                      setFormData({ ...formData, imageUrl: e.target.value })
+                      setFormData({ ...formData, price: parseInt(e.target.value) || 0 })
                     }
-                    placeholder="Enter image URL"
+                    placeholder="Enter price"
                   />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="billingCycle">Billing Cycle</Label>
+                  <select
+                    id="billingCycle"
+                    value={formData.billingCycle}
+                    onChange={(e) =>
+                      setFormData({ ...formData, billingCycle: e.target.value as "monthly" | "yearly" })
+                    }
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+                  >
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                  </select>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="displayOrder">Display Order</Label>
@@ -342,7 +330,7 @@ export function CategoriesManagement({ storeId }: CategoriesManagementProps) {
                 <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateCategory}>Create Category</Button>
+                <Button onClick={handleCreatePlan}>Create Plan</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -353,75 +341,43 @@ export function CategoriesManagement({ storeId }: CategoriesManagementProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Products</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead>Billing Cycle</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Order</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {categories.map((category) => (
-              <TableRow key={category.id}>
-                <TableCell className="font-medium">{category.name}</TableCell>
+            {plans.map((plan) => (
+              <TableRow key={plan.id}>
+                <TableCell className="font-medium">{plan.name}</TableCell>
+                <TableCell>Rs. {plan.price}</TableCell>
                 <TableCell>
-                  {category.description ? (
-                    <span className="text-sm text-muted-foreground">
-                      {category.description}
-                    </span>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">No description</span>
-                  )}
+                  <Badge variant="outline">{plan.billingCycle}</Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="secondary">{category.productCount || 0}</Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={category.isActive ? "default" : "secondary"}>
-                    {category.isActive ? "Active" : "Inactive"}
+                  <Badge variant={plan.isActive ? "default" : "secondary"}>
+                    {plan.isActive ? "Active" : "Inactive"}
                   </Badge>
                 </TableCell>
-                <TableCell>{category.displayOrder}</TableCell>
+                <TableCell>{plan.displayOrder}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end space-x-2">
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => openEditDialog(category)}
+                      onClick={() => openEditDialog(plan)}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Category</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete "{category.name}"? This action
-                            cannot be undone.
-                            {category.productCount && category.productCount > 0 && (
-                              <div className="mt-2 text-red-600">
-                                Warning: This category has {category.productCount} products.
-                                You cannot delete a category with existing products.
-                              </div>
-                            )}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDeleteCategory(category.id)}
-                            disabled={category.productCount && category.productCount > 0}
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeletePlan(plan.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -434,9 +390,9 @@ export function CategoriesManagement({ storeId }: CategoriesManagementProps) {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Edit Category</DialogTitle>
+            <DialogTitle>Edit Plan</DialogTitle>
             <DialogDescription>
-              Update the category information.
+              Update the plan information.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -448,30 +404,34 @@ export function CategoriesManagement({ storeId }: CategoriesManagementProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                placeholder="Enter category name"
+                placeholder="Enter plan name"
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea
-                id="edit-description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                placeholder="Enter category description"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit-imageUrl">Image URL</Label>
+              <Label htmlFor="edit-price">Price (Rs.) *</Label>
               <Input
-                id="edit-imageUrl"
-                value={formData.imageUrl}
+                id="edit-price"
+                type="number"
+                value={formData.price}
                 onChange={(e) =>
-                  setFormData({ ...formData, imageUrl: e.target.value })
+                  setFormData({ ...formData, price: parseInt(e.target.value) || 0 })
                 }
-                placeholder="Enter image URL"
+                placeholder="Enter price"
               />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-billingCycle">Billing Cycle</Label>
+              <select
+                id="edit-billingCycle"
+                value={formData.billingCycle}
+                onChange={(e) =>
+                  setFormData({ ...formData, billingCycle: e.target.value as "monthly" | "yearly" })
+                }
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
+              >
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+              </select>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="edit-displayOrder">Display Order</Label>
@@ -502,10 +462,10 @@ export function CategoriesManagement({ storeId }: CategoriesManagementProps) {
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleUpdateCategory}>Update Category</Button>
+            <Button onClick={handleUpdatePlan}>Update Plan</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </Card>
   );
-}
+} 

@@ -1,46 +1,68 @@
-// Firestore Security Rules for NexusCart
-// These rules enforce proper multi-tenant access control
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Stores collection - only super admins can create/delete, store owners can update their own
-    match /stores/{storeId} {
-      allow read: if true; // Public read for subdomain routing
-      allow create: if hasRole('super_admin');
-      allow update: if hasRole('super_admin') || (hasRole('store_owner') && resource.data.userId == request.auth.uid);
-      allow delete: if hasRole('super_admin');
-    }
-    
-    // Products collection - store owners can manage their own products
-    match /products/{productId} {
-      allow read: if true; // Public read for storefront
-      allow create, update, delete: if hasRole('super_admin') || 
-        (hasRole('store_owner') && isStoreOwner(resource.data.storeId));
-    }
-    
-    // Orders collection - store owners can manage their store's orders
-    match /orders/{orderId} {
-      allow read, create: if true; // Customers can create orders
-      allow update, delete: if hasRole('super_admin') || 
-        (hasRole('store_owner') && isStoreOwner(resource.data.storeId));
-    }
-    
-    // Users collection - users can read/update their own data
+
+    // --- USERS ---
     match /users/{userId} {
+      // Users can read/write only their own user document
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-    
-    // Helper functions
-    function hasRole(role) {
-      return request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+
+    // --- STORES ---
+    match /stores/{storeId} {
+      // Only authenticated users can read stores
+      allow read: if request.auth != null;
+      // Only the store owner (userId) or super_admin can write
+      allow write: if request.auth != null &&
+        (resource.data.userId == request.auth.uid || isSuperAdmin());
     }
-    
+
+    // --- PRODUCTS ---
+    match /products/{productId} {
+      // Only authenticated users can read products
+      allow read: if request.auth != null;
+      // Only the owner of the store (storeId) or super_admin can write
+      allow write: if request.auth != null &&
+        (isStoreOwner(resource.data.storeId) || isSuperAdmin());
+    }
+
+    // --- ORDERS ---
+    match /orders/{orderId} {
+      // Only authenticated users can read orders for their own store
+      allow read: if request.auth != null && isStoreOwner(resource.data.storeId);
+      // Only the store owner or super_admin can write
+      allow write: if request.auth != null &&
+        (isStoreOwner(resource.data.storeId) || isSuperAdmin());
+    }
+
+    // --- CATEGORIES ---
+    match /categories/{categoryId} {
+      // Only authenticated users can read categories
+      allow read: if request.auth != null;
+      // Only the store owner or super_admin can write
+      allow write: if request.auth != null &&
+        (isStoreOwner(resource.data.storeId) || isSuperAdmin());
+    }
+
+    // --- PLANS ---
+    match /plans/{planId} {
+      // Only authenticated users can read plans
+      allow read: if request.auth != null;
+      // Only super_admin can write
+      allow write: if request.auth != null && isSuperAdmin();
+    }
+
+    // --- SETTINGS (if stored as a subcollection) ---
+    match /stores/{storeId}/settings/{settingId} {
+      allow read, write: if request.auth != null && isStoreOwner(storeId);
+    }
+
+    // --- Helper Functions ---
+    function isSuperAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin';
+    }
     function isStoreOwner(storeId) {
-      return request.auth != null && 
-        get(/databases/$(database)/documents/stores/$(storeId)).data.userId == request.auth.uid;
+      return get(/databases/$(database)/documents/stores/$(storeId)).data.userId == request.auth.uid;
     }
   }
 }

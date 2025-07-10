@@ -196,6 +196,8 @@ export async function updateOrder(orderId: string, data: Partial<Order>): Promis
 
 // --- Static Data Functions ---
 export async function getPlans(): Promise<Plan[]> {
+    // For backward compatibility, return static plans
+    // In production, use PlanService.getAllPlans() instead
     return Promise.resolve(plans);
 }
 

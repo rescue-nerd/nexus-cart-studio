@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache';
 import { updateOrder, getOrder, getStore } from '@/lib/firebase-service';
 import type { Order } from "@/lib/types";
 import { getT } from '@/lib/translation-server';
+import { requireRole, requireStoreOwnership } from '@/lib/rbac';
+import { getAuthUserFromServerAction } from '@/lib/auth-utils';
 
 export type UpdateOrderStatusResult = {
     success: boolean;
@@ -17,19 +19,16 @@ export type RefundResult = {
     messageKey: 'refundSuccess' | 'refundFailed' | 'refundError' | 'orderNotFound' | 'invalidForRefund' | 'khaltiNotConfigured';
 }
 
-export async function updateOrderStatus(
-  orderId: string,
-  status: Order['status'],
-  lang: 'en' | 'ne' = 'en'
-): Promise<UpdateOrderStatusResult> {
+export async function updateOrderStatus(orderId: string, status: Order['status'], lang: 'en' | 'ne' = 'en'): Promise<UpdateOrderStatusResult> {
+  const user = await getAuthUserFromServerAction();
+  requireRole(user, 'super_admin', 'store_owner');
+  const order = await getOrder(orderId);
+  if (!order) {
+    return { success: false, messageKey: 'orderNotFound' };
+  }
+  requireStoreOwnership(user, order.storeId);
   const t = await getT(lang);
   try {
-    const order = await getOrder(orderId);
-
-    if (!order) {
-      return { success: false, messageKey: 'orderNotFound' };
-    }
-
     await updateOrder(orderId, { status });
 
     revalidatePath('/orders');

@@ -1,112 +1,82 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
-import { Plan } from '@/lib/types';
-import { cookies } from 'next/headers';
-import admin from 'firebase-admin';
+import { PlanService } from '@/lib/plan-service';
+import type { PlanInput } from '@/lib/types';
+import { requireRole } from '@/lib/rbac';
+import { getAuthUserFromRequest } from '@/lib/auth-utils';
 
-// GET /api/plans - List all active plans
 export async function GET(request: NextRequest) {
   try {
-    if (!adminDb) {
-      return NextResponse.json({ error: 'Database not initialized' }, { status: 500 });
-    }
-
     const { searchParams } = new URL(request.url);
-    const includeInactive = searchParams.get('includeInactive') === 'true';
+    const activeOnly = searchParams.get('activeOnly') !== 'false';
+    const billingCycle = searchParams.get('billingCycle') as 'monthly' | 'yearly' | null;
 
-    let query = adminDb.collection('plans');
-
-    // Filter by active status
-    if (!includeInactive) {
-      query = query.where('isActive', '==', true) as any;
+    let plans;
+    
+    if (billingCycle) {
+      plans = await PlanService.getPlansByBillingCycle(billingCycle);
+    } else {
+      plans = await PlanService.getAllPlans(activeOnly);
     }
 
-    // Order by display order
-    query = query.orderBy('displayOrder') as any;
-
-    const snapshot = await query.get();
-    const plans: Plan[] = [];
-
-    snapshot.forEach(doc => {
-      plans.push({ id: doc.id, ...doc.data() } as Plan);
-    });
-
-    return NextResponse.json({ plans });
-
+    return NextResponse.json({ success: true, data: plans });
   } catch (error) {
     console.error('Error fetching plans:', error);
-    return NextResponse.json({ error: 'Failed to fetch plans' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch plans' },
+      { status: 500 }
+    );
   }
 }
 
-// POST /api/plans - Create new plan (super_admin only)
 export async function POST(request: NextRequest) {
   try {
-    if (!adminDb) {
-      return NextResponse.json({ error: 'Database not initialized' }, { status: 500 });
-    }
-
-    // Get session and validate permissions
-    const cookieStore = await cookies();
-    const session = cookieStore.get('session')?.value;
-    
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const decodedToken = await admin.auth().verifySessionCookie(session);
-    const userDoc = await adminDb.collection('users').doc(decodedToken.uid).get();
-    const userData = userDoc.data();
-
-    if (!userData || userData.role !== 'super_admin') {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
-    }
-
+    const user = await getAuthUserFromRequest(request);
+    requireRole(user, 'super_admin');
     const body = await request.json();
+    const planData: PlanInput = body;
 
     // Validate required fields
-    if (!body.name || !body.price || !body.features || !body.limits) {
-      return NextResponse.json({ 
-        error: 'Missing required fields: name, price, features, limits' 
-      }, { status: 400 });
+    if (!planData.name) {
+      return NextResponse.json(
+        { success: false, error: 'Plan name is required' },
+        { status: 400 }
+      );
     }
 
-    // Get next display order
-    const maxOrderSnapshot = await adminDb
-      .collection('plans')
-      .orderBy('displayOrder', 'desc')
-      .limit(1)
-      .get();
+    if (!planData.price || planData.price <= 0) {
+      return NextResponse.json(
+        { success: false, error: 'Plan price must be greater than 0' },
+        { status: 400 }
+      );
+    }
 
-    const nextOrder = maxOrderSnapshot.empty ? 1 : maxOrderSnapshot.docs[0].data().displayOrder + 1;
-
-    const planData: Omit<Plan, 'id'> = {
-      name: body.name,
-      price: Number(body.price),
-      billingCycle: body.billingCycle || 'monthly',
-      features: body.features,
-      limits: {
-        maxProducts: Number(body.limits.maxProducts) || -1,
-        maxOrders: Number(body.limits.maxOrders) || -1,
-        maxStorage: Number(body.limits.maxStorage) || 1000,
-        customDomain: Boolean(body.limits.customDomain),
-        aiFeatures: Boolean(body.limits.aiFeatures),
-        advancedAnalytics: Boolean(body.limits.advancedAnalytics),
-        prioritySupport: Boolean(body.limits.prioritySupport)
+    // Set default values
+    const newPlanData: PlanInput = {
+      name: planData.name,
+      price: planData.price,
+      billingCycle: planData.billingCycle || 'monthly',
+      features: planData.features || [],
+      limits: planData.limits || {
+        maxProducts: 0,
+        maxOrders: 0,
+        maxStorage: 0,
+        customDomain: false,
+        aiFeatures: false,
+        advancedAnalytics: false,
+        prioritySupport: false,
       },
-      isActive: body.isActive !== undefined ? body.isActive : true,
-      displayOrder: body.displayOrder || nextOrder,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      isActive: planData.isActive !== undefined ? planData.isActive : true,
+      displayOrder: planData.displayOrder || 1,
     };
 
-    const docRef = await adminDb.collection('plans').add(planData);
-    const newPlan: Plan = { id: docRef.id, ...planData };
+    const plan = await PlanService.createPlan(newPlanData);
 
-    return NextResponse.json({ plan: newPlan }, { status: 201 });
-
+    return NextResponse.json({ success: true, data: plan }, { status: 201 });
   } catch (error) {
     console.error('Error creating plan:', error);
-    return NextResponse.json({ error: 'Failed to create plan' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: 'Failed to create plan' },
+      { status: 500 }
+    );
   }
 }

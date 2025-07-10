@@ -20,6 +20,9 @@ export type Plan = {
   updatedAt?: string;
 };
 
+export type PlanInput = Omit<Plan, 'id' | 'createdAt' | 'updatedAt'>;
+export type PlanUpdate = Partial<Omit<Plan, 'id' | 'createdAt' | 'updatedAt'>>;
+
 export type Category = {
   id: string;
   name: string;
@@ -33,6 +36,9 @@ export type Category = {
   createdAt?: string;
   updatedAt?: string;
 };
+
+export type CategoryInput = Omit<Category, 'id' | 'productCount' | 'createdAt' | 'updatedAt'>;
+export type CategoryUpdate = Partial<Omit<Category, 'id' | 'productCount' | 'createdAt' | 'updatedAt'>>;
 
 export type PaymentSettings = {
   qrCodeUrl?: string;

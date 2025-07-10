@@ -1,12 +1,13 @@
 
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from 'next/navigation'
 import { revalidatePath } from "next/cache";
 import { uploadImage } from "@/lib/storage-service";
 import { addProduct as addProductToDb, deleteProduct as deleteProductFromDb, getProduct, updateProduct as updateProductInDb } from "@/lib/firebase-service";
 import { generateProductDescription } from "@/ai/flows/product-description-generator";
+import { requireRole, requireStoreOwnership } from '@/lib/rbac';
+import { getAuthUserFromServerAction } from '@/lib/auth-utils';
 
 type ActionResponse = {
   success: boolean;
@@ -21,8 +22,9 @@ type DescriptionResponse = {
 }
 
 export async function addProduct(formData: FormData): Promise<ActionResponse> {
-  const headersList = headers();
-  const storeId = headersList.get('x-store-id');
+  const user = await getAuthUserFromServerAction();
+  requireRole(user, 'super_admin', 'store_owner');
+  const storeId = user.storeId;
 
   if (!storeId) {
     return { success: false, messageKey: "error.storeIdMissing" };
@@ -70,17 +72,13 @@ export async function addProduct(formData: FormData): Promise<ActionResponse> {
 
 
 export async function updateProduct(productId: string, formData: FormData): Promise<ActionResponse> {
-  const headersList = headers();
-  const storeId = headersList.get('x-store-id');
-
-  if (!storeId) {
-    return { success: false, messageKey: "error.storeIdMissing" };
-  }
-  
+  const user = await getAuthUserFromServerAction();
+  requireRole(user, 'super_admin', 'store_owner');
   const product = await getProduct(productId);
-  if (!product || product.storeId !== storeId) {
-    return { success: false, messageKey: "error.productNotFound" };
+  if (!product) {
+    return { success: false, messageKey: 'error.productNotFound' };
   }
+  requireStoreOwnership(user, product.storeId);
 
   const name = formData.get("name") as string;
   const description = formData.get("description") as string;
@@ -88,42 +86,40 @@ export async function updateProduct(productId: string, formData: FormData): Prom
   const stock = parseInt(formData.get("stock") as string, 10);
 
   if (!name || !description || isNaN(price) || isNaN(stock)) {
-      return { success: false, messageKey: "error.invalidFields" };
+    return { success: false, messageKey: "error.invalidFields" };
   }
 
   try {
-    let imageUrl = product.imageUrl;
     const imageFile = formData.get('file') as File;
-
+    let imageUrl = product.imageUrl;
     if (imageFile && imageFile.size > 0) {
-      const { url } = await uploadImage(formData);
-      imageUrl = url;
+      const uploadResult = await uploadImage(formData);
+      imageUrl = uploadResult.url;
     }
-    
-    const updatedData = {
+
+    const updatedProduct = {
       name,
       description,
       price,
       stock,
       imageUrl,
+      // Add other fields as needed
     };
 
-    await updateProductInDb(productId, updatedData);
-
+    await updateProductInDb(productId, updatedProduct);
     revalidatePath("/products");
-    revalidatePath(`/products/edit/${productId}`);
-
   } catch (error) {
     console.error("Failed to update product:", error);
     return { success: false, messageKey: "error.unexpected" };
   }
-  
+
   redirect('/products');
 }
 
 export async function deleteProduct(productId: string): Promise<ActionResponse> {
-    const headersList = headers();
-    const storeId = headersList.get('x-store-id');
+    const user = await getAuthUserFromServerAction();
+    requireRole(user, 'super_admin', 'store_owner');
+    const storeId = user.storeId;
 
     if (!storeId) {
         return { success: false, messageKey: "error.storeIdMissing" };
