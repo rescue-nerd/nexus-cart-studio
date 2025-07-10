@@ -1,4 +1,4 @@
-'use client';
+proce'use client';
 
 import { app } from '@/lib/firebase';
 import { 
