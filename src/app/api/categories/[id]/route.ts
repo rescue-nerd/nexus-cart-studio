@@ -24,10 +24,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     return NextResponse.json({ success: true, data: category });
-  } catch (error) {
+  } catch (error: unknown) {
+    let errorMessage = 'Failed to fetch category';
+    if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+      errorMessage = (error as { message: string }).message;
+    }
     console.error('Error fetching category:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch category' },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }
@@ -50,13 +54,17 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const updatedCategory = await CategoryService.updateCategory(params.id, body);
-    await logActivity(user, 'update_category', params.id, { updates: body }, request);
+    await logActivity(user, 'update_category', params.id, { updates: body }, { headers: Object.fromEntries(request.headers.entries()) });
 
     return NextResponse.json({ success: true, data: updatedCategory });
-  } catch (error) {
-    await logActivity(user, 'update_category_failed', params.id, { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) }, request);
+  } catch (error: unknown) {
+    let errorMessage = 'Failed to update category';
+    if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+      errorMessage = (error as { message: string }).message;
+    }
+    await logActivity(user, 'update_category_failed', params.id, { error: errorMessage }, { headers: Object.fromEntries(request.headers.entries()) });
     return NextResponse.json(
-      { success: false, error: 'Failed to update category' },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }
@@ -85,13 +93,17 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     await CategoryService.deleteCategory(params.id);
-    await logActivity(user, 'delete_category', params.id, {}, request);
+    await logActivity(user, 'delete_category', params.id, {}, { headers: Object.fromEntries(request.headers.entries()) });
 
     return NextResponse.json({ success: true, message: 'Category deleted successfully' });
-  } catch (error) {
-    await logActivity(user, 'delete_category_failed', params.id, { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) }, request);
+  } catch (error: unknown) {
+    let errorMessage = 'Failed to delete category';
+    if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+      errorMessage = (error as { message: string }).message;
+    }
+    await logActivity(user, 'delete_category_failed', params.id, { error: errorMessage }, { headers: Object.fromEntries(request.headers.entries()) });
     return NextResponse.json(
-      { success: false, error: 'Failed to delete category' },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }

@@ -10,8 +10,8 @@ export interface Subscription {
   storeId: string;
   planId: string;
   status: 'active' | 'expired' | 'cancelled' | 'pending';
-  startDate: Date;
-  endDate: Date;
+  startDate: Date | admin.firestore.Timestamp;
+  endDate: Date | admin.firestore.Timestamp;
   autoRenew: boolean;
   paymentMethod?: string;
   lastPayment?: Date;
@@ -177,8 +177,8 @@ export class SubscriptionService {
         storeId,
         planId: newPlanId,
         status: 'active',
-        startDate: admin.firestore.Timestamp.fromDate(startDate) as any,
-        endDate: admin.firestore.Timestamp.fromDate(endDate) as any,
+        startDate: admin.firestore.Timestamp.fromDate(startDate),
+        endDate: admin.firestore.Timestamp.fromDate(endDate),
         autoRenew: true
       };
 

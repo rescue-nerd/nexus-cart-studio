@@ -615,7 +615,7 @@ export function SettingsForm({ store, currentPlan, allPlans }: SettingsFormProps
                         "h-24 w-full justify-start p-4 flex-col items-start gap-2",
                           theme === themeOption.name && "ring-2 ring-ring"
                       )}
-                      onClick={() => setTheme(themeOption.name as any)}
+                      onClick={() => setTheme(themeOption.name as typeof theme)}
                     >
                         <div className="flex gap-2">
                           {themeOption.colors.map((color) => (

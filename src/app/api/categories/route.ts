@@ -8,23 +8,28 @@ import { requireRole } from '@/lib/rbac';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const storeId = searchParams.get('storeId');
+    const storeIdRaw = searchParams.get('storeId');
+    const storeId: string | undefined = typeof storeIdRaw === 'string' ? storeIdRaw : undefined;
     const activeOnly = searchParams.get('activeOnly') !== 'false';
     const includeCounts = searchParams.get('includeCounts') === 'true';
 
     let categories;
     
     if (includeCounts) {
-      categories = await CategoryService.getCategoriesWithCounts(storeId ?? undefined);
+      categories = await CategoryService.getCategoriesWithCounts(storeId);
     } else {
-      categories = await CategoryService.getAllCategories(storeId ?? undefined, activeOnly);
+      categories = await CategoryService.getAllCategories(storeId, activeOnly);
     }
 
     return NextResponse.json({ success: true, data: categories });
-  } catch (error) {
+  } catch (error: unknown) {
+    let errorMessage = 'Failed to fetch categories';
+    if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+      errorMessage = (error as { message: string }).message;
+    }
     console.error('Error fetching categories:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch categories' },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }
@@ -58,13 +63,17 @@ export async function POST(request: NextRequest) {
     };
 
     const newCategory = await CategoryService.createCategory(newCategoryData);
-    await logActivity(user, 'create_category', String(newCategory.id || ''), { category: newCategory }, request);
+    await logActivity(user, 'create_category', String(newCategory.id || ''), { category: newCategory }, { headers: Object.fromEntries(request.headers.entries()) });
 
     return NextResponse.json({ success: true, data: newCategory }, { status: 201 });
-  } catch (error) {
-    await logActivity(user, 'create_category_failed', String(''), { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) }, request);
+  } catch (error: unknown) {
+    let errorMessage = 'Failed to create category';
+    if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+      errorMessage = (error as { message: string }).message;
+    }
+    await logActivity(user, 'create_category_failed', String(''), { error: errorMessage }, { headers: Object.fromEntries(request.headers.entries()) });
     return NextResponse.json(
-      { success: false, error: 'Failed to create category' },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }

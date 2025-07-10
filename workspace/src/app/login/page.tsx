@@ -87,15 +87,20 @@ export default function LoginPage() {
       // Use window.location.assign for a full page navigation to ensure the cookie is sent.
       window.location.assign(redirectedFrom || "/dashboard");
 
-    } catch (error: any) {
-      const errorCode = error.code || 'auth/unknown-error';
-      console.error(`Login Error (${errorCode}):`, error.message);
-      let friendlyMessage = error.message || t('login.errorDesc');
+    } catch (error: unknown) {
+      let errorCode = 'auth/unknown-error';
+      let friendlyMessage = t('login.errorDesc');
+      if (typeof error === 'object' && error && 'code' in error && typeof (error as { code?: unknown }).code === 'string') {
+        errorCode = (error as { code: string }).code;
+      }
+      if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+        friendlyMessage = (error as { message: string }).message;
+      }
+      console.error(`Login Error (${errorCode}):`, friendlyMessage);
       // Provide a more helpful message for the most common error.
       if (errorCode === 'auth/invalid-credential') {
         friendlyMessage = "Invalid credentials. Please double-check your email and password. This can also happen if the client-side Firebase keys in your .env file are incorrect."
       }
-      
       toast({
         variant: "destructive",
         title: t('login.errorTitle'),

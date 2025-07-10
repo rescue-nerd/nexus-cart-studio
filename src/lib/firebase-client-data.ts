@@ -14,25 +14,24 @@ import {
 } from 'firebase/firestore';
 import type { Store, Product, Order, Category, Plan } from './types';
 import { plans, categories } from './config';
+import type { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 
 // Initialize Firestore
 const db = app ? getFirestore(app) : null;
 
 // Helper to convert Firestore doc to a typed object with ID
-const docToType = <T>(doc: any): T => {
+const docToType = <T>(doc: QueryDocumentSnapshot<DocumentData>): T => {
     const data = doc.data();
     if (!data) {
         throw new Error("Document data is empty");
     }
-    
     // Convert Timestamps to ISO strings
-    const processedData = { ...data };
+    const processedData: Record<string, unknown> = { ...data };
     for (const key in processedData) {
-        if (processedData[key]?.toDate) {
-            processedData[key] = processedData[key].toDate().toISOString();
+        if (processedData[key] && typeof (processedData[key] as { toDate?: () => Date }).toDate === 'function') {
+            processedData[key] = (processedData[key] as { toDate: () => Date }).toDate().toISOString();
         }
     }
-    
     return { id: doc.id, ...processedData } as T;
 };
 

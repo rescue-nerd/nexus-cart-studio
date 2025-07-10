@@ -1,4 +1,5 @@
 import { adminDb } from './firebase-admin';
+import admin from 'firebase-admin';
 import type { Plan, PlanInput, PlanUpdate } from './types';
 
 if (!adminDb) {
@@ -23,23 +24,24 @@ const docToPlan = (doc: FirebaseFirestore.DocumentSnapshot): Plan => {
 };
 
 export class PlanService {
-  
   /**
    * Get all plans, optionally filtered by active status
    */
   static async getAllPlans(activeOnly: boolean = true): Promise<Plan[]> {
     try {
-      let q = query(plansCollection, orderBy('displayOrder', 'asc'));
-      
+      let queryRef = plansCollection.orderBy('displayOrder', 'asc');
       if (activeOnly) {
-        q = query(plansCollection, where('isActive', '==', true), orderBy('displayOrder', 'asc'));
+        queryRef = queryRef.where('isActive', '==', true);
       }
-      
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await queryRef.get();
       return querySnapshot.docs.map(doc => docToPlan(doc));
-    } catch (error) {
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to fetch plans';
+      if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+        errorMessage = (error as { message: string }).message;
+      }
       console.error('Error fetching plans:', error);
-      throw new Error('Failed to fetch plans');
+      throw new Error(errorMessage);
     }
   }
 
@@ -48,12 +50,16 @@ export class PlanService {
    */
   static async getPlan(planId: string): Promise<Plan | null> {
     try {
-      const docRef = doc(plansCollection, planId);
-      const docSnap = await getDoc(docRef);
-      return docSnap.exists() ? docToPlan(docSnap) : null;
-    } catch (error) {
+      const docRef = plansCollection.doc(planId);
+      const docSnap = await docRef.get();
+      return docSnap.exists ? docToPlan(docSnap) : null;
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to fetch plan';
+      if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+        errorMessage = (error as { message: string }).message;
+      }
       console.error('Error fetching plan:', error);
-      throw new Error('Failed to fetch plan');
+      throw new Error(errorMessage);
     }
   }
 
@@ -64,21 +70,23 @@ export class PlanService {
     try {
       const newPlanData = {
         ...planData,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       };
-      
-      const docRef = await addDoc(plansCollection, newPlanData);
-      
-      return { 
-        id: docRef.id, 
-        ...planData, 
+      const docRef = await plansCollection.add(newPlanData);
+      return {
+        id: docRef.id,
+        ...planData,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to create plan';
+      if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+        errorMessage = (error as { message: string }).message;
+      }
       console.error('Error creating plan:', error);
-      throw new Error('Failed to create plan');
+      throw new Error(errorMessage);
     }
   }
 
@@ -87,14 +95,18 @@ export class PlanService {
    */
   static async updatePlan(planId: string, updates: PlanUpdate): Promise<void> {
     try {
-      const docRef = doc(plansCollection, planId);
-      await updateDoc(docRef, {
+      const docRef = plansCollection.doc(planId);
+      await docRef.update({
         ...updates,
-        updatedAt: serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to update plan';
+      if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+        errorMessage = (error as { message: string }).message;
+      }
       console.error('Error updating plan:', error);
-      throw new Error('Failed to update plan');
+      throw new Error(errorMessage);
     }
   }
 
@@ -103,14 +115,18 @@ export class PlanService {
    */
   static async deletePlan(planId: string): Promise<void> {
     try {
-      const docRef = doc(plansCollection, planId);
-      await updateDoc(docRef, {
+      const docRef = plansCollection.doc(planId);
+      await docRef.update({
         isActive: false,
-        updatedAt: serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to delete plan';
+      if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+        errorMessage = (error as { message: string }).message;
+      }
       console.error('Error deleting plan:', error);
-      throw new Error('Failed to delete plan');
+      throw new Error(errorMessage);
     }
   }
 
@@ -119,11 +135,15 @@ export class PlanService {
    */
   static async hardDeletePlan(planId: string): Promise<void> {
     try {
-      const docRef = doc(plansCollection, planId);
-      await deleteDoc(docRef);
-    } catch (error) {
+      const docRef = plansCollection.doc(planId);
+      await docRef.delete();
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to hard delete plan';
+      if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+        errorMessage = (error as { message: string }).message;
+      }
       console.error('Error hard deleting plan:', error);
-      throw new Error('Failed to hard delete plan');
+      throw new Error(errorMessage);
     }
   }
 
@@ -132,18 +152,19 @@ export class PlanService {
    */
   static async getPlansByBillingCycle(billingCycle: 'monthly' | 'yearly'): Promise<Plan[]> {
     try {
-      const q = query(
-        plansCollection, 
-        where('billingCycle', '==', billingCycle),
-        where('isActive', '==', true),
-        orderBy('displayOrder', 'asc')
-      );
-      
-      const querySnapshot = await getDocs(q);
+      const queryRef = plansCollection
+        .where('billingCycle', '==', billingCycle)
+        .where('isActive', '==', true)
+        .orderBy('displayOrder', 'asc');
+      const querySnapshot = await queryRef.get();
       return querySnapshot.docs.map(doc => docToPlan(doc));
-    } catch (error) {
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to fetch plans by billing cycle';
+      if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+        errorMessage = (error as { message: string }).message;
+      }
       console.error('Error fetching plans by billing cycle:', error);
-      throw new Error('Failed to fetch plans by billing cycle');
+      throw new Error(errorMessage);
     }
   }
 
@@ -154,7 +175,7 @@ export class PlanService {
     try {
       const plan = await this.getPlan(planId);
       return plan?.isActive ?? false;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error checking plan status:', error);
       return false;
     }
@@ -167,7 +188,7 @@ export class PlanService {
     try {
       const plan = await this.getPlan(planId);
       return plan?.limits ?? null;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching plan limits:', error);
       return null;
     }

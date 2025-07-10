@@ -9,8 +9,8 @@ export interface AnalyticsData {
   totalOrders: number;
   totalProducts: number;
   conversionRate: number;
-  recentOrders: any[];
-  topProducts: any[];
+  recentOrders: Record<string, unknown>[];
+  topProducts: { id: string; name: string; quantity: number; revenue: number }[];
   dailyRevenue: { date: string; revenue: number }[];
   orderStatusBreakdown: { status: string; count: number }[];
 }
@@ -56,14 +56,14 @@ export class AnalyticsService {
       const conversionRate = totalOrders > 0 ? (totalOrders / (totalOrders * 10)) * 100 : 0;
 
       // Recent orders (last 10)
-      const recentOrders = orders.slice(0, 10);
+      const recentOrders: Record<string, unknown>[] = orders.slice(0, 10);
 
       // Top products by sales
       const productSales: { [productId: string]: { name: string; quantity: number; revenue: number } } = {};
       
       orders.forEach(order => {
         if (order.items && order.status !== 'Cancelled') {
-          order.items.forEach((item: any) => {
+          (order.items as { productId: string; productName: string; quantity: number; price: number }[]).forEach(item => {
             if (!productSales[item.productId]) {
               productSales[item.productId] = {
                 name: item.productName,
@@ -111,7 +111,7 @@ export class AnalyticsService {
     }
   }
 
-  private static calculateDailyRevenue(orders: any[], days: number) {
+  private static calculateDailyRevenue(orders: Record<string, unknown>[], days: number) {
     const dailyData: { [date: string]: number } = {};
     
     // Initialize with zeros for the last N days
@@ -124,11 +124,11 @@ export class AnalyticsService {
 
     // Aggregate revenue by date
     orders.forEach(order => {
-      if (order.createdAt && order.status !== 'Cancelled' && order.status !== 'Failed') {
-        const orderDate = order.createdAt.toDate();
+      if ((order as any).createdAt && (order as any).status !== 'Cancelled' && (order as any).status !== 'Failed') {
+        const orderDate = (order as any).createdAt.toDate();
         const dateStr = orderDate.toISOString().split('T')[0];
         if (dailyData.hasOwnProperty(dateStr)) {
-          dailyData[dateStr] += order.total || 0;
+          dailyData[dateStr] += (order as any).total || 0;
         }
       }
     });

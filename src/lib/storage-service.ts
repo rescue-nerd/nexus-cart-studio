@@ -31,13 +31,21 @@ if (isGcsConfigured) {
         client_email: gcsCredentials.client_email,
       },
     });
-    console.log('Successfully connected to Google Cloud Storage.');
-  } catch (error) {
-    console.error("Failed to initialize GCS client. Check your GCS/Firebase Admin environment variables.", error);
+    // Only log success in dev
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Successfully connected to Google Cloud Storage.');
+    }
+  } catch (error: unknown) {
+    let errorMessage = 'Failed to initialize GCS client.';
+    if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+      errorMessage = (error as { message: string }).message;
+    }
+    console.error(errorMessage, error);
     storage = undefined; // Ensure storage is not used if config is invalid
   }
 } else {
-  console.warn(`
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn(`
 ----------------------------------------------------------------
 NOTICE: Google Cloud Storage is not configured. 
 The application will use placeholder images for uploads.
@@ -45,8 +53,8 @@ To enable real image uploads, set the required environment variables in your .en
 See HANDOFF.md for details.
 ----------------------------------------------------------------
 `);
+  }
 }
-
 
 /**
  * Uploads a file to Google Cloud Storage. If GCS is not configured, it returns a placeholder URL.
@@ -63,7 +71,9 @@ export async function uploadImage(formData: FormData, fileKey: string = 'file'):
 
   // If GCS is not configured, return a placeholder
   if (!storage || !bucketName) {
-    console.log(`--- SIMULATING GCS FILE UPLOAD (using placeholder for key: ${fileKey}) ---`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`--- SIMULATING GCS FILE UPLOAD (using placeholder for key: ${fileKey}) ---`);
+    }
     // Simulate a delay for the upload process.
     await new Promise(resolve => setTimeout(resolve, 500));
     const placeholderUrl = `https://placehold.co/600x400.png`;
@@ -88,21 +98,31 @@ export async function uploadImage(formData: FormData, fileKey: string = 'file'):
 
     const publicUrl = `https://storage.googleapis.com/${bucketName}/${uniqueFilename}`;
 
-    await new Promise((resolve, reject) => {
-      blobStream.on('error', (err) => {
-        console.error('GCS Upload Error:', err);
-        reject(new Error('Failed to upload image to Google Cloud Storage.'));
+    await new Promise<void>((resolve, reject) => {
+      blobStream.on('error', (err: unknown) => {
+        let errorMessage = 'Failed to upload image to Google Cloud Storage.';
+        if (typeof err === 'object' && err && 'message' in err && typeof (err as { message?: unknown }).message === 'string') {
+          errorMessage = (err as { message: string }).message;
+        }
+        console.error('GCS Upload Error:', errorMessage, err);
+        reject(new Error(errorMessage));
       });
 
       blobStream.on('finish', async () => {
         try {
           // Make the file public
           await blob.makePublic();
-          console.log(`Successfully uploaded ${uniqueFilename} to GCS. Public URL: ${publicUrl}`);
-          resolve(publicUrl);
-        } catch (err) {
-            console.error('GCS makePublic Error:', err);
-            reject(new Error('Failed to make image public after upload.'));
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`Successfully uploaded ${uniqueFilename} to GCS. Public URL: ${publicUrl}`);
+          }
+          resolve();
+        } catch (err: unknown) {
+          let errorMessage = 'Failed to make image public after upload.';
+          if (typeof err === 'object' && err && 'message' in err && typeof (err as { message?: unknown }).message === 'string') {
+            errorMessage = (err as { message: string }).message;
+          }
+          console.error('GCS makePublic Error:', errorMessage, err);
+          reject(new Error(errorMessage));
         }
       });
 
@@ -111,8 +131,12 @@ export async function uploadImage(formData: FormData, fileKey: string = 'file'):
 
     return { url: publicUrl };
 
-  } catch (error) {
-    console.error('An unexpected error occurred during image upload:', error);
-    throw new Error('An unexpected error occurred during image upload.');
+  } catch (error: unknown) {
+    let errorMessage = 'An unexpected error occurred during image upload.';
+    if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+      errorMessage = (error as { message: string }).message;
+    }
+    console.error(errorMessage, error);
+    throw new Error(errorMessage);
   }
 }

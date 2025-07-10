@@ -23,8 +23,12 @@ export async function PATCH(
     await updateStore(params.storeId, { status });
     
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: unknown) {
+    let errorMessage = 'Failed to update store status';
+    if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+      errorMessage = (error as { message: string }).message;
+    }
     console.error('Error updating store status:', error);
-    return NextResponse.json({ error: 'Failed to update store status' }, { status: 500 });
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

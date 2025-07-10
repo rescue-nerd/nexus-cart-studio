@@ -20,10 +20,14 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, data: plans });
-  } catch (error) {
+  } catch (error: unknown) {
+    let errorMessage = 'Failed to fetch plans';
+    if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+      errorMessage = (error as { message: string }).message;
+    }
     console.error('Error fetching plans:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch plans' },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }
@@ -72,14 +76,18 @@ export async function POST(request: NextRequest) {
     };
 
     const plan = await PlanService.createPlan(newPlanData);
-    await logActivity(user, 'create_plan', plan.id, { plan: newPlanData }, request);
+    await logActivity(user, 'create_plan', plan.id, { plan: newPlanData }, { headers: Object.fromEntries(request.headers.entries()) });
 
     return NextResponse.json({ success: true, data: plan }, { status: 201 });
-  } catch (error) {
-    await logActivity(user, 'create_plan_failed', '-', { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) }, request);
+  } catch (error: unknown) {
+    let errorMessage = 'Failed to create plan';
+    if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+      errorMessage = (error as { message: string }).message;
+    }
+    await logActivity(user, 'create_plan_failed', '-', { error: errorMessage }, { headers: Object.fromEntries(request.headers.entries()) });
     console.error('Error creating plan:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to create plan' },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }

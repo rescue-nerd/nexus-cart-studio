@@ -49,9 +49,15 @@ export default function SignupPage() {
         description: t('signup.successDesc'),
       });
       router.push("/login");
-    } catch (error: any) {
-      const errorCode = error.code || 'auth/unknown-error';
-      const errorMessage = error.message || 'An unexpected error occurred.';
+    } catch (error: unknown) {
+      let errorCode = 'auth/unknown-error';
+      let errorMessage = 'An unexpected error occurred.';
+      if (typeof error === 'object' && error && 'code' in error && typeof (error as { code?: unknown }).code === 'string') {
+        errorCode = (error as { code: string }).code;
+      }
+      if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+        errorMessage = (error as { message: string }).message;
+      }
       console.error(`Signup Error (${errorCode}):`, errorMessage);
       let description = t('signup.errorDefault');
       if (errorCode === 'auth/email-already-in-use') {

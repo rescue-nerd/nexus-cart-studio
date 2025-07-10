@@ -1,4 +1,4 @@
-import { POST as createPlan, PUT as updatePlan, DELETE as deletePlan } from '../../app/api/plans/route';
+import { POST as createPlan } from '../../app/api/plans/route';
 jest.mock('@/lib/plan-service', () => ({
   PlanService: {
     createPlan: jest.fn().mockResolvedValue({ id: 'mock-plan', name: 'Test Plan', price: 1000 }),
@@ -9,25 +9,39 @@ jest.mock('@/lib/plan-service', () => ({
 jest.mock('@/lib/auth-utils', () => ({
   getAuthUserFromRequest: jest.fn(),
 }));
-const { getAuthUserFromRequest } = require('@/lib/auth-utils');
+import { getAuthUserFromRequest } from '@/lib/auth-utils';
+import type { NextRequest } from 'next/server';
+
+type User = { uid: string; role: string; storeId?: string } | null;
+
+function createMockNextRequest(body: any): NextRequest {
+  return {
+    json: async () => body,
+    url: 'http://localhost/api/plans',
+    headers: {},
+    cookies: { get: () => undefined },
+    nextUrl: { searchParams: new URLSearchParams() },
+    // @ts-ignore
+    method: 'POST',
+  } as unknown as NextRequest;
+}
 
 describe('/api/plans RBAC integration', () => {
-  const superAdmin = { uid: '1', role: 'super_admin' };
-  const storeOwner = { uid: '2', role: 'store_owner', storeId: 'storeA' };
-  const customer = { uid: '3', role: 'customer' };
-  const unauthenticated = null;
+  const superAdmin: User = { uid: '1', role: 'super_admin' };
+  const storeOwner: User = { uid: '2', role: 'store_owner', storeId: 'storeA' };
+  const customer: User = { uid: '3', role: 'customer' };
+  const unauthenticated: User = null;
 
-  function mockRequest(body: any) {
-    return {
-      json: async () => body,
-      url: 'http://localhost/api/plans',
-    };
-  }
-
-  async function testAction(action: any, user: any, body: any, expectedStatus: number, expectedSuccess: boolean) {
-    getAuthUserFromRequest.mockResolvedValue(user);
-    const req = mockRequest(body);
-    const res = await action(req as any);
+  async function testAction(
+    action: (req: NextRequest) => Promise<Response>,
+    user: User,
+    body: any,
+    expectedStatus: number,
+    expectedSuccess: boolean
+  ) {
+    (getAuthUserFromRequest as jest.Mock).mockResolvedValue(user);
+    const req = createMockNextRequest(body);
+    const res = await action(req);
     const data = await res.json();
     expect(res.status).toBe(expectedStatus);
     expect(data.success).toBe(expectedSuccess);
@@ -52,10 +66,4 @@ describe('/api/plans RBAC integration', () => {
   // Example:
   // describe('Plan update', ...)
   // describe('Plan delete', ...)
-});
-
-// To extend for other endpoints:
-// 1. Import the handler (e.g., POST/PUT/DELETE from the API route)
-// 2. Mock the service and auth context as above
-// 3. Use testAction to simulate each role
-// 4. Assert only allowed roles succeed 
+}); 

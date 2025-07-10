@@ -13,9 +13,15 @@ interface TranslationContextType {
 const TranslationContext = createContext<TranslationContextType | undefined>(undefined);
 
 // Helper to get nested keys like 'nav.dashboard'
-const getNestedValue = (obj: any, key: string): string | undefined => {
-  return key.split('.').reduce((acc, part) => acc && acc[part], obj);
-};
+function getNestedValue(obj: Record<string, unknown>, key: string): string | undefined {
+  return key.split('.').reduce<string | Record<string, unknown> | undefined>((acc, part) => {
+    if (typeof acc === 'object' && acc !== null && part in acc) {
+      const next = (acc as Record<string, unknown>)[part];
+      return next as string | Record<string, unknown> | undefined;
+    }
+    return undefined;
+  }, obj) as string | undefined;
+}
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>('en');

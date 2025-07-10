@@ -7,18 +7,23 @@ type Translations = { [key: string]: string | Translations };
 const translationsCache: { [key: string]: Translations } = {};
 
 // Helper to get nested keys like 'nav.dashboard'
-const getNestedValue = (obj: any, key: string): string | undefined => {
-  return key.split('.').reduce((acc, part) => acc && acc[part], obj);
+const getNestedValue = (obj: Translations, key: string): string | undefined => {
+  return key.split('.').reduce<string | Translations | undefined>((acc, part) => {
+    if (typeof acc === 'object' && acc !== null && part in acc) {
+      return acc[part];
+    }
+    return undefined;
+  }, obj) as string | undefined;
 };
 
-export async function getTranslations(lang: 'en' | 'ne' = 'en') {
+export async function getTranslations(lang: 'en' | 'ne' = 'en'): Promise<Translations> {
   if (translationsCache[lang]) {
     return translationsCache[lang];
   }
   const filePath = path.join(process.cwd(), `src/locales/${lang}.json`);
   try {
     const fileContent = await fs.readFile(filePath, 'utf-8');
-    const translations = JSON.parse(fileContent);
+    const translations: Translations = JSON.parse(fileContent);
     translationsCache[lang] = translations;
     return translations;
   } catch (error) {

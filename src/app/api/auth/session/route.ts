@@ -12,7 +12,7 @@ const SESSION_DURATION_DAYS = 5 * 24 * 60 * 60 * 1000; // 5 days
 export async function POST(request: NextRequest) {
     let user = null;
     if (!adminAuth) {
-        await logActivity(user, 'login_failed', '-', { error: 'Firebase Admin not configured' }, request);
+        await logActivity(user, 'login_failed', '-', { error: 'Firebase Admin not configured' }, { headers: Object.fromEntries(request.headers.entries()) });
         return NextResponse.json({ error: 'Firebase Admin not configured' }, { status: 500 });
     }
 
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     try {
         const decodedToken = await adminAuth.verifyIdToken(idToken);
         user = { uid: decodedToken.uid, role: decodedToken.role, storeId: decodedToken.storeId };
-        await logActivity(user, 'login', user.uid, {}, request);
+        await logActivity(user, 'login', user.uid, {}, { headers: Object.fromEntries(request.headers.entries()) });
 
         const expiresIn = SESSION_DURATION_DAYS;
         const sessionCookie = await adminAuth.createSessionCookie(idToken, { expiresIn });
@@ -43,9 +43,13 @@ export async function POST(request: NextRequest) {
         
         return response;
 
-    } catch (error) {
-        await logActivity(user, 'login_failed', '-', { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) }, request);
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    } catch (error: unknown) {
+        let errorMessage = 'Unauthorized';
+        if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+            errorMessage = (error as { message: string }).message;
+        }
+        await logActivity(user, 'login_failed', '-', { error: errorMessage }, { headers: Object.fromEntries(request.headers.entries()) });
+        return NextResponse.json({ error: errorMessage }, { status: 401 });
     }
 }
 
@@ -67,16 +71,20 @@ export async function DELETE(request: NextRequest) {
 
     try {
         const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-        if (!sessionCookie) {
-            await logActivity(user, 'logout_failed', '-', { error: 'No session cookie found' }, request);
+        if (!sessionCookie || !adminAuth) {
+            await logActivity(user, 'logout_failed', '-', { error: 'No session cookie found or Firebase Admin not configured' }, { headers: Object.fromEntries(request.headers.entries()) });
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
         const decodedToken = await adminAuth.verifySessionCookie(sessionCookie, true);
         user = { uid: decodedToken.uid, role: decodedToken.role, storeId: decodedToken.storeId };
-        await logActivity(user, 'logout', user.uid, {}, request);
-    } catch (error) {
-        await logActivity(user, 'logout_failed', '-', { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) }, request);
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        await logActivity(user, 'logout', user.uid, {}, { headers: Object.fromEntries(request.headers.entries()) });
+    } catch (error: unknown) {
+        let errorMessage = 'Unauthorized';
+        if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+            errorMessage = (error as { message: string }).message;
+        }
+        await logActivity(user, 'logout_failed', '-', { error: errorMessage }, { headers: Object.fromEntries(request.headers.entries()) });
+        return NextResponse.json({ error: errorMessage }, { status: 401 });
     }
 
     return response;

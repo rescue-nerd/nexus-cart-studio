@@ -2,16 +2,17 @@
 // Handles category CRUD operations and caching
 
 import { adminDb } from './firebase-admin';
+import admin from 'firebase-admin';
 import type { Category, CategoryInput, CategoryUpdate } from './types';
 
 if (!adminDb) {
   throw new Error('Firebase Admin not initialized');
 }
 
-const categoriesCollection = adminDb.collection('categories');
+const categoriesCollection = adminDb!.collection('categories');
 
 // Helper to convert Firestore doc to a typed object with ID
-const docToCategory = (doc: any): Category => {
+const docToCategory = (doc: FirebaseFirestore.DocumentSnapshot): Category => {
   const data = doc.data();
   if (!data) {
     throw new Error("Document data is empty");
@@ -30,7 +31,7 @@ export class CategoryService {
   /**
    * Get all categories, optionally filtered by store and active status
    */
-  static async getAllCategories(storeId?: string, activeOnly: boolean = true): Promise<Category[]> {
+  static async getAllCategories(storeId?: string | null, activeOnly: boolean = true): Promise<Category[]> {
     try {
       let query = categoriesCollection.orderBy('displayOrder', 'asc');
       
@@ -74,8 +75,8 @@ export class CategoryService {
       const newCategoryData = {
         ...categoryData,
         productCount: 0,
-        createdAt: adminDb.FieldValue.serverTimestamp(),
-        updatedAt: adminDb.FieldValue.serverTimestamp(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       };
       
       const docRef = await categoriesCollection.add(newCategoryData);
@@ -101,7 +102,7 @@ export class CategoryService {
       const docRef = categoriesCollection.doc(categoryId);
       await docRef.update({
         ...updates,
-        updatedAt: adminDb.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
     } catch (error) {
       console.error('Error updating category:', error);
@@ -117,7 +118,7 @@ export class CategoryService {
       const docRef = categoriesCollection.doc(categoryId);
       await docRef.update({
         isActive: false,
-        updatedAt: adminDb.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
     } catch (error) {
       console.error('Error deleting category:', error);
@@ -170,7 +171,7 @@ export class CategoryService {
       const docRef = categoriesCollection.doc(categoryId);
       await docRef.update({
         productCount: count,
-        updatedAt: adminDb.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
     } catch (error) {
       console.error('Error updating category product count:', error);
@@ -181,14 +182,14 @@ export class CategoryService {
   /**
    * Get categories with product counts
    */
-  static async getCategoriesWithCounts(storeId?: string): Promise<Category[]> {
+  static async getCategoriesWithCounts(storeId?: string | null): Promise<Category[]> {
     try {
       const categories = await this.getAllCategories(storeId, true);
       
       // Get product counts for each category
       const categoriesWithCounts = await Promise.all(
         categories.map(async (category) => {
-          const productsQuery = adminDb.collection('products')
+          const productsQuery = adminDb!.collection('products')
             .where('category', '==', category.id);
           
           if (storeId) {

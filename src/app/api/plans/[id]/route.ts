@@ -21,10 +21,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     return NextResponse.json({ success: true, data: plan });
-  } catch (error) {
+  } catch (error: unknown) {
+    let errorMessage = 'Failed to fetch plan';
+    if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+      errorMessage = (error as { message: string }).message;
+    }
     console.error('Error fetching plan:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch plan' },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }
@@ -54,10 +58,14 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     await PlanService.updatePlan(id, updates);
 
     return NextResponse.json({ success: true, message: 'Plan updated successfully' });
-  } catch (error) {
+  } catch (error: unknown) {
+    let errorMessage = 'Failed to update plan';
+    if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+      errorMessage = (error as { message: string }).message;
+    }
     console.error('Error updating plan:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to update plan' },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }
@@ -79,10 +87,14 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     await PlanService.deletePlan(id);
 
     return NextResponse.json({ success: true, message: 'Plan deleted successfully' });
-  } catch (error) {
+  } catch (error: unknown) {
+    let errorMessage = 'Failed to delete plan';
+    if (typeof error === 'object' && error && 'message' in error && typeof (error as { message?: unknown }).message === 'string') {
+      errorMessage = (error as { message: string }).message;
+    }
     console.error('Error deleting plan:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to delete plan' },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }
