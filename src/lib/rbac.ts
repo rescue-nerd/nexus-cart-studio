@@ -19,6 +19,24 @@ export function requireStoreOwnership(user: AuthUser, storeId: string): void {
   throw new Error('Forbidden: Not store owner or super admin');
 }
 
+export function requireCategoryWrite(user: AuthUser, storeId: string): void {
+  if (user.role === 'super_admin') return;
+  if (user.role === 'store_owner' && user.storeId === storeId) return;
+  throw new Error('Forbidden: Not allowed to modify category');
+}
+
+export function requireOrderRefund(user: AuthUser, storeId: string): void {
+  if (user.role === 'super_admin') return;
+  if (user.role === 'store_owner' && user.storeId === storeId) return;
+  throw new Error('Forbidden: Not allowed to refund order');
+}
+
+export function requireUserProfileUpdate(user: AuthUser, targetUserId: string): void {
+  if (user.role === 'super_admin') return;
+  if (user.uid === targetUserId) return;
+  throw new Error('Forbidden: Not allowed to update user profile');
+}
+
 export function isSuperAdmin(user: AuthUser): boolean {
   return user.role === 'super_admin';
 }

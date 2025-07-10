@@ -7,6 +7,8 @@ import { suggestSeoKeywords } from '@/ai/flows/seo-keyword-suggestion';
 import { getPlans } from '@/lib/firebase-service';
 import type { PaymentSettings, Store } from '@/lib/types';
 import { uploadImage } from '@/lib/storage-service';
+import { logActivity } from '@/lib/activity-log';
+import { getAuthUserFromServerAction } from '@/lib/auth-utils';
 
 type ActionResponse = {
   success: boolean;
@@ -22,6 +24,7 @@ type KeywordsResponse = ActionResponse & {
 };
 
 export async function updateStoreProfile(storeId: string, formData: FormData): Promise<ActionResponse> {
+  const user = await getAuthUserFromServerAction();
   const store = await getStore(storeId);
   if (!store) {
     return { success: false, messageKey: 'error.storeNotFound' };
@@ -35,12 +38,16 @@ export async function updateStoreProfile(storeId: string, formData: FormData): P
     return { success: false, messageKey: 'error.invalidFields' };
   }
   
-  await updateStore(storeId, { name, description, whatsappNumber });
-
-  revalidatePath('/settings');
-  revalidatePath('/dashboard');
-  
-  return { success: true, messageKey: "settings.profile.toast.success" };
+  try {
+    await updateStore(storeId, { name, description, whatsappNumber });
+    await logActivity(user, 'update_store_profile', storeId, { updates: { name, description, whatsappNumber } });
+    revalidatePath('/settings');
+    revalidatePath('/dashboard');
+    return { success: true, messageKey: 'settings.toast.profileUpdated' };
+  } catch (error) {
+    await logActivity(user, 'update_store_profile_failed', storeId, { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) });
+    return { success: false, messageKey: 'error.unexpected' };
+  }
 }
 
 export async function updateStorePlan(storeId: string, newPlanId: string): Promise<PlanResponse> {

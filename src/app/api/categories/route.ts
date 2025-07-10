@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CategoryService } from '@/lib/category-service';
 import type { CategoryInput } from '@/lib/types';
+import { logActivity } from '@/lib/activity-log';
+import { getAuthUserFromRequest } from '@/lib/auth-utils';
+import { requireRole } from '@/lib/rbac';
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,7 +31,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  let user = null;
   try {
+    user = await getAuthUserFromRequest(request);
+    requireRole(user, 'super_admin', 'store_owner');
     const body = await request.json();
     const categoryData: CategoryInput = body;
 
@@ -51,11 +57,12 @@ export async function POST(request: NextRequest) {
       storeId: categoryData.storeId || null,
     };
 
-    const category = await CategoryService.createCategory(newCategoryData);
+    const newCategory = await CategoryService.createCategory(newCategoryData);
+    await logActivity(user, 'create_category', String(newCategory.id || ''), { category: newCategory }, request);
 
-    return NextResponse.json({ success: true, data: category }, { status: 201 });
+    return NextResponse.json({ success: true, data: newCategory }, { status: 201 });
   } catch (error) {
-    console.error('Error creating category:', error);
+    await logActivity(user, 'create_category_failed', String(''), { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) }, request);
     return NextResponse.json(
       { success: false, error: 'Failed to create category' },
       { status: 500 }

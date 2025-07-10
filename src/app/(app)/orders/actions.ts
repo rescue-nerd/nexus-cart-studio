@@ -7,6 +7,7 @@ import type { Order } from "@/lib/types";
 import { getT } from '@/lib/translation-server';
 import { requireRole, requireStoreOwnership } from '@/lib/rbac';
 import { getAuthUserFromServerAction } from '@/lib/auth-utils';
+import { logActivity } from '@/lib/activity-log';
 
 export type UpdateOrderStatusResult = {
     success: boolean;
@@ -30,19 +31,20 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
   const t = await getT(lang);
   try {
     await updateOrder(orderId, { status });
-
+    await logActivity(user, 'update_order_status', orderId, { status });
     revalidatePath('/orders');
     revalidatePath(`/orders/${orderId}`);
-
     const messageKey = status === 'Cancelled' ? 'orderCancelSuccess' : 'orderUpdateSuccess';
     return { success: true, messageKey, status };
   } catch (error) {
+    await logActivity(user, 'update_order_status_failed', orderId, { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) });
     console.error('Failed to update order status:', error);
     return { success: false, messageKey: 'orderUpdateFailed' };
   }
 }
 
 export async function refundKhaltiOrder(orderId: string): Promise<RefundResult> {
+    const user = await getAuthUserFromServerAction();
     const order = await getOrder(orderId);
     if (!order) {
         return { success: false, messageKey: 'orderNotFound' };
@@ -75,14 +77,17 @@ export async function refundKhaltiOrder(orderId: string): Promise<RefundResult> 
 
         if (response.ok && data.detail === "Transaction refund successful.") {
             await updateOrder(orderId, { status: 'Refunded' });
+            await logActivity(user, 'refund_order', orderId, { order });
             revalidatePath('/orders');
             revalidatePath(`/orders/${orderId}`);
             return { success: true, messageKey: 'refundSuccess' };
         } else {
+            await logActivity(user, 'refund_order_failed', orderId, { error: data });
             console.error('Khalti refund failed:', data);
             return { success: false, messageKey: 'refundFailed' };
         }
     } catch (error) {
+        await logActivity(user, 'refund_order_failed', orderId, { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) });
         console.error('Error processing Khalti refund:', error);
         return { success: false, messageKey: 'refundError' };
     }

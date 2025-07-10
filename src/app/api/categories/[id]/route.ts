@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CategoryService } from '@/lib/category-service';
 import type { CategoryUpdate } from '@/lib/types';
+import { logActivity } from '@/lib/activity-log';
+import { getAuthUserFromRequest } from '@/lib/auth-utils';
+import { requireRole } from '@/lib/rbac';
 
 interface RouteParams {
   params: {
@@ -31,8 +34,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 }
 
 export async function PUT(request: NextRequest, { params }: RouteParams) {
+  let user = null;
   try {
-    const { id } = params;
+    user = await getAuthUserFromRequest(request);
+    requireRole(user, 'super_admin', 'store_owner');
     const body = await request.json();
     const updates: CategoryUpdate = body;
 
@@ -44,11 +49,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    await CategoryService.updateCategory(id, updates);
+    const updatedCategory = await CategoryService.updateCategory(params.id, body);
+    await logActivity(user, 'update_category', params.id, { updates: body }, request);
 
-    return NextResponse.json({ success: true, message: 'Category updated successfully' });
+    return NextResponse.json({ success: true, data: updatedCategory });
   } catch (error) {
-    console.error('Error updating category:', error);
+    await logActivity(user, 'update_category_failed', params.id, { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) }, request);
     return NextResponse.json(
       { success: false, error: 'Failed to update category' },
       { status: 500 }
@@ -57,11 +63,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 }
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  let user = null;
   try {
-    const { id } = params;
+    user = await getAuthUserFromRequest(request);
+    requireRole(user, 'super_admin', 'store_owner');
     
     // Check if category has products before deleting
-    const category = await CategoryService.getCategory(id);
+    const category = await CategoryService.getCategory(params.id);
     if (!category) {
       return NextResponse.json(
         { success: false, error: 'Category not found' },
@@ -76,11 +84,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    await CategoryService.deleteCategory(id);
+    await CategoryService.deleteCategory(params.id);
+    await logActivity(user, 'delete_category', params.id, {}, request);
 
     return NextResponse.json({ success: true, message: 'Category deleted successfully' });
   } catch (error) {
-    console.error('Error deleting category:', error);
+    await logActivity(user, 'delete_category_failed', params.id, { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) }, request);
     return NextResponse.json(
       { success: false, error: 'Failed to delete category' },
       { status: 500 }

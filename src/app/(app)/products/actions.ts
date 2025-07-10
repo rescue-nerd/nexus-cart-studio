@@ -8,6 +8,7 @@ import { addProduct as addProductToDb, deleteProduct as deleteProductFromDb, get
 import { generateProductDescription } from "@/ai/flows/product-description-generator";
 import { requireRole, requireStoreOwnership } from '@/lib/rbac';
 import { getAuthUserFromServerAction } from '@/lib/auth-utils';
+import { logActivity } from '@/lib/activity-log';
 
 type ActionResponse = {
   success: boolean;
@@ -59,10 +60,12 @@ export async function addProduct(formData: FormData): Promise<ActionResponse> {
     };
     
     await addProductToDb(newProduct);
+    await logActivity(user, 'add_product', '-', { product: newProduct });
     
     revalidatePath("/products");
     
   } catch (error) {
+    await logActivity(user, 'add_product_failed', '-', { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) });
     console.error("Failed to add product:", error);
     return { success: false, messageKey: "error.unexpected" };
   }
@@ -107,8 +110,10 @@ export async function updateProduct(productId: string, formData: FormData): Prom
     };
 
     await updateProductInDb(productId, updatedProduct);
+    await logActivity(user, 'update_product', productId, { updatedProduct });
     revalidatePath("/products");
   } catch (error) {
+    await logActivity(user, 'update_product_failed', productId, { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) });
     console.error("Failed to update product:", error);
     return { success: false, messageKey: "error.unexpected" };
   }
@@ -132,9 +137,11 @@ export async function deleteProduct(productId: string): Promise<ActionResponse> 
 
     try {
         await deleteProductFromDb(productId, storeId);
+        await logActivity(user, 'delete_product', productId, { product });
         revalidatePath("/products");
         return { success: true, messageKey: "productActions.toast.deletedSuccess" };
     } catch (error) {
+        await logActivity(user, 'delete_product_failed', productId, { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) });
         console.error("Failed to delete product:", error);
         return { success: false, messageKey: "error.unexpected" };
     }

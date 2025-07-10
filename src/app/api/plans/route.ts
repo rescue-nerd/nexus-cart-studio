@@ -3,6 +3,7 @@ import { PlanService } from '@/lib/plan-service';
 import type { PlanInput } from '@/lib/types';
 import { requireRole } from '@/lib/rbac';
 import { getAuthUserFromRequest } from '@/lib/auth-utils';
+import { logActivity } from '@/lib/activity-log';
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,8 +30,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  let user = null;
   try {
-    const user = await getAuthUserFromRequest(request);
+    user = await getAuthUserFromRequest(request);
     requireRole(user, 'super_admin');
     const body = await request.json();
     const planData: PlanInput = body;
@@ -70,9 +72,11 @@ export async function POST(request: NextRequest) {
     };
 
     const plan = await PlanService.createPlan(newPlanData);
+    await logActivity(user, 'create_plan', plan.id, { plan: newPlanData }, request);
 
     return NextResponse.json({ success: true, data: plan }, { status: 201 });
   } catch (error) {
+    await logActivity(user, 'create_plan_failed', '-', { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) }, request);
     console.error('Error creating plan:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create plan' },
