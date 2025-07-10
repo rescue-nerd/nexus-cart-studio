@@ -1,13 +1,37 @@
 
 export type Plan = {
   id: string;
+  name: string;
   price: number;
+  billingCycle: 'monthly' | 'yearly';
   features: string[];
+  limits: {
+    maxProducts: number;
+    maxOrders: number;
+    maxStorage: number; // in MB
+    customDomain: boolean;
+    aiFeatures: boolean;
+    advancedAnalytics: boolean;
+    prioritySupport: boolean;
+  };
+  isActive: boolean;
+  displayOrder: number;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type Category = {
   id: string;
   name: string;
+  description?: string;
+  parentCategoryId?: string; // For subcategories
+  imageUrl?: string;
+  isActive: boolean;
+  displayOrder: number;
+  storeId?: string; // For store-specific categories (null for global)
+  productCount?: number; // Calculated field
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type PaymentSettings = {
