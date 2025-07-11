@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getFirestore, collection, query, where, getDocs, Timestamp, orderBy, limit } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 
 // Helper to sum order totals

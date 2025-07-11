@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useTransition, useRef, useEffect } from "react";
-import { Bot, Send, Loader2, User, Sparkles } from "lucide-react";
+import { Bot, Send, Loader2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getFirestore, collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 
 async function getTopProducts(db: ReturnType<typeof getFirestore>, storeId?: string, count = 5) {
@@ -12,12 +12,22 @@ async function getTopProducts(db: ReturnType<typeof getFirestore>, storeId?: str
   snapshot.forEach(doc => {
     const data = doc.data();
     if (Array.isArray(data.items)) {
-      data.items.forEach((item: any) => {
-        if (item && typeof item.productId === 'string' && typeof item.name === 'string' && typeof item.quantity === 'number') {
-          if (!productSales[item.productId]) {
-            productSales[item.productId] = { name: item.name, quantity: 0 };
+      data.items.forEach((item: unknown) => {
+        if (
+          item &&
+          typeof item === 'object' &&
+          'productId' in item &&
+          'name' in item &&
+          'quantity' in item &&
+          typeof (item as any).productId === 'string' &&
+          typeof (item as any).name === 'string' &&
+          typeof (item as any).quantity === 'number'
+        ) {
+          const typedItem = item as { productId: string; name: string; quantity: number };
+          if (!productSales[typedItem.productId]) {
+            productSales[typedItem.productId] = { name: typedItem.name, quantity: 0 };
           }
-          productSales[item.productId].quantity += item.quantity;
+          productSales[typedItem.productId].quantity += typedItem.quantity;
         }
       });
     }

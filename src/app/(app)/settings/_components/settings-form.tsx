@@ -37,7 +37,7 @@ import { Switch } from "@/components/ui/switch"
 import { useTheme } from "@/hooks/use-theme.tsx"
 import { cn } from "@/lib/utils"
 import { type Store, type Plan } from "@/lib/types"
-import { CheckCircle, Loader2, Sparkles, Upload } from "lucide-react"
+import { CheckCircle, Loader2, Sparkles } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { updateStorePlan, updateSeoSettings, suggestKeywordsAction, updateStoreProfile, updatePaymentSettings } from "@/app/(app)/settings/actions";
 import { useTranslation } from "@/hooks/use-translation";

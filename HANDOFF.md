@@ -1,385 +1,508 @@
 
-# NexusCart Technical Handoff & System Overview
+# NexusCart Handoff Documentation
 
-**Date:** {current_date}
-**Version:** 1.6 - Auth Workflow Documentation
+## 🎯 Project Overview
 
-This document provides a comprehensive overview of the NexusCart application's architecture, database schema, feature status, and deployment requirements. It is intended for developers, project managers, and new team members.
+NexusCart is a comprehensive, multi-tenant e-commerce platform built with Next.js, Firebase, and TypeScript. Each store gets its own subdomain with a complete storefront, admin dashboard, and analytics.
 
-**Core Architecture:** The application is built on a Next.js App Router framework. The backend logic is handled via **Next.js Server Actions** and **Genkit AI flows**, which interact with a **Firebase Firestore** database.
+**Current Status**: Production-ready with email notifications, enhanced analytics dashboard, and comprehensive user activity/audit logging
 
----
+## ✅ Completed Features
 
-## 1. Database Schema
+### Core E-commerce Platform
+- **Multi-tenant Architecture**: Each store gets its own subdomain (e.g., `mystore.yourplatform.com`)
+- **Product Management**: Add, edit, delete products with images, descriptions, and inventory
+- **Order Management**: Complete order lifecycle with status tracking
+- **Shopping Cart**: Persistent cart with guest and user checkout
+- **Payment Integration**: Support for Khalti, eSewa, QR codes, and bank transfers
+- **Inventory Management**: Real-time stock tracking and low stock alerts
 
-**Current Status:** All data is persisted in **Firebase Firestore**. The schema below reflects the collections and data structures in use.
+### User Activity & Audit Logging ✅
+- **Comprehensive Activity Logging**: Tracks all user actions, system events, and security incidents
+- **Advanced Admin UI**: Real-time dashboard with filtering, search, and export capabilities
+- **Security Monitoring**: Special tracking for security-related activities with severity levels
+- **Audit Trail**: Complete audit trail for compliance requirements
+- **Multi-tenant Isolation**: Store owners only see their store's logs
+- **Export Functionality**: CSV export with comprehensive data and filtering
+- **Rich Metadata**: IP addresses, user agents, session IDs, timestamps, duration
+- **Categorization**: Auth, product, order, settings, admin, system, security categories
 
-### A. Entity-Relationship Diagram (ERD)
+### Email Notification System ✅
+- **Transactional Emails**: Order confirmations, password resets, welcome emails
+- **Admin Alerts**: New orders, low stock, payment failures
+- **Email Templates**: Professional, customizable email templates
+- **Multiple Providers**: SendGrid and SMTP support
+- **Admin UI**: Email template management and testing interface
+- **Type-safe Implementation**: Full TypeScript support with Zod validation
 
-```mermaid
-erDiagram
-    USERS {
-        string user_id PK
-        string name
-        string email UK
-        string role
-        datetime created_at
-    }
+### Enhanced Analytics Dashboard ✅
+- **Real-time Analytics**: Auto-refresh every 5 minutes with configurable intervals
+- **Date Range Filters**: 7d, 30d, 90d, 1y time ranges
+- **Export Capabilities**: CSV download for all metrics
+- **Advanced KPIs**: Growth rates, conversion rates, trends, average order value
+- **Interactive Charts**: Sales and order trend visualizations
+- **Mobile Responsive**: Optimized for all devices
+- **Tabbed Interface**: Organized data presentation
 
-    STORES {
-        string store_id PK
-        string user_id FK
-        string store_name
-        string subdomain UK
-        string plan_id FK
-        string theme
-        string language
-        json payment_settings
-        datetime created_at
-    }
+### User Management
+- **Store Owner Registration**: Complete signup flow with store creation
+- **Role-based Access Control**: Admin and store owner permissions
+- **User Authentication**: Secure Firebase Auth integration
+- **Profile Management**: Store settings and user preferences
 
-    PLANS {
-        string plan_id PK
-        string name UK
-        decimal price
-        json features
-        boolean is_active
-    }
+### Store Customization
+- **Store Settings**: Domain, payment methods, store information
+- **Theme Customization**: Color schemes and branding options
+- **SEO Settings**: Meta titles, descriptions, and keywords
+- **Payment Configuration**: Multiple payment gateway setup
 
-    STORE_SUBSCRIPTIONS {
-        string subscription_id PK
-        string store_id FK
-        string plan_id FK
-        string status
-        datetime start_date
-        datetime end_date
-    }
+### Advanced Features
+- **AI Integration**: Product description generation and SEO optimization
+- **WhatsApp Notifications**: Order alerts via WhatsApp
+- **Thermal Print Support**: Receipt printing for physical stores
+- **Multi-language Support**: English and Nepali localization
+- **PWA Support**: Progressive Web App capabilities
 
-    PRODUCTS {
-        string product_id PK
-        string store_id FK
-        string name
-        text description
-        decimal price
-        string sku
-        int stock
-        string image_url
-        string category_id FK
-        datetime created_at
-        datetime updated_at
-    }
+## 🛠️ Technical Architecture
 
-    PRODUCT_CATEGORIES {
-        string category_id PK
-        string store_id FK
-        string name
-        string slug
-        string parent_id FK
-    }
+### Frontend Stack
+- **Framework**: Next.js 15 with App Router
+- **Language**: TypeScript (strict mode)
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **State Management**: React hooks and context
+- **Testing**: Jest and React Testing Library
 
-    ORDERS {
-        string order_id PK
-        string store_id FK
-        string user_id FK "nullable"
-        string status
-        decimal total_amount
-        string payment_method
-        text shipping_address
-        string customer_name
-        string customer_email
-        string customer_phone
-        datetime created_at
-    }
+### Backend Stack
+- **API Routes**: Next.js API routes for RESTful endpoints
+- **Server Actions**: Next.js server actions for form handling
+- **Database**: Firebase Firestore (NoSQL)
+- **Authentication**: Firebase Auth
+- **Storage**: Firebase Storage and Google Cloud Storage
+- **Email**: SendGrid and Nodemailer
+- **Payments**: Khalti and eSewa integration
 
-    ORDER_ITEMS {
-        string order_item_id PK
-        string order_id FK
-        string product_id FK
-        int quantity
-        decimal price
-    }
+### Key Services
 
-    PAYMENTS {
-        string payment_id PK
-        string order_id FK
-        string gateway
-        decimal amount
-        string status
-        string transaction_id
-        datetime payment_date
-    }
+#### Activity Log Service (`src/lib/activity-log.ts`)
+```typescript
+// Enhanced activity logging with rich metadata
+export async function logActivity(user, action, target, details, req, options)
+export async function logUserAction(user, action, target, details, req, options)
+export async function logSecurityEvent(user, action, target, details, req, severity)
+export async function logFailedAction(user, action, target, errorMessage, details, req)
 
-    NOTIFICATIONS {
-      string notification_id PK
-      string store_id FK
-      string event
-      string recipient
-      text message
-      string status
-      datetime sent_at
-    }
-
-    ACTIVITY_LOGS {
-        string log_id PK
-        string store_id FK
-        string user_id FK
-        string action
-        text details
-        datetime created_at
-    }
-
-    USERS ||--o{ STORES : "owns"
-    STORES ||--o{ PRODUCTS : "has"
-    STORES ||--o{ ORDERS : "receives"
-    STORES ||--o{ PRODUCT_CATEGORIES : "defines"
-    STORES ||--|{ STORE_SUBSCRIPTIONS : "has"
-    PLANS ||--o{ STORE_SUBSCRIPTIONS : "is"
-    ORDERS ||--|{ PAYMENTS : "has"
-    ORDERS ||--o{ ORDER_ITEMS : "contains"
-    PRODUCTS ||--o{ ORDER_ITEMS : "is_in"
-    PRODUCT_CATEGORIES ||--o{ PRODUCTS : "groups"
+// Data retrieval and analytics
+export async function getActivityLogs(filter: ActivityLogFilter): Promise<ActivityLog[]>
+export async function getActivityLogStats(filter: ActivityLogFilter): Promise<ActivityLogStats>
+export async function exportActivityLogs(filter: ActivityLogFilter): Promise<string>
 ```
 
-### B. Table/Collection Breakdown
-
-| Collection Name        | Status                                   | Description                                                                 |
-| ---------------------- | ---------------------------------------- | --------------------------------------------------------------------------- |
-| **Users**              | Implemented (Firebase Auth)              | Stores user account information. Firebase Auth is the source of truth.      |
-| **stores**             | Implemented (Firestore)                  | Core collection for all stores created on the platform.                     |
-| **products**           | Implemented (Firestore)                  | All products listed by a store.                                             |
-| **Product Categories** | Implemented (Static Config)              | Categories are defined in `src/lib/config.ts`. Not a dynamic collection yet. |
-| **orders**             | Implemented (Firestore)                  | Records all customer orders for a store.                                    |
-| **Order Items**        | Implemented (Sub-collection of `orders`) | Line items are stored as an array within each Order document.               |
-| **Payments**           | Not Implemented                          | Tracks payment transactions associated with orders.                         |
-| **Plans**              | Implemented (Static Config)              | Available subscription plans are defined in `src/lib/config.ts`.            |
-| **Store Subscriptions**| Not Implemented                          | Associates a store with a specific plan and tracks its subscription status. |
-| **Notifications**      | Not Implemented (Logic is ephemeral)     | Logs all outgoing notifications (WhatsApp, Email) for tracking.             |
-| **Activity Logs**      | Not Started                              | Logs significant actions performed by users within a store.                 |
-| **Store Settings**     | Implemented (Fields on `stores` doc)     | Key-value store for various store-specific settings.                        |
-| **Themes**             | Implemented (Handled by CSS)             | Theme configurations are handled by CSS variables in `globals.css`.         |
-| **Translations**       | Implemented (Handled by JSON files)      | All text is managed via `src/locales` JSON files.                           |
-
----
-
-## 2. Features – Status Checklist
-
-### Features 100% Complete
-- **Authentication & Authorization**: See the detailed **Authentication Workflow** section below for a full breakdown.
-- **Database Persistence (Firestore)**: All application data (Stores, Products, Orders) is now persisted in Firebase Firestore. All Server Actions correctly interact with the database via the service layer in `src/lib/firebase-service.ts`.
-- **Theme/Color Selection**: Theming system is fully implemented with 7+ themes. Users can select a theme, and it's applied across the dashboard and storefront. State is persisted in `localStorage`.
-- **Multilingual Support**: The entire UI is translated into English and Nepali. A `useTranslation` hook and language files (`/src/locales`) manage all text. User preference is persisted.
-- **AI Product Description (UI/Backend)**: The "Generate with AI" buttons on the Add/Edit Product pages are fully functional, calling a Genkit flow to populate the description field.
-- **PWA Support**: The application is configured as a Progressive Web App with a manifest file and service worker registration.
-- **Manual Payment Gateway Configuration**: Store owners can configure their own payment details for "Cash on Delivery," "QR Code Payments," and "Bank Transfers" via the settings dashboard. This includes QR code image uploads and structured bank account details.
-- **Manual Checkout Flow**: The storefront checkout process is fully implemented for COD, QR, and Bank Transfer methods. It dynamically displays the store-specific payment information to the customer and creates orders in Firestore with a "Processing" or "Pending" status for manual verification by the seller.
-- **Khalti Payment Gateway Integration**:
-    - **Configuration**: Store owners can add their Khalti secret keys and toggle test mode in the settings panel.
-    - **Checkout**: Customers can pay via Khalti, which redirects them to the Khalti payment portal.
-    - **Verification**: The system automatically verifies payments on the backend via the Khalti lookup API before confirming an order.
-    - **Refunds**: Store owners can initiate full refunds for Khalti transactions directly from the order details page.
-- **eSewa Payment Gateway Integration**:
-    - **Configuration**: Store owners can add their eSewa Merchant Code and Secret Key, and toggle test mode in the settings panel.
-    - **Checkout**: Customers can pay via eSewa. The system generates a signed form that auto-submits, redirecting the user to the eSewa payment page.
-    - **Verification**: The system automatically verifies payments on the backend via the eSewa Status Check API after the user is redirected back to the app. Orders are only confirmed upon successful verification.
-- **Admin Actions (UI & Logic)**:
-    - Products: "Add", "Edit", and "Delete" are fully functional, persisting to Firestore.
-    - Orders: "View Details," "Mark as Shipped," "Cancel Order," and "Refund Khalti Order" are functional, persisting to Firestore.
-    - Settings: Saving "Store Profile," "SEO," and "Payments" changes works, persisting to Firestore.
-    - Superadmin: "Add New Store" and store status changes are fully implemented, persisting to Firestore.
-
-### UI/Foundation Only (Backend Logic is Mocked or Incomplete)
-- **Plan Management & Subscription Logic**: UI for changing plans is complete. The backend action updates the store's `planId` in Firestore but does not handle billing, payments, or subscription lifecycle events (e.g., renewals, cancellations).
-- **Product Category Management**: UI does not exist for dynamic category management. Categories are currently static and defined in a config file.
-
-### Features Not Started
-- **Activity Logs**: No UI or backend logic exists for logging user actions.
-- **Real-time Analytics**: The dashboard uses static, randomized analytics data.
-- **Email Notifications**: No infrastructure or logic exists for sending emails.
-- **CI/CD Pipeline**: No deployment automation is configured.
-
----
-
-## 3. Initial Page and Authentication Workflow
-
-### Initial Page
-
-The first page a user sees depends on the URL they visit:
-
-1.  **Main Platform Domain** (e.g., `your-platform.com`): The user lands on the main welcome page located at `src/app/page.tsx`. This page serves as a central hub with links to either the Superadmin panel or the store owner login.
-2.  **Store Subdomain** (e.g., `my-store.your-platform.com`): The `middleware.ts` file detects the subdomain and automatically directs the user to that specific store's public-facing storefront, located at `src/app/store/page.tsx`.
-
-### Authentication Workflow
-
-The authentication system is designed to be secure and robust, using a combination of client-side Firebase authentication and a server-side session cookie for route protection.
-
-**Step-by-Step Login Process:**
-
-1.  **Access Attempt:** A user navigates to a protected route (e.g., `/dashboard` or `/admin`).
-2.  **Middleware Interception:** The `middleware.ts` runs on the server's edge. It inspects the incoming request and checks for a `session` cookie. Since the user is not logged in, the cookie is absent.
-3.  **Redirection to Login:** The middleware redirects the user to the `/login` page. To ensure a good user experience, it appends the original URL as a `redirectedFrom` query parameter, so the user can be sent back to their intended page after a successful login.
-4.  **User Authentication:** On the login page, the user enters their credentials. The client-side code uses the public Firebase keys (from your `.env` file) to communicate with Firebase Auth and sign the user in.
-5.  **Server-Side Session Creation:** Upon successful authentication with Firebase, the client receives a temporary `idToken`. This token is immediately sent to the application's backend API route at `POST /api/auth/session`.
-6.  **Token Verification & Cookie Issuing:** The backend API route, using the **secret Firebase Admin SDK key**, verifies the `idToken`. If valid, it generates a secure, HttpOnly `session` cookie. This cookie acts as the user's authenticated session for all subsequent server-side requests.
-7.  **Secure Navigation to Dashboard:** The login page client code, upon receiving a success response from the backend, performs a **full-page navigation** to the originally intended URL (or `/dashboard`). This is a critical step (`window.location.assign(...)`) that ensures the browser sends the newly-created `session` cookie with the next request.
-8.  **Final Access & Authorization:** The user's browser requests the protected route again. The `middleware.ts` intercepts it, finds the valid `session` cookie, and grants access. It also performs authorization by checking if the user is on the correct domain for the requested route (e.g., `/admin` only on the main domain).
-
-**Logout Process:**
-
--   When a user clicks "Log out," the client-side Firebase session is cleared.
--   Simultaneously, a `DELETE` request is sent to `/api/auth/session`, which instructs the server to clear the HttpOnly `session` cookie, fully terminating the session on both the client and server.
-
----
-
-## 4. Backend Logic & "API" Documentation
-
-The application uses **Next.js Server Actions** and **API Routes** for backend logic. All actions are defined in `src/app/.../actions.ts` files and interact with the database via `src/lib/firebase-service.ts`.
-
-### Module: Authentication (`/app/api/auth/session/route.ts`)
-- `POST /api/auth/session`: Accepts a Firebase ID Token from the client. Verifies it using the Firebase Admin SDK and sets a secure, HTTP-only `session` cookie.
-- `DELETE /api/auth/session`: Clears the `session` cookie, effectively logging the user out from the server's perspective.
-
-### Module: Products (`/app/(app)/products/actions.ts`)
-- `addProduct(formData)`: Adds a new product. Uploads image via `storage-service`, creates a new document in the `products` collection in Firestore, and revalidates the path.
-- `updateProduct(productId, formData)`: Updates an existing product document in Firestore.
-- `deleteProduct(productId)`: Deletes a product document from Firestore.
-- `generateDescriptionAction(productName)`: Calls the Genkit flow to generate a product description.
-
-### Module: Orders (`/app/(app)/orders/actions.ts`)
-- `updateOrderStatus(orderId, status, lang)`: Updates the status of an order document in Firestore.
-- `refundKhaltiOrder(orderId)`: Initiates a full refund for a completed Khalti transaction. It calls the Khalti Refund API and updates the order status to "Refunded" in Firestore upon success.
-
-### Module: Settings (`/app/(app)/settings/actions.ts`)
-- `updateStoreProfile(storeId, formData)`: Updates a store document's name and description in Firestore.
-- `updateStorePlan(storeId, newPlanId)`: Updates a store document's planId in Firestore.
-- `updatePaymentSettings(storeId, formData)`: Updates a store's payment details, including QR code, bank info, **Khalti credentials**, and **eSewa credentials**.
-- `updateSeoSettings(storeId, data)`: Updates a store document's meta fields in Firestore.
-- `suggestKeywordsAction(description)`: Calls Genkit flow to suggest SEO keywords.
-
-### Module: Checkout (`/app/store/checkout/actions.ts`)
-- `placeManualOrder(values, cartItems, lang)`: The main checkout handler for manual methods (COD, QR, Bank). Creates an order with 'Pending' or 'Processing' status.
-- `initiateKhaltiPayment(values, cartItems)`: Handles the Khalti checkout process. It creates a preliminary order in Firestore, initiates a payment with Khalti's API, and returns the payment URL for redirection.
-- `initiateESewaPayment(values, cartItems)`: Handles the eSewa checkout. It creates a preliminary order, generates a secure signature, and returns the necessary form data to the client for auto-redirection to eSewa.
-
-### Module: Khalti Callback (`/app/store/checkout/khalti/callback/actions.ts`)
-- `verifyKhaltiPayment(pidx)`: Called on the server after the user returns from Khalti. It uses the `pidx` to call Khalti's lookup API, verifies the transaction status, and updates the final order status in Firestore ('Processing' or 'Cancelled').
-
-### Module: eSewa Callback (`/app/store/checkout/esewa/callback/actions.ts`)
-- `verifyESewaPayment(base64Data)`: Called after the user returns from eSewa. It decodes the Base64 data, verifies the signature, and makes a server-to-server call to eSewa's Status Check API to confirm the transaction before updating the order status in Firestore.
-
-### Module: AI & Notifications
-- **AI Flows (`/src/ai/flows/*.ts`):** Genkit flows for product description generation, SEO keyword suggestion, and a chat assistant. They are self-contained and called by Server Actions.
-
-### Third-Party Integrations
-- **Firebase**: For user authentication (Client SDK), database (Firestore), and server-side session management (Admin SDK). Fully implemented.
-- **Genkit (Google AI)**: For all AI features. Fully implemented.
-- **Khalti**: For real-time payments and refunds. Fully implemented.
-- **eSewa**: For real-time payments. Fully implemented.
-- **Google Cloud Storage**: For image uploads. Implemented and fully functional.
-
----
-
-## 5. What’s Live, What’s Not
-
-### Live & Production-Ready (Conceptually)
-- User Authentication & Session Management.
-- The entire data layer and database persistence via Firebase Firestore.
-- The entire user interface, including multilingual support and theme selection.
-- All admin actions and forms, which are correctly wired to server actions that modify the database.
-- AI features for content generation.
-- PWA configuration.
-- Manual payment configuration (QR, Bank, COD) by store owners.
-- **Khalti Payment Gateway**: End-to-end payment processing, including configuration, checkout, server-side verification, and refunds.
-- **eSewa Payment Gateway**: End-to-end payment processing, including configuration, checkout, and server-side verification.
-
-### UI Only / Mocked Backend
-- **Subscription Billing**: The app does not handle recurring payments or subscription lifecycle management.
-- **Real-time Analytics**: The dashboard uses randomized data, not real aggregates from the database.
-
-### Not Started
-- eSewa Refunds (API not provided).
-- Activity logs and auditing.
-- Email sending infrastructure.
-- Database backups, migrations, and seeding strategy.
-
----
-
-## 6. Deployment, Security, and Tech Stack
-
-### Tech Stack
-- **Framework**: Next.js 15.3.3 (App Router)
-- **Language**: TypeScript
-- **Database**: Firebase Firestore
-- **Authentication**: Firebase Auth (Client & Admin SDKs)
-- **UI**: React 18, Tailwind CSS, ShadCN UI
-- **AI**: Google AI via Genkit
-- **File Storage**: Google Cloud Storage
-
-### Environment Variables
-The following variables must be set in a `.env` file for full functionality.
-
-```env
-# ----------------------------------------------------------------------------------
-# Firebase Client SDK (Required for client-side Auth & DB)
-# ----------------------------------------------------------------------------------
-# To get these values:
-# 1. Go to your Firebase Console (https://console.firebase.google.com/).
-# 2. Click the Gear icon > Project settings.
-# 3. In the "General" tab, scroll down to the "Your apps" section.
-# 4. Find your Web App and click on the "SDK setup and configuration" button.
-# 5. Select "Config" and copy the values into the variables below.
-# ----------------------------------------------------------------------------------
-NEXT_PUBLIC_FIREBASE_API_KEY=
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
-NEXT_PUBLIC_FIREBASE_APP_ID=
-
-# ----------------------------------------------------------------------------------
-# Firebase Admin SDK (Required for server-side session management & route protection)
-# ----------------------------------------------------------------------------------
-# To get this:
-# 1. Go to your Firebase Console > Project Settings > Service accounts tab.
-# 2. Click "Generate new private key" and download the JSON file.
-# 3. Open the file, copy its ENTIRE contents, and paste it here as a SINGLE-LINE string.
-#    (You may need to use an online tool to convert the JSON to a single line).
-# ----------------------------------------------------------------------------------
-FIREBASE_ADMIN_SDK_JSON=
-
-# ----------------------------------------------------------------------------------
-# Google Cloud Storage (Required for real image uploads)
-# ----------------------------------------------------------------------------------
-# These values are found in the same JSON key file from the step above.
-# ----------------------------------------------------------------------------------
-GCS_PROJECT_ID=
-GCS_BUCKET_NAME=
-# The full JSON key file content as a single-line string (can be the same as FIREBASE_ADMIN_SDK_JSON)
-GOOGLE_APPLICATION_CREDENTIALS_JSON=
+#### Email Service (`src/lib/email-service.ts`)
+```typescript
+// Type-safe email service with multiple providers
+class EmailService {
+  async sendOrderConfirmation(data: OrderConfirmationData): Promise<void>
+  async sendPasswordReset(data: PasswordResetData): Promise<void>
+  async sendAdminAlert(data: AdminAlertData): Promise<void>
+  async sendWelcomeEmail(data: UserSignupData): Promise<void>
+  async sendTestEmail(to: string): Promise<void>
+}
 ```
 
-### Security Measures
-- **Authentication**: Handled by Firebase Auth, which is robust and secure.
-- **Input Validation**: Client-side validation is performed with `zod` and `react-hook-form`. Basic server-side checks are present in most actions.
-- **Route Protection & Session Management**: Route protection is handled by `middleware.ts`. It provides domain-aware authentication (checking for a secure, HTTP-only `session` cookie) and authorization (ensuring admin routes are on the main domain and app routes are on subdomains). The session cookie is created via the `/api/auth/session` API route upon successful login, creating a secure bridge between client-side authentication and server-side route protection.
-- **CORS**: Handled by Next.js defaults.
-- **Password Storage**: Handled securely by Firebase.
+#### Analytics Service (`src/lib/analytics-fetchers.ts`)
+```typescript
+// Enhanced analytics with time range support
+export async function fetchAnalyticsOverview(storeId?: string, timeRange: string = '30d')
+export async function fetchTopProducts(storeId?: string, timeRange: string = '30d')
+export async function fetchSalesTrend(storeId?: string, timeRange: string = '30d')
+export async function fetchGrowthMetrics(storeId?: string, timeRange: string = '30d')
+```
 
-### Recommendations
-- **Implement Firestore Security Rules**: Add robust security rules to your Firestore database to prevent unauthorized data access directly from the client.
-- **Implement Role-Based Access Control (RBAC)**: Enforce user roles (e.g., 'store_owner', 'super_admin') in server actions to prevent unauthorized data access.
+#### Firebase Service (`src/lib/firebase-service.ts`)
+```typescript
+// Multi-tenant database operations
+export async function addOrder(orderData: OrderInput): Promise<Order>
+export async function getStore(storeId: string): Promise<Store | null>
+export async function updateProduct(productId: string, data: ProductUpdate): Promise<void>
+```
 
----
+## 📁 Project Structure
 
-## 7. Additional Notes & Recommendations
+```
+nexus-cart-studio/
+├── src/
+│   ├── app/                    # Next.js app router
+│   │   ├── (app)/             # Store owner routes
+│   │   │   ├── dashboard/     # Analytics dashboard
+│   │   │   ├── products/      # Product management
+│   │   │   ├── orders/        # Order management
+│   │   │   ├── settings/      # Store settings
+│   │   │   └── activity-logs/ # Activity logs dashboard
+│   │   ├── (superadmin)/      # Admin routes
+│   │   │   └── admin/         # Admin dashboard
+│   │   ├── api/               # API routes
+│   │   │   ├── analytics/     # Analytics endpoints
+│   │   │   ├── email/         # Email API
+│   │   │   ├── activity-logs/ # Activity logs API
+│   │   │   └── auth/          # Authentication
+│   │   └── store/             # Public storefront
+│   ├── components/            # React components
+│   │   ├── admin/            # Admin dashboard components
+│   │   │   ├── analytics-dashboard.tsx
+│   │   │   ├── enhanced-analytics-dashboard.tsx
+│   │   │   ├── activity-logs-dashboard.tsx
+│   │   │   ├── email-management.tsx
+│   │   │   └── stat-card.tsx
+│   │   ├── storefront/       # Storefront components
+│   │   └── ui/               # Reusable UI components
+│   ├── lib/                  # Utility functions and services
+│   │   ├── email-service.ts  # Email notification service
+│   │   ├── email-utils.ts    # Email utility functions
+│   │   ├── activity-log.ts   # Activity logging service
+│   │   ├── analytics-fetchers.ts # Analytics API clients
+│   │   ├── firebase-service.ts # Firebase operations
+│   │   └── types.ts          # TypeScript type definitions
+│   ├── hooks/                # Custom React hooks
+│   └── locales/              # Internationalization
+├── public/                   # Static assets
+├── docs/                     # Documentation
+└── scripts/                  # Build and migration scripts
+```
 
-### Technical Debt & Refactoring
-1.  **Static Data in Config**: Plans and Categories are currently hardcoded in `src/lib/config.ts`. For more flexibility, these could be migrated to their own Firestore collections.
-2.  **Analytics Data**: The dashboard analytics are currently randomized. A real implementation should aggregate data from the `orders` collection.
+## 🔧 Environment Configuration
 
-### Best Practices & Next Steps
-1.  **Set Up Logging and Monitoring**: Integrate a service like Sentry or Logtail for error tracking and application monitoring.
-2.  **Define Firestore Security Rules**: This is crucial for securing your database before going to production.
-3.  **Create a CI/CD Pipeline**: Automate testing and deployment using GitHub Actions or a similar service.
+### Required Environment Variables
 
-### Blockers
-- **External Service Credentials**: Full functionality for certain features (GCS, Firebase Admin) is blocked pending the acquisition and configuration of API keys and credentials.
+```bash
+# Firebase Configuration
+NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+
+# Firebase Admin SDK
+FIREBASE_ADMIN_PROJECT_ID=your_project_id
+FIREBASE_ADMIN_PRIVATE_KEY=your_private_key
+FIREBASE_ADMIN_CLIENT_EMAIL=your_client_email
+
+# Email Configuration
+SENDGRID_API_KEY=your_sendgrid_api_key
+EMAIL_FROM_ADDRESS=noreply@yourdomain.com
+EMAIL_FROM_NAME=Your Store Name
+
+# Alternative SMTP Configuration
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+SMTP_SECURE=false
+
+# Google Cloud Storage (Optional)
+GCS_PROJECT_ID=your_gcs_project_id
+GCS_BUCKET_NAME=your_bucket_name
+GOOGLE_APPLICATION_CREDENTIALS_JSON=your_credentials_json
+
+# AI Services (Optional)
+OPENAI_API_KEY=your_openai_api_key
+GOOGLE_AI_API_KEY=your_google_ai_key
+
+# WhatsApp Integration (Optional)
+WHATSAPP_API_KEY=your_whatsapp_api_key
+WHATSAPP_PHONE_NUMBER=your_whatsapp_number
+```
+
+### Email Service Initialization
+
+Add to your app initialization (e.g., `src/lib/config.ts`):
+
+```typescript
+import { initializeEmailService } from '@/lib/email-service';
+
+// Initialize with SendGrid
+initializeEmailService({
+  fromEmail: process.env.EMAIL_FROM_ADDRESS!,
+  fromName: process.env.EMAIL_FROM_NAME!,
+  sendGridApiKey: process.env.SENDGRID_API_KEY,
+});
+```
+
+## 📊 Analytics Dashboard Usage
+
+### Basic Dashboard
+```typescript
+import { EnhancedAnalyticsDashboard } from '@/components/admin/enhanced-analytics-dashboard';
+
+<EnhancedAnalyticsDashboard storeId="store-123" />
+```
+
+### Advanced Dashboard
+```typescript
+<EnhancedAnalyticsDashboard 
+  storeId="store-123"
+  showAdvancedMetrics={true}
+  refreshInterval={300000} // 5 minutes
+/>
+```
+
+### Admin Dashboard (Global Analytics)
+```typescript
+<EnhancedAnalyticsDashboard 
+  showAdvancedMetrics={true}
+  refreshInterval={300000} // 5 minutes
+/>
+```
+
+## 📋 Activity Logs Dashboard Usage
+
+### Basic Dashboard
+```typescript
+import { ActivityLogsDashboard } from '@/components/admin/activity-logs-dashboard';
+
+<ActivityLogsDashboard storeId="store-123" />
+```
+
+### Advanced Dashboard
+```typescript
+<ActivityLogsDashboard 
+  storeId="store-123"
+  showAdvancedMetrics={true}
+  refreshInterval={300000} // 5 minutes
+/>
+```
+
+### Logging Examples
+```typescript
+import { logUserAction, logSecurityEvent, logFailedAction } from '@/lib/activity-log';
+
+// Log user actions
+await logUserAction(user, 'add_product', productId, { product }, req, {
+  category: 'product',
+  severity: 'medium',
+  targetType: 'product',
+  storeId: user.storeId,
+});
+
+// Log security events
+await logSecurityEvent(user, 'failed_login', userId, { ip: '192.168.1.1' }, req, 'high');
+
+// Log failed actions
+await logFailedAction(user, 'update_product', productId, 'Database error', { updates }, req);
+```
+
+## 📧 Email Notifications Usage
+
+### Send Order Confirmation
+```typescript
+import { sendNewOrderNotifications } from '@/lib/email-utils';
+
+await sendNewOrderNotifications({
+  orderId: 'order-123',
+  customerName: 'John Doe',
+  customerEmail: 'john@example.com',
+  orderTotal: 1500,
+  orderItems: [
+    { name: 'Product 1', quantity: 2, price: 500 },
+    { name: 'Product 2', quantity: 1, price: 500 },
+  ],
+  storeName: 'My Store',
+  storeId: 'store-123',
+  adminEmail: 'admin@mystore.com',
+});
+```
+
+### Send Password Reset
+```typescript
+import { sendPasswordResetEmail } from '@/lib/email-utils';
+
+await sendPasswordResetEmail({
+  resetToken: 'reset-token-123',
+  userEmail: 'user@example.com',
+  userName: 'Jane Doe',
+  resetUrl: 'https://example.com/reset?token=reset-token-123',
+  expiryHours: 24,
+});
+```
+
+### Send Admin Alert
+```typescript
+import { sendLowStockAlert } from '@/lib/email-utils';
+
+await sendLowStockAlert({
+  productName: 'Product X',
+  currentStock: 5,
+  threshold: 10,
+  storeName: 'My Store',
+  adminEmail: 'admin@mystore.com',
+});
+```
+
+## 🧪 Testing
+
+### Running Tests
+```bash
+# Run all tests
+npm test
+
+# Run specific test suites
+npm test -- --testNamePattern="Activity"
+npm test -- --testNamePattern="Email"
+npm test -- --testNamePattern="Analytics"
+npm test -- --testNamePattern="Dashboard"
+```
+
+### Test Coverage
+- **Activity Logs**: Unit and integration tests for all logging functionality
+- **Email Service**: Unit tests for all email functionality
+- **Email API**: Integration tests for API endpoints
+- **Analytics Dashboard**: Component tests with mocks
+- **API Routes**: Integration tests for all endpoints
+
+## 🚀 Deployment
+
+### Vercel Deployment
+1. Connect your GitHub repository to Vercel
+2. Configure environment variables in Vercel dashboard
+3. Deploy automatically on push to main branch
+
+### Firebase Deployment
+```bash
+# Install Firebase CLI
+npm install -g firebase-tools
+
+# Login to Firebase
+firebase login
+
+# Initialize Firebase
+firebase init
+
+# Deploy
+firebase deploy
+```
+
+## 🔒 Security Considerations
+
+### Email Security
+- Validate all email inputs and prevent spam
+- Use proper authentication for email API
+- Monitor email delivery rates and failures
+- Implement rate limiting for email endpoints
+
+### Activity Log Security
+- Validate all log inputs and prevent log injection
+- Implement proper authentication and authorization
+- Use rate limiting for logging APIs
+- Monitor for suspicious activity
+- Handle sensitive data appropriately
+
+### Data Privacy
+- Ensure customer data protection
+- Implement proper data retention policies
+- Use secure transmission for sensitive data
+- Monitor for data breaches
+
+### API Security
+- Implement proper authentication and authorization
+- Use rate limiting for all API endpoints
+- Validate all input data
+- Monitor for suspicious activity
+
+## 📈 Performance Optimization
+
+### Email System
+- Use email templates for consistent delivery
+- Implement retry logic for failed emails
+- Monitor email provider rate limits
+- Cache email templates for better performance
+
+### Activity Logs System
+- Use efficient Firestore queries with proper indexes
+- Implement pagination for large datasets
+- Cache frequently accessed log data
+- Monitor log storage and performance
+
+### Analytics Dashboard
+- Cache expensive analytics queries
+- Implement pagination for large datasets
+- Use lazy loading for charts and data
+- Optimize for mobile performance
+
+### General Optimization
+- Use Next.js Image component for optimized images
+- Implement proper caching strategies
+- Monitor Core Web Vitals
+- Use CDN for static assets
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+#### Activity Logs Not Loading
+1. Check Firestore indexes configuration
+2. Verify activity logs API endpoints
+3. Check for JavaScript errors
+4. Monitor network requests
+
+#### Email Not Sending
+1. Check SendGrid API key configuration
+2. Verify sender domain with SendGrid
+3. Check email template syntax
+4. Monitor email delivery logs
+
+#### Analytics Dashboard Not Loading
+1. Check Firebase connection
+2. Verify analytics API endpoints
+3. Check for JavaScript errors
+4. Monitor network requests
+
+#### Payment Integration Issues
+1. Verify payment gateway credentials
+2. Check webhook configurations
+3. Monitor payment logs
+4. Test in sandbox mode first
+
+### Debug Mode
+```bash
+# Enable debug logging
+DEBUG=* npm run dev
+
+# Check Firebase connection
+npm run test-firebase
+```
+
+## 📚 Additional Resources
+
+### Documentation
+- [Development Plan](./DEVELOPMENT_PLAN.md) - Current status and roadmap
+- [Email System Guide](./EMAIL_NOTIFICATIONS_AND_DASHBOARD_IMPROVEMENTS.md) - Email notifications documentation
+- [Activity Logs System](./ACTIVITY_LOGS_SYSTEM.md) - Activity logging documentation
+- [API Documentation](./docs/api.md) - API endpoints and usage
+
+### External Resources
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Firebase Documentation](https://firebase.google.com/docs)
+- [SendGrid Documentation](https://sendgrid.com/docs)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+
+## 🎯 Next Steps
+
+### Immediate (This Week)
+1. **Deploy Activity Logs System**: Configure Firestore indexes and test functionality
+2. **Deploy Email System**: Configure SendGrid and test email delivery
+3. **Deploy Enhanced Analytics**: Deploy new analytics dashboard
+4. **Monitor Performance**: Track system performance and user feedback
+
+### Short Term (Next 2 Weeks)
+1. **Customizable Notifications**: Implement user notification preferences
+2. **Customer Features**: Add order history and invoice download
+3. **Performance Monitoring**: Integrate Sentry and Logtail
+4. **Backup Systems**: Implement automated backup procedures
+
+### Medium Term (Next Month)
+1. **Mobile App**: Begin React Native mobile app development
+2. **Advanced Analytics**: Implement predictive analytics
+3. **Real-time Features**: Add live chat and real-time notifications
+4. **Internationalization**: Expand multi-language support
+
+This handoff documentation provides a comprehensive overview of the NexusCart platform with completed email notification system, enhanced analytics dashboard, and comprehensive user activity/audit logging system, including setup instructions, usage examples, and troubleshooting guidance.

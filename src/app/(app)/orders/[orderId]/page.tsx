@@ -1,13 +1,9 @@
 
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ChevronLeft, File, CreditCard } from 'lucide-react';
-import { getOrder, getStore } from '@/lib/firebase-service';
+import { ChevronLeft, File } from 'lucide-react';
+import { getOrder } from '@/lib/firebase-service';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from "@/components/ui/badge";
-import { format } from 'date-fns';
 import { getT } from '@/lib/translation-server';
 import type { Order } from '@/lib/types';
 import { OrderSummaryCard } from './_components/order-summary-card';
@@ -25,7 +21,6 @@ export default async function OrderDetailsPage({ params, searchParams }: { param
     notFound();
   }
   
-  const store = await getStore(order.storeId);
   const canBeRefunded = order.paymentMethod === 'Khalti' && !!order.paymentDetails?.transactionId && order.status !== 'Refunded' && order.status !== 'Cancelled';
 
   return (

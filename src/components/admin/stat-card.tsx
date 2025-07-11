@@ -2,8 +2,7 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
-  CardDescription
+  CardTitle
 } from "@/components/ui/card";
 import type { LucideIcon } from "lucide-react";
 

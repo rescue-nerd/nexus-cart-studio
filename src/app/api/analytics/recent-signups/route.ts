@@ -8,7 +8,7 @@ async function getRecentSignups(db: ReturnType<typeof getFirestore>, count = 5) 
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   if (!app) {
     return NextResponse.json({ error: 'Firebase not initialized' }, { status: 500 });
   }

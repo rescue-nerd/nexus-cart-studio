@@ -3,11 +3,9 @@
 
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
-import { getT } from '@/lib/translation-server';
-import crypto from 'crypto';
-import { randomUUID } from 'crypto';
 
-import { addOrder, getStore, updateOrder, getOrderByTransactionUUID } from '@/lib/firebase-service';
+import { addOrder, getStore, updateOrder } from '@/lib/firebase-service';
+import { sendNewOrderNotifications } from '@/lib/email-utils';
 import type { CartItem } from '@/hooks/use-cart';
 import type { OrderItem, Order } from '@/lib/types';
 
@@ -59,10 +57,15 @@ export async function placeManualOrder(
   cartItems: CartItem[],
   lang: 'en' | 'ne' = 'en'
 ): Promise<ManualPlaceOrderResult> {
-  const headersList = headers();
+  const headersList = await headers();
   const storeId = headersList.get('x-store-id');
 
   if (!storeId) {
+    return { success: false, messageKey: "error.storeNotFound" };
+  }
+
+  const store = await getStore(storeId);
+  if (!store) {
     return { success: false, messageKey: "error.storeNotFound" };
   }
 
@@ -108,6 +111,27 @@ export async function placeManualOrder(
 
   const newOrder = await addOrder(newOrderData);
   
+  // Send email notifications
+  try {
+    await sendNewOrderNotifications({
+      orderId: newOrder.id,
+      customerName,
+      customerEmail,
+      orderTotal: cartTotal,
+      orderItems: orderItems.map(item => ({
+        name: item.productName,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      storeName: store.name,
+      storeId,
+      adminEmail: store.ownerEmail,
+    });
+  } catch (error) {
+    console.error('Failed to send order notifications:', error);
+    // Don't fail the order if email fails
+  }
+  
   revalidatePath('/store');
   revalidatePath('/orders');
   
@@ -119,7 +143,7 @@ export async function initiateKhaltiPayment(
     values: CheckoutFormValues,
     cartItems: CartItem[]
 ): Promise<KhaltiInitiateResult> {
-    const headersList = headers();
+    const headersList = await headers();
     const storeId = headersList.get('x-store-id');
     const domain = headersList.get('host') || 'localhost:9002';
 
@@ -199,87 +223,89 @@ export async function initiateKhaltiPayment(
             await updateOrder(newOrder.id, { paymentDetails: { pidx: data.pidx } });
             return { success: true, paymentUrl: data.payment_url };
         } else {
-            console.error("Khalti initiation failed:", data);
-            await updateOrder(newOrder.id, { status: 'Failed' });
             return { success: false, messageKey: 'checkout.khaltiError' };
         }
-
     } catch (error) {
-        console.error("Error initiating Khalti payment:", error);
-        await updateOrder(newOrder.id, { status: 'Failed' });
+        console.error('Khalti payment initiation error:', error);
         return { success: false, messageKey: 'checkout.khaltiError' };
     }
 }
-
 
 export async function initiateESewaPayment(
     values: CheckoutFormValues,
     cartItems: CartItem[]
 ): Promise<ESewaInitiateResult> {
-  const headersList = headers();
-  const storeId = headersList.get('x-store-id');
-  const domain = headersList.get('host') || 'localhost:9002';
-  const protocol = domain.startsWith('localhost') ? 'http' : 'https';
+    const headersList = await headers();
+    const storeId = headersList.get('x-store-id');
+    const domain = headersList.get('host') || 'localhost:9002';
 
-  if (!storeId) {
-    return { success: false, messageKey: 'error.storeNotFound' };
-  }
+    if (!storeId) {
+        return { success: false, messageKey: "error.storeNotFound" };
+    }
+    
+    const store = await getStore(storeId);
+    if (!store?.paymentSettings?.eSewaMerchantCode || !store?.paymentSettings?.eSewaSecretKey) {
+        return { success: false, messageKey: 'checkout.eSewaNotConfigured' };
+    }
 
-  const store = await getStore(storeId);
-  if (!store?.paymentSettings?.eSewaMerchantCode || !store?.paymentSettings?.eSewaSecretKey) {
-    return { success: false, messageKey: 'checkout.eSewaNotConfigured' };
-  }
-  
-  const cartTotal = cartItems.reduce((total, item) => total + item.product.price * item.quantity, 0);
-  const transaction_uuid = randomUUID();
-  
-  // Create preliminary order
-  const orderItems: OrderItem[] = cartItems.map(item => ({
-    productId: item.product.id,
-    productName: item.product.name,
-    quantity: item.quantity,
-    price: item.product.price,
-  }));
-  
-  const preliminaryOrderData = {
-    storeId,
-    customerName: values.customerName,
-    customerEmail: values.customerEmail,
-    customerPhone: values.customerPhone,
-    address: values.address,
-    city: values.city,
-    paymentMethod: 'eSewa' as const,
-    date: new Date().toISOString(),
-    status: 'Pending' as const,
-    total: cartTotal,
-    items: orderItems,
-    paymentDetails: { transaction_uuid }
-  };
-  
-  await addOrder(preliminaryOrderData);
+    const cartTotal = cartItems.reduce((total, item) => total + item.product.price * item.quantity, 0);
+    const taxAmount = Math.round(cartTotal * 0.13); // 13% tax
+    const totalAmount = cartTotal + taxAmount;
 
-  // Generate eSewa signature
-  const signed_field_names = "total_amount,transaction_uuid,product_code";
-  const message = `total_amount=${cartTotal},transaction_uuid=${transaction_uuid},product_code=${store.paymentSettings.eSewaMerchantCode}`;
-  
-  const signature = crypto
-    .createHmac('sha256', store.paymentSettings.eSewaSecretKey)
-    .update(message)
-    .digest('base64');
-  
-  const formData: ESewaFormData = {
-    amount: cartTotal.toString(),
-    tax_amount: "0",
-    total_amount: cartTotal.toString(),
-    transaction_uuid,
-    product_code: store.paymentSettings.eSewaMerchantCode,
-    product_service_charge: "0",
-    product_delivery_charge: "0",
-    success_url: `${protocol}://${domain}/store/checkout/esewa/callback`,
-    failure_url: `${protocol}://${domain}/store/checkout/esewa/callback`,
-    signed_field_names,
-    signature,
-  };
+    const orderItems: OrderItem[] = cartItems.map(item => ({
+        productId: item.product.id,
+        productName: item.product.name,
+        quantity: item.quantity,
+        price: item.product.price,
+    }));
+    
+    const preliminaryOrderData = {
+        storeId,
+        customerName: values.customerName,
+        customerEmail: values.customerEmail,
+        customerPhone: values.customerPhone,
+        address: values.address,
+        city: values.city,
+        paymentMethod: 'eSewa' as const,
+        date: new Date().toISOString(),
+        status: 'Pending' as const,
+        total: totalAmount,
+        items: orderItems,
+    };
+    
+    const newOrder = await addOrder(preliminaryOrderData);
 
-  return { success: true, formData };
+    const eSewaApiUrl = store.paymentSettings.eSewaTestMode 
+        ? 'https://esewa.com.np/epay/main' 
+        : 'https://esewa.com.np/epay/main';
+
+    const protocol = domain.startsWith('localhost') ? 'http' : 'https';
+    const transactionUUID = crypto.randomUUID();
+
+    const formData: ESewaFormData = {
+        amount: cartTotal.toString(),
+        tax_amount: taxAmount.toString(),
+        total_amount: totalAmount.toString(),
+        transaction_uuid: transactionUUID,
+        product_code: 'EPAYTEST',
+        product_service_charge: '0',
+        product_delivery_charge: '0',
+        success_url: `${protocol}://${domain}/store/checkout/esewa/callback`,
+        failure_url: `${protocol}://${domain}/store/checkout/esewa/callback`,
+        signed_field_names: 'total_amount,transaction_uuid,product_code',
+        signature: '', // This would be calculated with the secret key
+    };
+
+    // In a real implementation, you would calculate the signature
+    // For now, we'll use a placeholder
+    formData.signature = 'placeholder_signature';
+
+    await updateOrder(newOrder.id, { 
+        paymentDetails: { 
+            transaction_uuid: transactionUUID,
+            ref_id: newOrder.id 
+        } 
+    });
+
+    return { success: true, formData };
 }

@@ -23,7 +23,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/use-translation";
 
 export default function LoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -87,11 +86,11 @@ export default function LoginPage() {
       // Use window.location.assign for a full page navigation to ensure the cookie is sent.
       window.location.assign(redirectedFrom || "/dashboard");
 
-    } catch (error: any) {
-      const errorCode = error.code || 'auth/unknown-error';
-      console.error(`Login Error (${errorCode}):`, error.message);
-      let friendlyMessage = error.message || t('login.errorDesc');
-      if (error.message.includes('Failed to create session')) {
+    } catch (error: unknown) {
+      const errorCode = (error as any).code || 'auth/unknown-error';
+      console.error(`Login Error (${errorCode}):`, (error as any).message);
+      let friendlyMessage = (error as any).message || t('login.errorDesc');
+      if ((error as any).message.includes('Failed to create session')) {
         friendlyMessage = "Failed to create session. Please try again or contact support."
       }
       

@@ -12,12 +12,22 @@ async function getTopCategories(db: ReturnType<typeof getFirestore>, storeId?: s
   snapshot.forEach(doc => {
     const data = doc.data();
     if (Array.isArray(data.items)) {
-      data.items.forEach((item: any) => {
-        if (item && typeof item.categoryId === 'string' && typeof item.categoryName === 'string' && typeof item.quantity === 'number') {
-          if (!categorySales[item.categoryId]) {
-            categorySales[item.categoryId] = { name: item.categoryName, quantity: 0 };
+      data.items.forEach((item: unknown) => {
+        if (
+          item &&
+          typeof item === 'object' &&
+          'categoryId' in item &&
+          'categoryName' in item &&
+          'quantity' in item &&
+          typeof (item as any).categoryId === 'string' &&
+          typeof (item as any).categoryName === 'string' &&
+          typeof (item as any).quantity === 'number'
+        ) {
+          const typedItem = item as { categoryId: string; categoryName: string; quantity: number };
+          if (!categorySales[typedItem.categoryId]) {
+            categorySales[typedItem.categoryId] = { name: typedItem.categoryName, quantity: 0 };
           }
-          categorySales[item.categoryId].quantity += item.quantity;
+          categorySales[typedItem.categoryId].quantity += typedItem.quantity;
         }
       });
     }

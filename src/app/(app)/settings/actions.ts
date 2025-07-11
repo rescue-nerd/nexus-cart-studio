@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { updateStore, getStore } from '@/lib/firebase-service';
 import { suggestSeoKeywords } from '@/ai/flows/seo-keyword-suggestion';
 import { getPlans } from '@/lib/firebase-service';
-import type { PaymentSettings, Store } from '@/lib/types';
+import type { PaymentSettings } from '@/lib/types';
 import { uploadImage } from '@/lib/storage-service';
 import { logActivity } from '@/lib/activity-log';
 import { getAuthUserFromServerAction } from '@/lib/auth-utils';
@@ -45,7 +45,7 @@ export async function updateStoreProfile(storeId: string, formData: FormData): P
     revalidatePath('/dashboard');
     return { success: true, messageKey: 'settings.toast.profileUpdated' };
   } catch (error) {
-    await logActivity(user, 'update_store_profile_failed', storeId, { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) });
+    await logActivity(user, 'update_store_profile_failed', storeId, { error: error && typeof error === 'object' && 'message' in error ? (error as unknown as { message: string }).message : String(error) });
     return { success: false, messageKey: 'error.unexpected' };
   }
 }

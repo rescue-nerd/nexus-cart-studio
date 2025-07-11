@@ -3,7 +3,7 @@
 
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { verifyKhaltiPayment } from './actions';
 import { useTranslation } from '@/hooks/use-translation';

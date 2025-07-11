@@ -28,7 +28,6 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
     return { success: false, messageKey: 'orderNotFound' };
   }
   requireStoreOwnership(user, order.storeId);
-  const t = await getT(lang);
   try {
     await updateOrder(orderId, { status });
     await logActivity(user, 'update_order_status', orderId, { status });
@@ -37,7 +36,7 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
     const messageKey = status === 'Cancelled' ? 'orderCancelSuccess' : 'orderUpdateSuccess';
     return { success: true, messageKey, status };
   } catch (error) {
-    await logActivity(user, 'update_order_status_failed', orderId, { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) });
+    await logActivity(user, 'update_order_status_failed', orderId, { error: error && typeof error === 'object' && 'message' in error ? (error as unknown as { message: string }).message : String(error) });
     console.error('Failed to update order status:', error);
     return { success: false, messageKey: 'orderUpdateFailed' };
   }
@@ -87,7 +86,7 @@ export async function refundKhaltiOrder(orderId: string): Promise<RefundResult> 
             return { success: false, messageKey: 'refundFailed' };
         }
     } catch (error) {
-        await logActivity(user, 'refund_order_failed', orderId, { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) });
+        await logActivity(user, 'refund_order_failed', orderId, { error: error && typeof error === 'object' && 'message' in error ? (error as unknown as { message: string }).message : String(error) });
         console.error('Error processing Khalti refund:', error);
         return { success: false, messageKey: 'refundError' };
     }

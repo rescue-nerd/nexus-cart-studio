@@ -42,7 +42,7 @@ export default function RootLayout({
                 <link rel="manifest" href="/manifest.json" />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+                {/* TODO: If using custom fonts, move font import to _document.js as per Next.js recommendation. */}
                 <meta name="theme-color" content="#60A9CA" />
                 <meta name="apple-mobile-web-app-capable" content="yes" />
                 <meta name="apple-mobile-web-app-status-bar-style" content="default" />

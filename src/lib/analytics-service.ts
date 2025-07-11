@@ -2,7 +2,7 @@
 // Replaces static/randomized data with live database queries
 
 import { adminDb } from './firebase-admin';
-import { collection, query, where, orderBy, limit, getDocs, Timestamp, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs, Timestamp, doc, getDoc } from 'firebase/firestore';
 
 export interface AnalyticsData {
   totalRevenue: number;
@@ -124,11 +124,11 @@ export class AnalyticsService {
 
     // Aggregate revenue by date
     orders.forEach(order => {
-      if ((order as any).createdAt && (order as any).status !== 'Cancelled' && (order as any).status !== 'Failed') {
-        const orderDate = (order as any).createdAt.toDate();
+      if ((order as Record<string, unknown>).createdAt && (order as Record<string, unknown>).status !== 'Cancelled' && (order as Record<string, unknown>).status !== 'Failed') {
+        const orderDate = (order as Record<string, unknown>).createdAt.toDate();
         const dateStr = orderDate.toISOString().split('T')[0];
         if (dailyData.hasOwnProperty(dateStr)) {
-          dailyData[dateStr] += (order as any).total || 0;
+          dailyData[dateStr] += (order as Record<string, unknown>).total || 0;
         }
       }
     });

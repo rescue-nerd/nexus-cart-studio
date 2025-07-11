@@ -8,7 +8,7 @@ import { addProduct as addProductToDb, deleteProduct as deleteProductFromDb, get
 import { generateProductDescription } from "@/ai/flows/product-description-generator";
 import { requireRole, requireStoreOwnership } from '@/lib/rbac';
 import { getAuthUserFromServerAction } from '@/lib/auth-utils';
-import { logActivity } from '@/lib/activity-log';
+import { logUserAction, logFailedAction } from '@/lib/activity-log';
 
 type ActionResponse = {
   success: boolean;
@@ -28,6 +28,7 @@ export async function addProduct(formData: FormData): Promise<ActionResponse> {
   const storeId = user.storeId;
 
   if (!storeId) {
+    await logFailedAction(user, 'add_product', '-', 'Store ID missing');
     return { success: false, messageKey: "error.storeIdMissing" };
   }
   
@@ -37,12 +38,14 @@ export async function addProduct(formData: FormData): Promise<ActionResponse> {
   const stock = parseInt(formData.get("stock") as string, 10);
 
   if (!name || !description || isNaN(price) || isNaN(stock)) {
-      return { success: false, messageKey: "error.invalidFields" };
+    await logFailedAction(user, 'add_product', '-', 'Invalid form data');
+    return { success: false, messageKey: "error.invalidFields" };
   }
   
   try {
     const imageFile = formData.get('file') as File;
     if (!imageFile || imageFile.size === 0) {
+      await logFailedAction(user, 'add_product', '-', 'Image file required');
       return { success: false, messageKey: 'products.toast.imageRequired' };
     }
 
@@ -60,12 +63,24 @@ export async function addProduct(formData: FormData): Promise<ActionResponse> {
     };
     
     await addProductToDb(newProduct);
-    await logActivity(user, 'add_product', '-', { product: newProduct });
+    await logUserAction(user, 'add_product', name, { 
+      product: newProduct,
+      storeId 
+    }, undefined, {
+      category: 'product',
+      severity: 'medium',
+      targetType: 'product',
+      storeId,
+    });
     
     revalidatePath("/products");
     
-  } catch (error) {
-    await logActivity(user, 'add_product_failed', '-', { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) });
+  } catch (error: unknown) {
+    const errorMessage = error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error);
+    await logFailedAction(user, 'add_product', name, errorMessage, { 
+      product: { name, description, price, stock },
+      storeId 
+    });
     console.error("Failed to add product:", error);
     return { success: false, messageKey: "error.unexpected" };
   }
@@ -79,6 +94,7 @@ export async function updateProduct(productId: string, formData: FormData): Prom
   requireRole(user, 'super_admin', 'store_owner');
   const product = await getProduct(productId);
   if (!product) {
+    await logFailedAction(user, 'update_product', productId, 'Product not found');
     return { success: false, messageKey: 'error.productNotFound' };
   }
   requireStoreOwnership(user, product.storeId);
@@ -89,6 +105,7 @@ export async function updateProduct(productId: string, formData: FormData): Prom
   const stock = parseInt(formData.get("stock") as string, 10);
 
   if (!name || !description || isNaN(price) || isNaN(stock)) {
+    await logFailedAction(user, 'update_product', productId, 'Invalid form data');
     return { success: false, messageKey: "error.invalidFields" };
   }
 
@@ -110,10 +127,23 @@ export async function updateProduct(productId: string, formData: FormData): Prom
     };
 
     await updateProductInDb(productId, updatedProduct);
-    await logActivity(user, 'update_product', productId, { updatedProduct });
+    await logUserAction(user, 'update_product', productId, { 
+      updatedProduct,
+      originalProduct: product,
+      storeId: product.storeId
+    }, undefined, {
+      category: 'product',
+      severity: 'medium',
+      targetType: 'product',
+      storeId: product.storeId,
+    });
     revalidatePath("/products");
-  } catch (error) {
-    await logActivity(user, 'update_product_failed', productId, { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) });
+  } catch (error: unknown) {
+    const errorMessage = error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error);
+    await logFailedAction(user, 'update_product', productId, errorMessage, { 
+      updatedProduct: { name, description, price, stock },
+      originalProduct: product 
+    });
     console.error("Failed to update product:", error);
     return { success: false, messageKey: "error.unexpected" };
   }
@@ -127,21 +157,34 @@ export async function deleteProduct(productId: string): Promise<ActionResponse> 
     const storeId = user.storeId;
 
     if (!storeId) {
+        await logFailedAction(user, 'delete_product', productId, 'Store ID missing');
         return { success: false, messageKey: "error.storeIdMissing" };
     }
 
     const product = await getProduct(productId);
     if (!product || product.storeId !== storeId) {
+        await logFailedAction(user, 'delete_product', productId, 'Product not found or access denied');
         return { success: false, messageKey: 'error.productNotFound' };
     }
 
     try {
         await deleteProductFromDb(productId, storeId);
-        await logActivity(user, 'delete_product', productId, { product });
+        await logUserAction(user, 'delete_product', productId, { 
+          product,
+          storeId 
+        }, undefined, {
+          category: 'product',
+          severity: 'high',
+          targetType: 'product',
+          storeId,
+        });
         revalidatePath("/products");
         return { success: true, messageKey: "productActions.toast.deletedSuccess" };
-    } catch (error) {
-        await logActivity(user, 'delete_product_failed', productId, { error: error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error) });
+    } catch (error: unknown) {
+        const errorMessage = error && typeof error === 'object' && 'message' in error ? (error as any).message : String(error);
+        await logFailedAction(user, 'delete_product', productId, errorMessage, { 
+          product 
+        });
         console.error("Failed to delete product:", error);
         return { success: false, messageKey: "error.unexpected" };
     }
@@ -162,7 +205,7 @@ export async function generateDescriptionAction(
     } else {
       return { success: false, messageKey: "products.toast.aiFail" };
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("AI Description Generation Error:", error);
     return { success: false, messageKey: "error.unexpected" };
   }

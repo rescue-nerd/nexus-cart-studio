@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import StatCard from "@/components/admin/stat-card";
-import { OverviewChart } from "@/components/admin/overview-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, ShoppingCart, Users, Package } from "lucide-react";
+import { DollarSign, ShoppingCart, Users } from "lucide-react";
 import {
   fetchAnalyticsOverview,
   fetchTopProducts,
@@ -17,12 +16,34 @@ interface AnalyticsDashboardProps {
   storeId?: string;
 }
 
+interface OverviewData {
+  totalSales: number;
+  orderVolume: number;
+  recentSignups: { id: string; name: string; email: string; createdAt: string }[];
+}
+
+interface TopProductsData {
+  topProducts: { productId: string; name: string; quantity: number }[];
+}
+
+interface TopCategoriesData {
+  topCategories: { categoryId: string; name: string; quantity: number }[];
+}
+
+interface RecentOrdersData {
+  recentOrders: { id: string; customerName: string; customerEmail: string; total: number }[];
+}
+
+interface RecentSignupsData {
+  recentSignups: { id: string; name: string; email: string; createdAt: string }[];
+}
+
 export function AnalyticsDashboard({ storeId }: AnalyticsDashboardProps) {
-  const [overview, setOverview] = useState<any>(null);
-  const [topProducts, setTopProducts] = useState<any[]>([]);
-  const [topCategories, setTopCategories] = useState<any[]>([]);
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
-  const [recentSignups, setRecentSignups] = useState<any[]>([]);
+  const [overview, setOverview] = useState<OverviewData | null>(null);
+  const [topProducts, setTopProducts] = useState<TopProductsData | null>(null);
+  const [topCategories, setTopCategories] = useState<TopCategoriesData | null>(null);
+  const [recentOrders, setRecentOrders] = useState<RecentOrdersData | null>(null);
+  const [recentSignups, setRecentSignups] = useState<RecentSignupsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,10 +59,10 @@ export function AnalyticsDashboard({ storeId }: AnalyticsDashboardProps) {
     ])
       .then(([overviewData, topProductsData, topCategoriesData, recentOrdersData, recentSignupsData]) => {
         setOverview(overviewData);
-        setTopProducts(topProductsData.topProducts || []);
-        setTopCategories(topCategoriesData.topCategories || []);
-        setRecentOrders(recentOrdersData.recentOrders || []);
-        setRecentSignups(recentSignupsData.recentSignups || []);
+        setTopProducts(topProductsData);
+        setTopCategories(topCategoriesData);
+        setRecentOrders(recentOrdersData);
+        setRecentSignups(recentSignupsData);
       })
       .catch((e) => setError(e.message || "Failed to load analytics"))
       .finally(() => setLoading(false));
@@ -88,11 +109,11 @@ export function AnalyticsDashboard({ storeId }: AnalyticsDashboardProps) {
           <CardTitle>Top Products</CardTitle>
         </CardHeader>
         <CardContent>
-          {topProducts.length === 0 ? (
+          {topProducts?.topProducts.length === 0 ? (
             <div>No top products data.</div>
           ) : (
             <ul>
-              {topProducts.map((p) => (
+              {topProducts?.topProducts.map((p) => (
                 <li key={p.productId} className="flex justify-between py-1">
                   <span>{p.name}</span>
                   <span>{p.quantity}</span>
@@ -109,11 +130,11 @@ export function AnalyticsDashboard({ storeId }: AnalyticsDashboardProps) {
           <CardTitle>Top Categories</CardTitle>
         </CardHeader>
         <CardContent>
-          {topCategories.length === 0 ? (
+          {topCategories?.topCategories.length === 0 ? (
             <div>No top categories data.</div>
           ) : (
             <ul>
-              {topCategories.map((c) => (
+              {topCategories?.topCategories.map((c) => (
                 <li key={c.categoryId} className="flex justify-between py-1">
                   <span>{c.name}</span>
                   <span>{c.quantity}</span>
@@ -130,11 +151,11 @@ export function AnalyticsDashboard({ storeId }: AnalyticsDashboardProps) {
           <CardTitle>Recent Orders</CardTitle>
         </CardHeader>
         <CardContent>
-          {recentOrders.length === 0 ? (
+          {recentOrders?.recentOrders.length === 0 ? (
             <div>No recent orders.</div>
           ) : (
             <ul>
-              {recentOrders.map((order) => (
+              {recentOrders?.recentOrders.map((order) => (
                 <li key={order.id} className="flex justify-between py-1">
                   <span>{order.customerName || order.customerEmail}</span>
                   <span>Rs {order.total?.toLocaleString?.() ?? 0}</span>
@@ -152,11 +173,11 @@ export function AnalyticsDashboard({ storeId }: AnalyticsDashboardProps) {
             <CardTitle>Recent Signups</CardTitle>
           </CardHeader>
           <CardContent>
-            {recentSignups.length === 0 ? (
+            {recentSignups?.recentSignups.length === 0 ? (
               <div>No recent signups.</div>
             ) : (
               <ul>
-                {recentSignups.map((user) => (
+                {recentSignups?.recentSignups.map((user) => (
                   <li key={user.id} className="flex justify-between py-1">
                     <span>{user.name || user.email}</span>
                     <span>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : ""}</span>

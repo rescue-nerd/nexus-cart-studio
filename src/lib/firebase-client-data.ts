@@ -1,4 +1,4 @@
-proce'use client';
+'use client';
 
 import { app } from '@/lib/firebase';
 import { 
@@ -35,7 +35,6 @@ const docToType = <T>(doc: QueryDocumentSnapshot<DocumentData>): T => {
     return { id: doc.id, ...processedData } as T;
 };
 
-// --- Store Functions ---
 export async function getStore(storeId: string): Promise<Store | null> {
     if (!db) return null;
     
